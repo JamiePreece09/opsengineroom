@@ -1704,58 +1704,54 @@ function renderJobBoard(){
         // Column 1: Scheduled Contract Workflow
         if(col.id==='Scheduled'){
           if(b.contractSigned){
-            docActionHtml=`<span class="dw-status-pill signed">✓ Contract Signed</span>`;
+            docActionHtml=`<button class="kb-primary-btn success" disabled>✓ Contract Signed</button>`;
           } else {
-            docActionHtml=`<button class="dw-action-btn" onclick="event.stopPropagation();openDocuWareContractModal('${b.id}')">Generate Agreement</button>`;
+            docActionHtml=`<button class="kb-primary-btn" onclick="event.stopPropagation();openDocuWareContractModal('${b.id}')">Generate Agreement</button>`;
           }
         }
         // Column 2: Dispatched
         else if(col.id==='Dispatched'){
-          docActionHtml=`<span class="dw-status-pill secured">En Route / Mobilizing</span>`;
+          docActionHtml=`<button class="kb-primary-btn" style="background:#8b5cf6;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Mobilize On-Site →</button>`;
         }
         // Column 3: On-Site
         else if(col.id==='On-Site'){
-          docActionHtml=`<span class="dw-status-pill onsite">Active On-Site</span>`;
+          docActionHtml=`<button class="kb-primary-btn" style="background:#d97706;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Finish Shift →</button>`;
         }
         // Column 4: Docket Verification
         else if(col.id==='Docket Verification'){
           if(b.docketUploaded){
-            docActionHtml=`<span class="dw-status-pill verified">✓ Hours Verified</span>`;
+            docActionHtml=`<button class="kb-primary-btn success" disabled>✓ Hours Verified</button>`;
           } else {
-            docActionHtml=`<button class="dw-action-btn" onclick="event.stopPropagation();openDocuWareDocketModal('${b.id}')">Upload Field Docket</button>`;
+            docActionHtml=`<button class="kb-primary-btn" style="background:#06b6d4;" onclick="event.stopPropagation();openDocuWareDocketModal('${b.id}')">Upload Field Docket</button>`;
           }
         }
-        // Column 5: Complete & Ready to Bill (Billing Lockout Enforcement!)
+        // Column 5: Complete & Ready to Bill (Billing Lockout Safeguard!)
         else if(col.id==='Completed'){
           if(b.docketUploaded){
-            docActionHtml=`<button class="dw-action-btn" style="background:#059669;" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">Issue Invoice</button>`;
+            docActionHtml=`<button class="kb-primary-btn success" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">Issue Invoice</button>`;
           } else {
-            docActionHtml=`<button class="dw-action-btn secondary disabled" style="opacity:0.6;cursor:not-allowed;" disabled title="Upload Field Docket in Docket Verification stage to unlock billing">Issue Invoice 🔒</button>`;
+            docActionHtml=`<button class="kb-primary-btn disabled" disabled title="Upload Field Docket in Docket Verification stage to unlock billing">Issue Invoice 🔒</button>`;
           }
         }
         // Column 6: Invoiced
         else if(col.id==='Invoiced'){
-          docActionHtml=`<button class="dw-action-btn secondary" onclick="event.stopPropagation();openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')">View Billing Record</button>`;
+          docActionHtml=`<button class="kb-primary-btn" style="background:#334155;" onclick="event.stopPropagation();openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')">View Billing Record</button>`;
         }
 
         html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
-          <div class="kb-card-top">
-            <span class="kb-asset-badge" style="background:${assetColor};">${b.assetNumber}</span>
-            <span class="kb-time">${dateStr} ${timeStr}</span>
-          </div>
-          <div class="kb-client">${b.clientName}</div>
-          <div class="kb-desc">${b.jobDescription||'General plant hire operation'}</div>
-          <div class="kb-operator">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            ${b.operatorName||'Unassigned Operator'}
-          </div>
-          <div class="kb-dw-badge">
+          <div class="kb-card-header">
+            <span class="kb-asset-tag" style="background:${assetColor};">${b.assetNumber}</span>
             ${dwStatusPillHtml}
-            ${docActionHtml}
           </div>
-          <div style="display:flex;gap:4px;margin-top:6px;">
-            ${col.id!=='Scheduled'?`<button class="dw-action-btn secondary" style="padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">← Prev</button>`:''}
-            ${col.id!=='Invoiced'?`<button class="dw-action-btn" style="flex:1;padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
+          <div class="kb-client-name">${b.clientName}</div>
+          <div class="kb-meta-row">
+            <span>📅 ${dateStr}</span>
+            <span>👤 ${b.operatorName ? b.operatorName.split(' ')[0] : 'Unassigned'}</span>
+          </div>
+          <div class="kb-footer-actions">
+            ${col.id!=='Scheduled'?`<button class="kb-nav-arrow" title="Previous Stage" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
+            ${docActionHtml}
+            ${col.id!=='Invoiced'?`<button class="kb-nav-arrow" title="Next Stage" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">→</button>`:''}
           </div>
         </div>`;
       });
