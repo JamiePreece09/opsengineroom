@@ -641,6 +641,26 @@
   </div>
 </div>
 
+<!-- DocuWare Account Statement PDF Viewer Modal Overlay -->
+<div class="modal-overlay" id="docuware-statement-modal">
+  <div class="modal-box" style="max-width:760px;width:90vw;max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">DOCUWARE ARCHIVE // ACCOUNT STATEMENT</div>
+        <h2 id="statement-modal-title">Compiled Monthly Account Statement</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-statement-modal')">✕</button>
+    </div>
+    <div id="statement-modal-body" style="flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:14px;">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-statement-modal')">Close Statement</button>
+      <button class="btn-primary" onclick="alert('Downloading Certified Account Statement PDF from DocuWare Vault...')">Download Statement PDF</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 <div id="cdp-popup"></div>

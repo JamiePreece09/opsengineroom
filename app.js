@@ -1782,7 +1782,7 @@ function moveBookingStatus(id,dir){
 
   // Chronological Lock Safeguard: Future jobs cannot be moved to Invoiced
   if(targetStage==='Invoiced' && new Date(b.startTime) > new Date()){
-    alert(`🚫 Chronological Safeguard: Job for ${b.clientName} is scheduled in the future and cannot be moved to Invoiced until work is executed.`);
+  alert(`🚫 Chronological Safeguard: Job for ${b.clientName} is scheduled in the future and cannot be moved to Invoiced until work is executed.`);
     return;
   }
 
@@ -1797,8 +1797,116 @@ function moveBookingStatus(id,dir){
   renderCalendar();
 }
 
-function triggerDocuWareDoc(id,clientName){
-  alert(`Document Engine Workflow Triggered\n\nGenerating legal agreement record for ${clientName} (Order #${id})...\nArchived into Enterprise Document Repository.`);
+/* ── PHASE 4: CLIENTS DIRECTORY & DOCUWARE SMART CONNECT ── */
+function openClientStatementPDF(clientName){
+  const modal=document.getElementById('docuware-statement-modal');
+  const titleEl=document.getElementById('statement-modal-title');
+  const bodyEl=document.getElementById('statement-modal-body');
+  if(!modal||!bodyEl)return;
+
+  titleEl.textContent=`Compiled Account Statement — ${clientName}`;
+
+  const clientBookings=bookings.filter(b=>b.clientName===clientName);
+  let invoicedTotal=0;
+  let wipTotal=0;
+
+  clientBookings.forEach(b=>{
+    const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+    const prefix=b.assetNumber.replace(/[0-9]/g,'');
+    const rate=HOURLY_RATES[prefix]||200;
+    const rev=dur*rate;
+
+    if(b.status==='Invoiced') invoicedTotal+=rev;
+    else wipTotal+=rev;
+  });
+
+  const grandTotal=invoicedTotal+wipTotal;
+
+  let html=`
+  <div style="background:#ffffff;border:1px solid var(--border-strong);padding:24px;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:16px;font-family:'Plus Jakarta Sans',sans-serif;">
+    
+    <!-- Statement Letterhead -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--brand-primary);padding-bottom:14px;">
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--brand-primary);letter-spacing:-0.3px;">HIREENGINE HEAVY EQUIPMENT HIRE PTY LTD</div>
+        <div style="font-size:11px;color:var(--text-muted);">ABN 48 912 401 882 | Operations Control HQ — Queensland</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="dw-status-pill signed" style="font-size:10px;">✓ DocuWare Verified Vault Record</span>
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-top:4px;">Date: ${formatAUDate(new Date().toISOString())}</div>
+      </div>
+    </div>
+
+    <!-- Account Details -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;background:var(--bg-secondary);padding:14px;border-radius:var(--radius-md);font-size:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Statement Customer</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text-primary);margin-top:2px;">${clientName}</div>
+        <div style="color:var(--text-secondary);margin-top:2px;">Commercial Credit Account</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Statement Reference</div>
+        <div style="font-family:monospace;font-size:14px;font-weight:700;color:var(--accent-primary);">#DW-STMT-${Math.floor(100000+Math.random()*900000)}</div>
+        <div style="color:var(--text-secondary);margin-top:2px;">Billing Cycle: Active Month</div>
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;">
+      <div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);padding:12px;border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:#059669;text-transform:uppercase;">Invoiced Revenue</div>
+        <div style="font-size:18px;font-weight:800;color:#059669;margin-top:2px;">${formatAUDCurrency(invoicedTotal)}</div>
+      </div>
+      <div style="background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.2);padding:12px;border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:#d97706;text-transform:uppercase;">Unbilled WIP</div>
+        <div style="font-size:18px;font-weight:800;color:#d97706;margin-top:2px;">${formatAUDCurrency(wipTotal)}</div>
+      </div>
+      <div style="background:rgba(15,23,42,0.04);border:1px solid var(--border-strong);padding:12px;border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:var(--text-primary);text-transform:uppercase;">Total Financial Exposure</div>
+        <div style="font-size:18px;font-weight:800;color:var(--text-primary);margin-top:2px;">${formatAUDCurrency(grandTotal)}</div>
+      </div>
+    </div>
+
+    <!-- Live Document Index Ledger -->
+    <div style="font-size:12px;font-weight:800;color:var(--text-primary);margin-top:4px;">Underlying Indexed DocuWare Files (${clientBookings.length} Records)</div>
+    <div class="compliance-table-wrap">
+      <table class="compliance-table">
+        <thead>
+          <tr>
+            <th>Document Type</th>
+            <th>DocID</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Amount ($ AUD)</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+  clientBookings.forEach(b=>{
+    const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+    const prefix=b.assetNumber.replace(/[0-9]/g,'');
+    const rate=HOURLY_RATES[prefix]||200;
+    const rev=dur*rate;
+    const dateStr=formatAUDate(b.startTime);
+
+    html+=`
+    <tr>
+      <td><strong>${b.assetNumber} Plant Deployment</strong> (${b.jobDescription||'Plant hire'})</td>
+      <td style="font-family:monospace;font-size:11px;">#DW-DOC-${b.id}</td>
+      <td>${dateStr}</td>
+      <td><span class="dw-status-pill ${b.status==='Invoiced'?'signed':'pending'}">${b.status==='Invoiced'?'Invoiced & Archived':'Unbilled WIP'}</span></td>
+      <td style="font-weight:700;color:var(--text-primary);">${formatAUDCurrency(rev)}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>
+  <div style="font-size:11px;color:var(--text-muted);text-align:center;font-style:italic;margin-top:4px;">
+    🔒 Official document statement generated by DocuWare Smart Connect API. Archived in Cloud Vault.
+  </div>
+  </div>`;
+
+  bodyEl.innerHTML=html;
+  modal.classList.add('open');
 }
 
 /* ── ENTERPRISE CLIENT DIRECTORY WITH FINANCIAL PIPELINE FLOW ── */
@@ -1810,8 +1918,14 @@ function renderClientsView(){
   const sortOption=document.getElementById('client-sort-filter')?.value||'revenue_desc';
 
   const creditTermsMap={
-    'Lendlease Group':'30-Day Credit Approved',
+    'BuildCorp Inc.':'30-Day Credit Approved',
+    'Civil Works Pty Ltd':'30-Day Credit Approved',
     'Apex Constructions':'14-Day Credit Approved',
+    'Fulton Hogan':'30-Day Credit Approved',
+    'Lendlease Group':'30-Day Credit Approved',
+    'CPB Contractors':'30-Day Credit Approved',
+    'John Holland Group':'30-Day Credit Approved',
+    'Multiplex Constructions':'30-Day Credit Approved',
     'Civil Mining & Construction':'30-Day Credit Approved',
     'City Infrastructure':'Pre-paid / COD',
     'Metro Rail Authority':'30-Day Credit Approved',
@@ -1849,7 +1963,8 @@ function renderClientsView(){
     clientMap[c].jobs++;
     clientMap[c].totalSpend+=rev;
 
-    if(b.status==='Invoiced'||b.status==='Completed') {
+    // Dynamic WIP vs Invoiced split based on live document status
+    if(b.status==='Invoiced') {
       clientMap[c].invoicedSpend+=rev;
     } else {
       clientMap[c].unbilledSpend+=rev;
@@ -1879,8 +1994,8 @@ function renderClientsView(){
   else if(sortOption==='name_asc') clients.sort((a,b)=>a.name.localeCompare(b.name));
 
   const activeAccountsCount=clients.length;
-  const formattedGrandTotal='$'+Math.round(grandTotalRevenue).toLocaleString()+' AUD';
-  const formattedUnbilled='$'+Math.round(grandTotalUnbilled).toLocaleString()+' AUD';
+  const formattedGrandTotal=formatAUDCurrency(grandTotalRevenue);
+  const formattedUnbilled=formatAUDCurrency(grandTotalUnbilled);
 
   let html=`
   <!-- Client Directory KPI Header Bar -->
@@ -1908,10 +2023,10 @@ function renderClientsView(){
       <thead>
         <tr>
           <th>Client Account Name</th>
-          <th>Credit Terms</th>
+          <th>Credit Terms &amp; Risk Alert</th>
           <th style="text-align:center;">Jobs</th>
           <th>Financial Flow (WIP vs Invoiced)</th>
-          <th>Total Revenue</th>
+          <th>Total Exposure</th>
           <th>Equipment Hired</th>
           <th>Last Active</th>
           <th>Account Actions</th>
@@ -1923,41 +2038,46 @@ function renderClientsView(){
     html+=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No client accounts match your search query.</td></tr>`;
   } else {
     clients.forEach(c=>{
-      const formattedTotal='$'+Math.round(c.totalSpend).toLocaleString();
-      const formattedWip='$'+Math.round(c.unbilledSpend).toLocaleString();
-      const formattedInv='$'+Math.round(c.invoicedSpend).toLocaleString();
+      const formattedTotal=formatAUDCurrency(c.totalSpend);
+      const formattedWip=formatAUDCurrency(c.unbilledSpend);
+      const formattedInv=formatAUDCurrency(c.invoicedSpend);
       const assetsList=Array.from(c.assetsUsed).join(', ');
       const lastDate=formatAUDate(c.lastJob);
 
-      let termBadgeCls='valid';
-      if(c.creditTerms.includes('Pre-paid')) termBadgeCls='warning';
+      // Automated Credit Risk Logic: If exposure > $10,000, trigger Amber Warning Badge!
+      let termBadgeHtml=`<span class="status-pill valid">✓ ${c.creditTerms}</span>`;
+      if(c.creditTerms.includes('Pre-paid')){
+        termBadgeHtml=`<span class="status-pill warning">${c.creditTerms}</span>`;
+      } else if(c.totalSpend > 10000){
+        termBadgeHtml=`<span class="status-pill warning">⚠️ Credit Limit Approaching</span>`;
+      }
 
       const total=c.totalSpend||1;
       const pctInv=Math.round((c.invoicedSpend/total)*100);
       const pctWip=100-pctInv;
 
       html+=`<tr style="cursor:pointer;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')" title="Click to view detailed job & financial ledger">
-        <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${c.name}</td>
-        <td><span class="status-pill ${termBadgeCls}">${c.creditTerms}</span></td>
-        <td style="font-weight:700;text-align:center;">${c.jobs}</td>
-        <td style="min-width:180px;">
-          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:3px;">
+        <td style="font-weight:800;font-size:14px;color:var(--text-primary);">${c.name}</td>
+        <td>${termBadgeHtml}</td>
+        <td style="font-weight:800;text-align:center;">${c.jobs}</td>
+        <td style="min-width:190px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:4px;">
             <span style="color:#d97706;">WIP: ${formattedWip}</span>
-            <span style="color:#10b981;">Inv: ${formattedInv}</span>
+            <span style="color:#059669;">Inv: ${formattedInv}</span>
           </div>
-          <div style="height:6px;width:100%;background:rgba(217,119,6,0.18);border-radius:4px;overflow:hidden;display:flex;">
+          <div style="height:7px;width:100%;background:rgba(217,119,6,0.18);border-radius:4px;overflow:hidden;display:flex;">
             <div style="width:${pctWip}%;background:#d97706;height:100%;" title="Unbilled WIP: ${formattedWip}"></div>
-            <div style="width:${pctInv}%;background:#10b981;height:100%;" title="Invoiced Revenue: ${formattedInv}"></div>
+            <div style="width:${pctInv}%;background:#059669;height:100%;" title="Invoiced Revenue: ${formattedInv}"></div>
           </div>
         </td>
-        <td style="font-weight:700;color:var(--accent-primary);font-size:14px;">${formattedTotal}</td>
+        <td style="font-weight:800;color:var(--accent-primary);font-size:14px;">${formattedTotal}</td>
         <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
         <td style="font-weight:600;font-size:12px;">${lastDate}</td>
         <td style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation();">
-          <button class="btn-primary" style="height:30px;padding:0 10px;font-size:11px;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
+          <button class="dw-action-btn" style="background:#0f172a;height:32px;padding:0 12px;font-size:11px;" onclick="openDocuWareSmartConnect('${c.name.replace(/'/g,"\\'")}')">
             View Ledger &amp; Jobs
           </button>
-          <button class="btn-secondary" style="height:30px;padding:0 8px;font-size:11px;" onclick="alert('Generating Verified Account Statement PDF for ${c.name}...')">
+          <button class="dw-action-btn secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="openClientStatementPDF('${c.name.replace(/'/g,"\\'")}')">
             Statement PDF
           </button>
         </td>
