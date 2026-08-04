@@ -1332,44 +1332,59 @@ function switchTab(tab){
   else if(tab==='calendar') renderCalendar();
 }
 
-/* ── JOB BOARD KANBAN ── */
+/* ── JOB BOARD KANBAN WITH SEARCH & FILTER ── */
 function renderJobBoard(){
   const container=document.getElementById('job-board-container');
   if(!container)return;
 
+  const searchQuery=(document.getElementById('jb-search')?.value||'').toLowerCase().trim();
+  const stageFilter=document.getElementById('jb-stage-filter')?.value||'ALL';
+
   const columns=[
-    {id:'Scheduled',title:'Scheduled',icon:'📅',color:'#1C4B8B'},
-    {id:'Dispatched',title:'Dispatched',icon:'🚛',color:'#835ac7'},
-    {id:'On-Site',title:'On-Site',icon:'🏗',color:'#4ac77a'},
-    {id:'Completed',title:'Complete',icon:'✅',color:'#09e3df'},
-    {id:'Invoiced',title:'Invoiced',icon:'📄',color:'#d67e83'}
+    {id:'Scheduled',title:'Scheduled',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',color:'#1C4B8B'},
+    {id:'Dispatched',title:'Dispatched',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',color:'#835ac7'},
+    {id:'On-Site',title:'On-Site',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>',color:'#4ac77a'},
+    {id:'Completed',title:'Complete',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',color:'#09e3df'},
+    {id:'Invoiced',title:'Invoiced',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',color:'#d67e83'}
   ];
+
+  let filteredBookings=bookings;
+  if(searchQuery){
+    filteredBookings=filteredBookings.filter(b=>
+      b.clientName.toLowerCase().includes(searchQuery)||
+      b.assetNumber.toLowerCase().includes(searchQuery)||
+      (b.operatorName||'').toLowerCase().includes(searchQuery)||
+      (b.jobDescription||'').toLowerCase().includes(searchQuery)
+    );
+  }
 
   let html=`<div class="kanban-board">`;
 
   columns.forEach(col=>{
-    const colBookings=bookings.filter(b=>(b.status||'Scheduled')===col.id);
+    if(stageFilter!=='ALL'&&stageFilter!==col.id) return;
+
+    const colBookings=filteredBookings.filter(b=>(b.status||'Scheduled')===col.id);
     html+=`<div class="kanban-col">
       <div class="kanban-header">
-        <div class="kanban-title"><span style="color:${col.color}">${col.icon}</span> ${col.title}</div>
+        <div class="kanban-title"><span style="color:${col.color}">${col.svg}</span> ${col.title}</div>
         <span class="kanban-count">${colBookings.length}</span>
       </div>
       <div class="kanban-cards">`;
 
     if(colBookings.length===0){
-      html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs in this stage</div>`;
+      html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs match criteria</div>`;
     } else {
       colBookings.forEach(b=>{
         const assetColor=ASSET_HEX[b.assetNumber]||'#1C4B8B';
         const startD=new Date(b.startTime);
         const timeStr=startD.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
         
-        let dwActionText='📄 Generate Agreement';
-        let dwBadgeText='DocuWare: Draft';
-        if(b.status==='Dispatched'){dwActionText='📄 Dispatch Slip';dwBadgeText='DocuWare: Dispatched';}
-        else if(b.status==='On-Site'){dwActionText='📄 Site Check-in';dwBadgeText='DocuWare: Active Job';}
-        else if(b.status==='Completed'){dwActionText='📄 Generate Invoice';dwBadgeText='DocuWare: Complete';}
-        else if(b.status==='Invoiced'){dwActionText='📄 View Invoice PDF';dwBadgeText='DocuWare: Filed';}
+        let docActionText='Generate Agreement';
+        let docBadgeText='Contract Draft';
+        if(b.status==='Dispatched'){docActionText='Dispatch Docket';docBadgeText='Dispatched';}
+        else if(b.status==='On-Site'){docActionText='Site Checklist';docBadgeText='Active On-Site';}
+        else if(b.status==='Completed'){docActionText='Issue Invoice';docBadgeText='Ready to Bill';}
+        else if(b.status==='Invoiced'){docActionText='View Billing Record';docBadgeText='Archived & Billed';}
 
         html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
           <div class="kb-card-top">
@@ -1378,14 +1393,17 @@ function renderJobBoard(){
           </div>
           <div class="kb-client">${b.clientName}</div>
           <div class="kb-desc">${b.jobDescription||'General plant hire operation'}</div>
-          <div class="kb-operator">👤 ${b.operatorName||'Unassigned'}</div>
+          <div class="kb-operator">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            ${b.operatorName||'Unassigned Operator'}
+          </div>
           <div class="kb-dw-badge">
-            <span>${dwBadgeText}</span>
-            <button class="kb-action-btn" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">${dwActionText}</button>
+            <span>${docBadgeText}</span>
+            <button class="kb-action-btn" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">${docActionText}</button>
           </div>
           <div style="display:flex;gap:4px;margin-top:4px;">
-            ${col.id!=='Scheduled'?`<button class="kb-action-btn" style="background:#6b7280;padding:2px 6px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
-            ${col.id!=='Invoiced'?`<button class="kb-action-btn" style="background:#1C4B8B;flex:1;padding:2px 6px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
+            ${col.id!=='Scheduled'?`<button class="kb-action-btn" style="background:#6b7280;padding:2px 8px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
+            ${col.id!=='Invoiced'?`<button class="kb-action-btn" style="background:#1C4B8B;flex:1;padding:2px 8px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
           </div>
         </div>`;
       });
@@ -1410,13 +1428,16 @@ function moveBookingStatus(id,dir){
 }
 
 function triggerDocuWareDoc(id,clientName){
-  alert(`⚡ DocuWare Automation Triggered!\n\nGenerating document workflow for ${clientName} (Job #${id})...\nDocument archived to DocuWare Cabinet: "Plant Hire Contracts & Invoices".`);
+  alert(`Document Engine Workflow Triggered\n\nGenerating legal agreement record for ${clientName} (Order #${id})...\nArchived into Enterprise Document Repository.`);
 }
 
-/* ── CLIENTS DIRECTORY ── */
+/* ── STREAMLINED CLIENTS DIRECTORY WITH SEARCH & FILTER ── */
 function renderClientsView(){
   const container=document.getElementById('clients-container');
   if(!container)return;
+
+  const searchQuery=(document.getElementById('client-search')?.value||'').toLowerCase().trim();
+  const sortOption=document.getElementById('client-sort-filter')?.value||'revenue_desc';
 
   const clientMap={};
   bookings.forEach(b=>{
@@ -1433,7 +1454,25 @@ function renderClientsView(){
     if(new Date(b.startTime)>new Date(clientMap[c].lastJob)) clientMap[c].lastJob=b.startTime;
   });
 
-  const clients=Object.values(clientMap).sort((a,b)=>b.totalSpend-a.totalSpend);
+  let clients=Object.values(clientMap);
+
+  // Search filter
+  if(searchQuery){
+    clients=clients.filter(c=>
+      c.name.toLowerCase().includes(searchQuery)||
+      Array.from(c.assetsUsed).some(a=>a.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Sort
+  if(sortOption==='revenue_desc') clients.sort((a,b)=>b.totalSpend-a.totalSpend);
+  else if(sortOption==='jobs_desc') clients.sort((a,b)=>b.jobs-a.jobs);
+  else if(sortOption==='name_asc') clients.sort((a,b)=>a.name.localeCompare(b.name));
+
+  if(clients.length===0){
+    container.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">No client accounts match your search query.</div>`;
+    return;
+  }
 
   let html=`<div class="clients-grid">`;
   clients.forEach(c=>{
@@ -1441,33 +1480,33 @@ function renderClientsView(){
     const assetsList=Array.from(c.assetsUsed).join(', ');
     const lastDate=new Date(c.lastJob).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
 
-    html+=`<div class="client-card glass-panel">
+    html+=`<div class="client-card">
       <div class="client-card-header">
         <div>
           <div class="client-name">${c.name}</div>
-          <div style="font-size:11px;color:var(--text-muted);">Active Account</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Enterprise Account</div>
         </div>
-        <span class="client-stat-pill">DocuWare Verified</span>
+        <span class="client-stat-pill">Verified Account</span>
       </div>
       <div class="client-stats-row">
-        <div>
+        <div class="cs-item">
           <div class="cs-num">${c.jobs}</div>
-          <div class="cs-lbl">Total Jobs</div>
+          <div class="cs-lbl">Deployments</div>
         </div>
-        <div>
+        <div class="cs-item">
           <div class="cs-num" style="color:var(--accent-primary);">${formattedSpend}</div>
-          <div class="cs-lbl">Revenue</div>
+          <div class="cs-lbl">Total Billed</div>
         </div>
-        <div>
+        <div class="cs-item">
           <div class="cs-num">${c.assetsUsed.size}</div>
-          <div class="cs-lbl">Assets Used</div>
+          <div class="cs-lbl">Fleet Types</div>
         </div>
       </div>
-      <div class="client-recent-job">
-        <strong>Assets deployed:</strong> ${assetsList}<br>
-        <strong>Last Booking:</strong> ${lastDate}
+      <div class="client-meta-line">
+        <span><strong>Active Fleet:</strong> ${assetsList}</span>
+        <span><strong>Last Booking:</strong> ${lastDate}</span>
       </div>
-      <button class="btn-secondary" style="width:100%;justify-content:center;margin-top:4px;" onclick="alert('⚡ Generating DocuWare Client Account Statement PDF for ${c.name}...')">📄 Send DocuWare Statement</button>
+      <button class="btn-secondary" style="width:100%;justify-content:center;" onclick="alert('Generating Verified Account Ledger & Statement PDF for ${c.name}...')">Generate Account Statement</button>
     </div>`;
   });
   html+=`</div>`;
@@ -1475,10 +1514,13 @@ function renderClientsView(){
   container.innerHTML=html;
 }
 
-/* ── COMPLIANCE & CERTS ── */
+/* ── COMPLIANCE & CERTS WITH SEARCH & FILTER ── */
 function renderComplianceView(){
   const container=document.getElementById('compliance-container');
   if(!container)return;
+
+  const searchQuery=(document.getElementById('compliance-search')?.value||'').toLowerCase().trim();
+  const statusFilter=document.getElementById('compliance-status-filter')?.value||'ALL';
 
   const mockCompliance=[
     {id:'EX01',type:'Excavator 20T',rego:'REG-8829-EX',certDate:'2026-11-15',status:'valid',risk:'Low'},
@@ -1493,6 +1535,20 @@ function renderComplianceView(){
     {id:'DT10',type:'Dump Truck',rego:'REG-6632-DT',certDate:'2026-12-15',status:'valid',risk:'Low'}
   ];
 
+  let filtered=mockCompliance;
+
+  if(searchQuery){
+    filtered=filtered.filter(item=>
+      item.id.toLowerCase().includes(searchQuery)||
+      item.type.toLowerCase().includes(searchQuery)||
+      item.rego.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  if(statusFilter!=='ALL'){
+    filtered=filtered.filter(item=>item.status===statusFilter);
+  }
+
   let html=`<div class="compliance-table-wrap">
     <table class="compliance-table">
       <thead>
@@ -1502,25 +1558,29 @@ function renderComplianceView(){
           <th>Registration #</th>
           <th>Service / Risk Cert Expiry</th>
           <th>Compliance Status</th>
-          <th>DocuWare Records</th>
+          <th>Document Repository</th>
         </tr>
       </thead>
       <tbody>`;
 
-  mockCompliance.forEach(item=>{
-    let pillCls='valid';let pillText='✅ Valid';
-    if(item.status==='warning'){pillCls='warning';pillText='🟡 Service Due (30d)';}
-    else if(item.status==='expired'){pillCls='expired';pillText='🔴 CERT EXPIRED';}
+  if(filtered.length===0){
+    html+=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No compliance records match criteria.</td></tr>`;
+  } else {
+    filtered.forEach(item=>{
+      let pillCls='valid';let pillText='Valid Record';
+      if(item.status==='warning'){pillCls='warning';pillText='Service Due (30d)';}
+      else if(item.status==='expired'){pillCls='expired';pillText='Cert Expired';}
 
-    html+=`<tr>
-      <td style="font-weight:700;">${item.id}</td>
-      <td>${item.type}</td>
-      <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
-      <td style="font-weight:600;">${item.certDate}</td>
-      <td><span class="status-pill ${pillCls}">${pillText}</span></td>
-      <td><button class="btn-secondary" style="height:30px;padding:0 10px;font-size:11px;" onclick="alert('⚡ Fetching certified inspection record for ${item.id} from DocuWare Cloud Cabinet...')">📄 Pull DocuWare Cert</button></td>
-    </tr>`;
-  });
+      html+=`<tr>
+        <td style="font-weight:700;">${item.id}</td>
+        <td>${item.type}</td>
+        <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
+        <td style="font-weight:600;">${item.certDate}</td>
+        <td><span class="status-pill ${pillCls}">${pillText}</span></td>
+        <td><button class="btn-secondary" style="height:30px;padding:0 12px;font-size:11px;" onclick="alert('Retrieving certified inspection record for ${item.id} from Document Vault...')">Fetch Cert Record</button></td>
+      </tr>`;
+    });
+  }
 
   html+=`</tbody></table></div>`;
   container.innerHTML=html;
@@ -1539,10 +1599,10 @@ function renderNotifications(){
   if(!body)return;
 
   const items=[
-    {type:'urgent',title:'🔴 High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30 July. Future bookings flagged for risk review.',time:'10 mins ago'},
-    {type:'dw',title:'⚡ DocuWare Webhook Event',msg:'Hire Agreement #HA-9942 signed by Fulton Hogan for job b23.',time:'1 hour ago'},
-    {type:'normal',title:'🟡 Maintenance Warning',msg:'EX02 Excavator 35T service due in 12 days (16 Aug 2026).',time:'3 hours ago'},
-    {type:'dw',title:'📄 Invoice Archived',msg:'DocuWare automated billing engine filed invoice for Metro Rail Authority ($2,400).',time:'Yesterday'}
+    {type:'urgent',title:'High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30 July. Future bookings flagged for risk review.',time:'10 mins ago'},
+    {type:'dw',title:'Automated Document Event',msg:'Hire Agreement #HA-9942 signed & archived for Fulton Hogan (Job b23).',time:'1 hour ago'},
+    {type:'normal',title:'Maintenance Scheduled',msg:'EX02 Excavator 35T service due in 12 days (16 Aug 2026).',time:'3 hours ago'},
+    {type:'dw',title:'Billing Record Archived',msg:'Automated billing engine filed invoice for Metro Rail Authority ($2,400).',time:'Yesterday'}
   ];
 
   body.innerHTML=items.map(item=>`
@@ -1569,4 +1629,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderCalendar();
   applyDatePreset();
 });
+
 
