@@ -2122,7 +2122,7 @@ function openClientLedger(clientName){
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:var(--bg-secondary);padding:14px;border-radius:var(--radius-lg);border:1px solid var(--border-light);">
     <div>
       <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Account Total Billed</div>
-      <div style="font-size:20px;font-weight:700;font-family:'Michroma',sans-serif;color:var(--accent-primary);margin-top:2px;">${formattedBilled}</div>
+      <div style="font-size:20px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--accent-primary);margin-top:2px;">${formattedBilled}</div>
     </div>
     <div>
       <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Deployments Overview</div>
@@ -2130,7 +2130,7 @@ function openClientLedger(clientName){
     </div>
     <div>
       <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Billing Engine Sync</div>
-      <div style="font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">● Synchronized with Repository</div>
+      <div style="font-size:12px;font-weight:700;color:#059669;margin-top:4px;">● Synchronized with Repository</div>
     </div>
   </div>
 

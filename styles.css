@@ -195,7 +195,7 @@ body {
 .brand-header-wrap { display: flex; align-items: center; gap: 10px; width: 100%; overflow: hidden; }
 .brand-icon-box { width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(59,130,246,0.35); box-shadow: 0 2px 10px rgba(59,130,246,0.25); flex-shrink: 0; }
 .brand-titles { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
-.brand-main-name { font-family: 'Michroma', sans-serif; font-size: 11px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-main-name { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-sub-tag { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-status-bar { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; width: fit-content; margin-top: 2px; }
 .status-live-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #10b981; box-shadow: 0 0 6px #10b981; }
@@ -265,7 +265,7 @@ body {
 
 .nav-btn, .today-btn, .view-btn, .btn-primary, .btn-secondary, .dropdown-btn {
   display: inline-flex; align-items: center; border: none; border-radius: var(--radius-md);
-  cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.2s ease;
+  cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; transition: all 0.2s ease;
 }
 .nav-btn {
   width: 34px; height: 34px; justify-content: center;
@@ -297,7 +297,7 @@ body {
   border: none;
   padding: 0;
 }
-.display-date { font-size: 15px; font-weight: 700; min-width: 200px; text-align: center; font-family: 'Michroma', sans-serif; letter-spacing: 0.5px; }
+.display-date { font-size: 15px; font-weight: 700; min-width: 200px; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.5px; }
 .view-toggles { display: flex; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
 .view-btn { padding: 5px 14px; height: 30px; background: transparent; font-size: 13px; color: var(--text-secondary); border-radius: 8px; }
 .view-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
@@ -430,7 +430,7 @@ body {
 }
 
 .drag-ghost-time {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -487,7 +487,7 @@ body {
 .form-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
 .form-group input, .form-group select, .form-group textarea {
   padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
-  font-family: 'Montserrat', sans-serif; font-size: 14px; color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text-primary);
   background: var(--bg-secondary); outline: none; transition: border-color 0.2s;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-primary); }
@@ -541,7 +541,7 @@ body {
 .settings-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
 .settings-field input, .settings-field select {
   padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
-  font-family: 'Montserrat', sans-serif; font-size: 14px; background: var(--bg-secondary);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; background: var(--bg-secondary);
 }
 .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .status-badge.connected { background: rgba(16,185,129,0.1); color: #10b981; }
@@ -565,7 +565,7 @@ body {
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .hours-select {
@@ -574,7 +574,7 @@ body {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 13px;
   font-weight: 500;
   padding: 0 4px;
@@ -642,7 +642,7 @@ body {
 .am-id-tag {
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: var(--text-primary);
   white-space: nowrap;
 }
@@ -652,7 +652,7 @@ body {
   padding: 0 10px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-secondary);
@@ -684,7 +684,7 @@ body {
   padding: 0 8px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  font-family: 'Montserrat', monospace;
+  font-family: 'Plus Jakarta Sans', monospace;
   font-size: 12px;
   color: var(--text-primary);
   background: var(--bg-secondary);
@@ -713,7 +713,7 @@ body {
 .am-confirm-yes {
   height: 26px; padding: 0 10px; border-radius: var(--radius-sm);
   background: #ef4444; color: #fff; border: none;
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700;
   cursor: pointer; transition: background 0.15s;
 }
 .am-confirm-yes:hover { background: #dc2626; }
@@ -721,7 +721,7 @@ body {
   height: 26px; padding: 0 10px; border-radius: var(--radius-sm);
   background: var(--bg-secondary); color: var(--text-secondary);
   border: 1px solid var(--border-light);
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 600;
   cursor: pointer; transition: background 0.15s;
 }
 .am-confirm-no:hover { background: var(--bg-tertiary); }
@@ -741,7 +741,7 @@ body {
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-secondary);
@@ -767,7 +767,7 @@ body {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-primary);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   white-space: nowrap;
 }
 
@@ -857,7 +857,7 @@ body {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -887,7 +887,7 @@ body {
   transform: translateY(-8px) scale(0.97);
   pointer-events: none;
   transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   user-select: none;
 }
 #cdp-popup.open { opacity: 1; transform: none; pointer-events: all; }
@@ -922,8 +922,8 @@ body {
 .search-input-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 0 12px; height: 38px; flex: 1; max-width: 420px; transition: border-color 0.2s; }
 .search-input-wrap:focus-within { border-color: var(--accent-primary); background: #ffffff; }
 .search-input-wrap svg { color: var(--text-muted); flex-shrink: 0; }
-.search-input-wrap input { border: none; background: transparent; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text-primary); outline: none; width: 100%; }
-.module-filter-select { height: 38px; padding: 0 14px; background: var(--bg-secondary); border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); cursor: pointer; outline: none; transition: border-color 0.2s; }
+.search-input-wrap input { border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--text-primary); outline: none; width: 100%; }
+.module-filter-select { height: 38px; padding: 0 14px; background: var(--bg-secondary); border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); cursor: pointer; outline: none; transition: border-color 0.2s; }
 .module-filter-select:focus { border-color: var(--accent-primary); }
 
 /* ── Job Board Kanban ── */
@@ -1004,7 +1004,7 @@ body {
 .client-kpi-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; flex-shrink: 0; }
 .client-kpi-card { padding: 18px 22px; display: flex; flex-direction: column; gap: 4px; border-radius: var(--radius-lg); background: var(--bg-primary); border: 1px solid var(--border-light); }
 .ck-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-.ck-val { font-size: 22px; font-weight: 700; font-family: 'Michroma', sans-serif; color: var(--text-primary); margin: 4px 0 2px; }
+.ck-val { font-size: 22px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-primary); margin: 4px 0 2px; }
 .ck-sub { font-size: 12px; color: var(--text-secondary); }
 
 /* ── Compliance Table ── */

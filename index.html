@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HireEngine | Plant &amp; Equipment Dispatch System</title>
   <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Michroma&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="app-container">
@@ -191,7 +191,7 @@
       <div class="analytics-toolbar">
         <div class="filters">
           <span style="font-size:14px;font-weight:500;color:var(--text-secondary);">Date Range:</span>
-          <select id="analytics-preset-filter" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;" onchange="applyDatePreset()">
+          <select id="analytics-preset-filter" class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;" onchange="applyDatePreset()">
             <option value="this_week" selected>This Week</option>
             <option value="today">Today</option>
             <option value="next_week">Next Week</option>
@@ -199,9 +199,9 @@
             <option value="all">All Time</option>
             <option value="custom">Custom Range</option>
           </select>
-          <input type="date" id="analytics-start-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:13px;" onchange="renderAnalytics()">
+          <input type="date" id="analytics-start-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;" onchange="renderAnalytics()">
           <span style="font-size:14px;color:var(--text-muted);">to</span>
-          <input type="date" id="analytics-end-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:13px;" onchange="renderAnalytics()">
+          <input type="date" id="analytics-end-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;" onchange="renderAnalytics()">
         </div>
       </div>
       <div class="kpi-row">
@@ -381,7 +381,7 @@
           </div>
           <div class="settings-field">
             <label>Alert Threshold</label>
-            <select id="notif-threshold" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+            <select id="notif-threshold" class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;">
               <option>All Events</option>
               <option selected>Urgent Only</option>
               <option>None</option>
@@ -394,7 +394,7 @@
           <div class="settings-section-subtitle">Set regional defaults for the scheduling engine</div>
           <div class="settings-field">
             <label>Timezone</label>
-            <select class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+            <select class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;">
               <option selected>Australia/Brisbane (AEST, UTC+10)</option>
               <option>Australia/Sydney (AEDT, UTC+11)</option>
               <option>Australia/Perth (AWST, UTC+8)</option>
@@ -402,7 +402,7 @@
           </div>
           <div class="settings-field">
             <label>Date Format</label>
-            <select class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+            <select class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;">
               <option selected>DD/MM/YYYY</option>
               <option>MM/DD/YYYY</option>
               <option>YYYY-MM-DD</option>
@@ -411,9 +411,9 @@
           <div class="settings-field">
             <label>Default Work Hours</label>
             <div style="display:flex;align-items:center;gap:10px;">
-              <select id="settings-work-start" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;"><!-- populated by JS --></select>
+              <select id="settings-work-start" class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;"><!-- populated by JS --></select>
               <span style="color:var(--text-muted);font-size:13px;">to</span>
-              <select id="settings-work-end" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;"><!-- populated by JS --></select>
+              <select id="settings-work-end" class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;"><!-- populated by JS --></select>
             </div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Controls the default visible hours on the Command Center calendar.</div>
           </div>
