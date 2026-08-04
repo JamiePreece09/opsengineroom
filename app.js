@@ -1560,19 +1560,19 @@ function renderClientsView(){
       let termBadgeCls='valid';
       if(c.creditTerms.includes('Pre-paid')) termBadgeCls='warning';
 
-      html+=`<tr>
+      html+=`<tr style="cursor:pointer;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
         <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${c.name}</td>
         <td><span class="status-pill ${termBadgeCls}">${c.creditTerms}</span></td>
         <td style="font-weight:700;text-align:center;">${c.jobs}</td>
         <td style="font-weight:700;color:var(--accent-primary);">${formattedSpend}</td>
         <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
         <td style="font-weight:600;">${lastDate}</td>
-        <td style="display:flex;gap:6px;align-items:center;">
-          <button class="btn-secondary" style="height:32px;padding:0 12px;font-size:11px;" onclick="alert('Generating Verified Account Ledger & Statement PDF for ${c.name}...')">
-            Statement PDF
+        <td style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation();">
+          <button class="btn-primary" style="height:32px;padding:0 12px;font-size:11px;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
+            View Ledger &amp; Jobs
           </button>
-          <button class="btn-secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="switchTab('job-board');document.getElementById('jb-search').value='${c.name}';renderJobBoard();">
-            View Jobs
+          <button class="btn-secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="alert('Generating Verified Account Statement PDF for ${c.name}...')">
+            Statement PDF
           </button>
         </td>
       </tr>`;
@@ -1582,6 +1582,118 @@ function renderClientsView(){
   html+=`</tbody></table></div>`;
 
   container.innerHTML=html;
+}
+
+/* ── CLIENT FINANCIAL & OPERATIONAL LEDGER MODAL ── */
+function openClientLedger(clientName){
+  const modal=document.getElementById('client-ledger-modal');
+  const body=document.getElementById('ledger-modal-body');
+  const nameEl=document.getElementById('ledger-client-name');
+  if(!modal||!body)return;
+
+  nameEl.textContent=clientName;
+
+  const clientBookings=bookings.filter(b=>b.clientName===clientName);
+  let totalBilled=0;
+  let invoicedCount=0;
+  let pendingCount=0;
+
+  clientBookings.forEach(b=>{
+    const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+    const prefix=b.assetNumber.replace(/[0-9]/g,'');
+    const rate=HOURLY_RATES[prefix]||200;
+    const rev=dur*rate;
+    totalBilled+=rev;
+
+    if(b.status==='Invoiced'||b.status==='Completed') invoicedCount++;
+    else pendingCount++;
+  });
+
+  const formattedBilled='$'+Math.round(totalBilled).toLocaleString()+' AUD';
+
+  let html=`
+  <!-- Client Summary Bar -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:var(--bg-secondary);padding:14px;border-radius:var(--radius-lg);border:1px solid var(--border-light);">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Account Total Billed</div>
+      <div style="font-size:20px;font-weight:700;font-family:'Michroma',sans-serif;color:var(--accent-primary);margin-top:2px;">${formattedBilled}</div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Deployments Overview</div>
+      <div style="font-size:14px;font-weight:700;margin-top:4px;">${clientBookings.length} Total Jobs (${invoicedCount} Invoiced / ${pendingCount} Active)</div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Billing Engine Sync</div>
+      <div style="font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">● Synchronized with Repository</div>
+    </div>
+  </div>
+
+  <!-- Detailed Jobs & Financial Ledger Table -->
+  <div class="compliance-table-wrap">
+    <table class="compliance-table">
+      <thead>
+        <tr>
+          <th>Date (DD/MM/YYYY)</th>
+          <th>Job Ref</th>
+          <th>Equipment Asset</th>
+          <th>Job Scope / Description</th>
+          <th>Hours</th>
+          <th>Rate ($/hr)</th>
+          <th>Total ($ AUD)</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  if(clientBookings.length===0){
+    html+=`<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-muted);">No booking records found for this account.</td></tr>`;
+  } else {
+    clientBookings.forEach(b=>{
+      const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+      const prefix=b.assetNumber.replace(/[0-9]/g,'');
+      const rate=HOURLY_RATES[prefix]||200;
+      const total=dur*rate;
+      const dateStr=formatAUDate(b.startTime);
+      const assetColor=ASSET_HEX[b.assetNumber]||'#1C4B8B';
+
+      let statusBadge='<span class="status-pill valid">Invoiced</span>';
+      if(b.status==='Scheduled') statusBadge='<span class="status-pill warning">Scheduled</span>';
+      else if(b.status==='On-Site') statusBadge='<span class="status-pill valid" style="background:rgba(26,86,219,0.1);color:#1a56db;">On-Site</span>';
+      else if(b.status==='Urgent') statusBadge='<span class="status-pill expired">Urgent</span>';
+
+      html+=`<tr>
+        <td style="font-weight:600;">${dateStr}</td>
+        <td style="font-family:monospace;font-weight:700;">#${b.id}</td>
+        <td><span class="kb-asset-badge" style="background:${assetColor};">${b.assetNumber}</span></td>
+        <td style="font-size:12px;">${b.jobDescription||'Plant hire operation'}</td>
+        <td style="font-weight:700;text-align:center;">${dur.toFixed(1)} hrs</td>
+        <td style="font-weight:600;">$${rate}/hr</td>
+        <td style="font-weight:700;color:var(--accent-primary);">$${Math.round(total).toLocaleString()}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn-secondary" style="height:28px;padding:0 8px;font-size:10px;" onclick="triggerDocuWareDoc('${b.id}','${clientName}')">
+            View Docket
+          </button>
+        </td>
+      </tr>`;
+    });
+  }
+
+  html+=`</tbody></table></div>`;
+
+  body.innerHTML=html;
+  modal.classList.add('open');
+}
+
+function closeClientLedger(){
+  const modal=document.getElementById('client-ledger-modal');
+  if(modal) modal.classList.remove('open');
+}
+
+function exportClientLedgerPDF(){
+  const name=document.getElementById('ledger-client-name').textContent;
+  alert(`⚡ Exporting Comprehensive Commercial Account Ledger PDF for ${name}...\nIncludes all deployment history, hourly rate breakdowns, and verified invoice records.`);
 }
 
 /* ── COMPLIANCE & CERTS WITH SEARCH & FILTER ── */

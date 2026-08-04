@@ -501,6 +501,26 @@
   </div>
 </div>
 
+<!-- Client Financial & Operational Ledger Modal -->
+<div class="modal-overlay" id="client-ledger-modal">
+  <div class="modal-box" style="max-width:880px;width:95vw;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb" id="ledger-client-tag">COMMERCIAL ACCOUNT LEDGER</div>
+        <h2 id="ledger-client-name">Client Account Ledger</h2>
+      </div>
+      <button class="modal-close" onclick="closeClientLedger()">✕</button>
+    </div>
+    <div id="ledger-modal-body" style="flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:16px;">
+      <!-- Populated by openClientLedger() -->
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeClientLedger()">Close Window</button>
+      <button class="btn-primary" id="ledger-export-btn" onclick="exportClientLedgerPDF()">Export Account Ledger PDF</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 <div id="cdp-popup"></div>
