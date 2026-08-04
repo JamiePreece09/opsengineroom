@@ -1443,13 +1443,26 @@ function triggerDocuWareDoc(id,clientName){
   alert(`Document Engine Workflow Triggered\n\nGenerating legal agreement record for ${clientName} (Order #${id})...\nArchived into Enterprise Document Repository.`);
 }
 
-/* ── ENTERPRISE TABLE CLIENTS DIRECTORY ── */
+/* ── ENTERPRISE CLIENT DIRECTORY ── */
 function renderClientsView(){
   const container=document.getElementById('clients-container');
   if(!container)return;
 
   const searchQuery=(document.getElementById('client-search')?.value||'').toLowerCase().trim();
   const sortOption=document.getElementById('client-sort-filter')?.value||'revenue_desc';
+
+  const creditTermsMap={
+    'Lendlease Group':'30-Day Credit Approved',
+    'Apex Constructions':'14-Day Credit Approved',
+    'Civil Mining & Construction':'30-Day Credit Approved',
+    'City Infrastructure':'Pre-paid / COD',
+    'Metro Rail Authority':'30-Day Credit Approved',
+    'Urban Developers QLD':'14-Day Credit Approved',
+    'Metro Transport':'Pre-paid / COD',
+    'Sunshine Coast Council':'30-Day Credit Approved',
+    'Noosa Developments':'14-Day Credit Approved',
+    'Sunshine Coast Hospital':'30-Day Credit Approved'
+  };
 
   const clientMap={};
   let grandTotalRevenue=0;
@@ -1458,7 +1471,14 @@ function renderClientsView(){
   bookings.forEach(b=>{
     const c=b.clientName||'Unknown Client';
     if(!clientMap[c]){
-      clientMap[c]={name:c,jobs:0,totalSpend:0,assetsUsed:new Set(),lastJob:b.startTime};
+      clientMap[c]={
+        name:c,
+        jobs:0,
+        totalSpend:0,
+        assetsUsed:new Set(),
+        lastJob:b.startTime,
+        creditTerms:creditTermsMap[c]||'30-Day Credit Approved'
+      };
     }
     const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
     const prefix=b.assetNumber.replace(/[0-9]/g,'');
@@ -1499,17 +1519,17 @@ function renderClientsView(){
     <div class="client-kpi-card glass-panel">
       <div class="ck-label">Active Client Accounts</div>
       <div class="ck-val">${activeAccountsCount}</div>
-      <div class="ck-sub">Verified Enterprise Accounts</div>
+      <div class="ck-sub">Commercial Plant Hire Customers</div>
     </div>
     <div class="client-kpi-card glass-panel">
-      <div class="ck-label">Total Portfolio Revenue</div>
+      <div class="ck-label">Total Portfolio Billed</div>
       <div class="ck-val" style="color:var(--accent-primary);">${formattedGrandTotal}</div>
-      <div class="ck-sub">Billed across ${grandTotalDeployments} deployments</div>
+      <div class="ck-sub">Across ${grandTotalDeployments} plant hire deployments</div>
     </div>
     <div class="client-kpi-card glass-panel">
-      <div class="ck-label">Average Account Value</div>
+      <div class="ck-label">Average Revenue / Client</div>
       <div class="ck-val">${avgSpendPerAccount}</div>
-      <div class="ck-sub">Per active client relationship</div>
+      <div class="ck-sub">Commercial contract yield</div>
     </div>
   </div>
 
@@ -1518,12 +1538,12 @@ function renderClientsView(){
     <table class="compliance-table">
       <thead>
         <tr>
-          <th>Client Account</th>
-          <th>Account Tier</th>
-          <th>Deployments</th>
+          <th>Client Account Name</th>
+          <th>Account Credit Terms</th>
+          <th style="text-align:center;">Hire Jobs</th>
           <th>Total Billed (AUD)</th>
-          <th>Fleet Deployed</th>
-          <th>Last Active Date</th>
+          <th>Fleet Equipment Hired</th>
+          <th>Last Active Booking</th>
           <th>Account Actions</th>
         </tr>
       </thead>
@@ -1537,16 +1557,22 @@ function renderClientsView(){
       const assetsList=Array.from(c.assetsUsed).join(', ');
       const lastDate=formatAUDate(c.lastJob);
 
+      let termBadgeCls='valid';
+      if(c.creditTerms.includes('Pre-paid')) termBadgeCls='warning';
+
       html+=`<tr>
         <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${c.name}</td>
-        <td><span class="status-pill valid">Enterprise Verified</span></td>
+        <td><span class="status-pill ${termBadgeCls}">${c.creditTerms}</span></td>
         <td style="font-weight:700;text-align:center;">${c.jobs}</td>
         <td style="font-weight:700;color:var(--accent-primary);">${formattedSpend}</td>
         <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
         <td style="font-weight:600;">${lastDate}</td>
-        <td>
+        <td style="display:flex;gap:6px;align-items:center;">
           <button class="btn-secondary" style="height:32px;padding:0 12px;font-size:11px;" onclick="alert('Generating Verified Account Ledger & Statement PDF for ${c.name}...')">
-            Generate Statement PDF
+            Statement PDF
+          </button>
+          <button class="btn-secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="switchTab('job-board');document.getElementById('jb-search').value='${c.name}';renderJobBoard();">
+            View Jobs
           </button>
         </td>
       </tr>`;

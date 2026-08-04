@@ -13,21 +13,22 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="brand-logo">
-      <div class="brand-wordmark">
-        <div class="brand-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div class="brand-header-wrap">
+        <div class="brand-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"></polygon>
             <polyline points="2 7 12 12 22 7"></polyline>
             <polyline points="12 22 12 12"></polyline>
           </svg>
         </div>
-        <div class="brand-text">
-          <span class="brand-title">OPS ENGINE ROOM</span>
-          <span class="brand-subtitle">Automated Operations &amp; Workflow Engine</span>
+        <div class="brand-titles">
+          <div class="brand-main-name">OPS ENGINE ROOM</div>
+          <div class="brand-sub-tag">Fleet Operations System</div>
         </div>
       </div>
-      <div class="live-pill">
-        <span class="live-dot"></span> Live
+      <div class="brand-status-bar">
+        <span class="status-live-dot"></span>
+        <span class="status-live-text">System Active</span>
       </div>
     </div>
     <div class="nav-section">
@@ -61,7 +62,7 @@
         <div class="user-avatar">DA</div>
         <div class="user-details">
           <div class="user-name">Dispatcher Admin</div>
-          <div class="dw-badge"><span class="dw-dot"></span> Document Engine Synced</div>
+          <div class="dw-badge"><span class="dw-dot"></span> System Connected</div>
         </div>
       </div>
     </div>
@@ -74,8 +75,9 @@
     <div id="calendar-view" class="view-container active">
       <div class="page-header">
         <div>
+          <div class="header-breadcrumb">FLEET DISPATCH // CONTROL CENTER</div>
           <h1 id="page-title">Command Center</h1>
-          <div class="subtitle" id="page-subtitle">Fleet &amp; Asset Allocation</div>
+          <div class="subtitle" id="page-subtitle">Real-Time Fleet Allocation &amp; Schedule Scheduling</div>
         </div>
         <div class="header-actions">
           <button class="icon-btn" onclick="toggleNotifications()" title="Notifications" style="position:relative;">
@@ -227,8 +229,9 @@
     <div id="job-board-view" class="view-container">
       <div class="page-header">
         <div>
-          <h1>Job Board &amp; Pipeline</h1>
-          <div class="subtitle">Live Dispatch Workflow &amp; Automated Document Triggers</div>
+          <div class="header-breadcrumb">OPERATIONS DISPATCH // JOB PIPELINE</div>
+          <h1>Job Board &amp; Dispatch Pipeline</h1>
+          <div class="subtitle">Live Job Lifecycle Management &amp; Contract Automation</div>
         </div>
         <div class="header-actions">
           <button class="btn-primary" onclick="openModal()">+ Quick Book</button>
@@ -256,8 +259,9 @@
     <div id="clients-view" class="view-container">
       <div class="page-header">
         <div>
-          <h1>Clients Directory</h1>
-          <div class="subtitle">Client Account Intelligence &amp; Statement Triggers</div>
+          <div class="header-breadcrumb">COMMERCIAL ACCOUNTS // DIRECTORY</div>
+          <h1>Client Accounts Directory</h1>
+          <div class="subtitle">Commercial Account Profiles &amp; Billing History</div>
         </div>
       </div>
       <!-- Clients Search & Filter Toolbar -->
@@ -268,7 +272,7 @@
         </div>
         <select id="client-sort-filter" class="module-filter-select" onchange="renderClientsView()">
           <option value="revenue_desc">Sort: Highest Revenue</option>
-          <option value="jobs_desc">Sort: Most Jobs</option>
+          <option value="jobs_desc">Sort: Most Deployments</option>
           <option value="name_asc">Sort: Client Name A-Z</option>
         </select>
       </div>
@@ -279,8 +283,9 @@
     <div id="compliance-view" class="view-container">
       <div class="page-header">
         <div>
-          <h1>Compliance &amp; Certifications</h1>
-          <div class="subtitle">Fleet Risk Assessment &amp; Document Record Pull</div>
+          <div class="header-breadcrumb">SAFETY &amp; ASSET AUDIT // COMPLIANCE</div>
+          <h1>Compliance &amp; Certifications Registry</h1>
+          <div class="subtitle">Equipment Inspections, Risk Audits &amp; Registration Tracking</div>
         </div>
       </div>
       <!-- Compliance Search & Filter Toolbar -->
@@ -303,8 +308,9 @@
     <div id="settings-view" class="view-container">
       <div class="page-header">
         <div>
+          <div class="header-breadcrumb">SYSTEM CONFIGURATION // INTEGRATIONS</div>
           <h1>System Settings</h1>
-          <div class="subtitle">Integrations &amp; Configuration</div>
+          <div class="subtitle">Document Repository Connections &amp; Work Hours Configuration</div>
         </div>
       </div>
       <div class="settings-grid">
