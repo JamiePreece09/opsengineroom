@@ -1642,7 +1642,7 @@ function indexDocuWareCert(assetId){
   renderJobBoard();
 }
 
-/* ── JOB BOARD KANBAN WITH SEARCH & FILTER ── */
+/* ── PHASE 3: JOB BOARD & PIPELINE INTEGRATION (DOCUWARE AUTOMATION) ── */
 function renderJobBoard(){
   const container=document.getElementById('job-board-container');
   if(!container)return;
@@ -1651,11 +1651,12 @@ function renderJobBoard(){
   const stageFilter=document.getElementById('jb-stage-filter')?.value||'ALL';
 
   const columns=[
-    {id:'Scheduled',title:'Scheduled',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',color:'#1C4B8B'},
-    {id:'Dispatched',title:'Dispatched',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',color:'#835ac7'},
-    {id:'On-Site',title:'On-Site',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>',color:'#4ac77a'},
-    {id:'Completed',title:'Complete',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',color:'#09e3df'},
-    {id:'Invoiced',title:'Invoiced',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',color:'#d67e83'}
+    {id:'Scheduled',title:'Scheduled',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',color:'#3b82f6'},
+    {id:'Dispatched',title:'Dispatched',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',color:'#8b5cf6'},
+    {id:'On-Site',title:'On-Site',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>',color:'#d97706'},
+    {id:'Docket Verification',title:'Docket Verification',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>',color:'#06b6d4'},
+    {id:'Completed',title:'Complete & Ready to Bill',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',color:'#059669'},
+    {id:'Invoiced',title:'Invoiced',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',color:'#334155'}
   ];
 
   let filteredBookings=bookings;
@@ -1673,7 +1674,14 @@ function renderJobBoard(){
   columns.forEach(col=>{
     if(stageFilter!=='ALL'&&stageFilter!==col.id) return;
 
-    const colBookings=filteredBookings.filter(b=>(b.status||'Scheduled')===col.id);
+    // Map Completed & Docket Verification column filter
+    const colBookings=filteredBookings.filter(b=>{
+      const status=b.status||'Scheduled';
+      if(col.id==='Docket Verification') return status==='Docket Verification'||(status==='Completed'&&!b.docketUploaded);
+      if(col.id==='Completed') return status==='Completed'&&b.docketUploaded;
+      return status===col.id;
+    });
+
     html+=`<div class="kanban-col">
       <div class="kanban-header">
         <div class="kanban-title"><span style="color:${col.color}">${col.svg}</span> ${col.title}</div>
@@ -1682,37 +1690,52 @@ function renderJobBoard(){
       <div class="kanban-cards">`;
 
     if(colBookings.length===0){
-      html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs match criteria</div>`;
+      html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs in this pipeline stage</div>`;
     } else {
       colBookings.forEach(b=>{
-        const assetColor=ASSET_HEX[b.assetNumber]||'#1C4B8B';
+        const assetColor=ASSET_HEX[b.assetNumber]||'#475569';
         const startD=new Date(b.startTime);
         const timeStr=startD.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
         const dateStr=formatAUDate(b.startTime);
         
-        let docActionText='Generate Agreement';
-        let docActionFn=`openDocuWareContractModal('${b.id}')`;
-        let docBadgeText=b.contractSigned?'✓ Contract Signed':'Contract Draft';
+        let docActionHtml='';
+        let dwStatusPillHtml=renderDocuWarePill(b);
 
-        if(b.status==='Dispatched'){
-          docActionText='Dispatch Docket';
-          docActionFn=`triggerDocuWareDoc('${b.id}','${b.clientName}')`;
-          docBadgeText='Dispatched';
+        // Column 1: Scheduled Contract Workflow
+        if(col.id==='Scheduled'){
+          if(b.contractSigned){
+            docActionHtml=`<span class="dw-status-pill signed">✓ Contract Signed</span>`;
+          } else {
+            docActionHtml=`<button class="dw-action-btn" onclick="event.stopPropagation();openDocuWareContractModal('${b.id}')">Generate Agreement</button>`;
+          }
         }
-        else if(b.status==='On-Site'){
-          docActionText='Upload Field Docket';
-          docActionFn=`openDocuWareDocketModal('${b.id}')`;
-          docBadgeText=b.docketUploaded?'✓ Docket Verified':'Active On-Site';
+        // Column 2: Dispatched
+        else if(col.id==='Dispatched'){
+          docActionHtml=`<span class="dw-status-pill secured">En Route / Mobilizing</span>`;
         }
-        else if(b.status==='Completed'){
-          docActionText='Issue Invoice';
-          docActionFn=`triggerDocuWareDoc('${b.id}','${b.clientName}')`;
-          docBadgeText='Ready to Bill';
+        // Column 3: On-Site
+        else if(col.id==='On-Site'){
+          docActionHtml=`<span class="dw-status-pill onsite">Active On-Site</span>`;
         }
-        else if(b.status==='Invoiced'){
-          docActionText='View Billing Record';
-          docActionFn=`openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')`;
-          docBadgeText='Archived & Billed';
+        // Column 4: Docket Verification
+        else if(col.id==='Docket Verification'){
+          if(b.docketUploaded){
+            docActionHtml=`<span class="dw-status-pill verified">✓ Hours Verified</span>`;
+          } else {
+            docActionHtml=`<button class="dw-action-btn" onclick="event.stopPropagation();openDocuWareDocketModal('${b.id}')">Upload Field Docket</button>`;
+          }
+        }
+        // Column 5: Complete & Ready to Bill (Billing Lockout Enforcement!)
+        else if(col.id==='Completed'){
+          if(b.docketUploaded){
+            docActionHtml=`<button class="dw-action-btn" style="background:#059669;" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">Issue Invoice</button>`;
+          } else {
+            docActionHtml=`<button class="dw-action-btn secondary disabled" style="opacity:0.6;cursor:not-allowed;" disabled title="Upload Field Docket in Docket Verification stage to unlock billing">Issue Invoice 🔒</button>`;
+          }
+        }
+        // Column 6: Invoiced
+        else if(col.id==='Invoiced'){
+          docActionHtml=`<button class="dw-action-btn secondary" onclick="event.stopPropagation();openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')">View Billing Record</button>`;
         }
 
         html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
@@ -1727,12 +1750,12 @@ function renderJobBoard(){
             ${b.operatorName||'Unassigned Operator'}
           </div>
           <div class="kb-dw-badge">
-            <span>${docBadgeText}</span>
-            <button class="kb-action-btn" onclick="event.stopPropagation();${docActionFn}">${docActionText}</button>
+            ${dwStatusPillHtml}
+            ${docActionHtml}
           </div>
-          <div style="display:flex;gap:4px;margin-top:4px;">
-            ${col.id!=='Scheduled'?`<button class="kb-action-btn" style="background:#6b7280;padding:2px 8px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
-            ${col.id!=='Invoiced'?`<button class="kb-action-btn" style="background:#1C4B8B;flex:1;padding:2px 8px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
+          <div style="display:flex;gap:4px;margin-top:6px;">
+            ${col.id!=='Scheduled'?`<button class="dw-action-btn secondary" style="padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">← Prev</button>`:''}
+            ${col.id!=='Invoiced'?`<button class="dw-action-btn" style="flex:1;padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
           </div>
         </div>`;
       });
@@ -1746,12 +1769,34 @@ function renderJobBoard(){
 }
 
 function moveBookingStatus(id,dir){
-  const stages=['Scheduled','Dispatched','On-Site','Completed','Invoiced'];
+  const stages=['Scheduled','Dispatched','On-Site','Docket Verification','Completed','Invoiced'];
   const b=bookings.find(x=>x.id===id);
   if(!b)return;
-  const curIdx=stages.indexOf(b.status||'Scheduled');
-  if(dir==='next'&&curIdx<stages.length-1) b.status=stages[curIdx+1];
-  else if(dir==='prev'&&curIdx>0) b.status=stages[curIdx-1];
+
+  // Resolve current stage index
+  let currStage = b.status||'Scheduled';
+  if(currStage==='Completed'&&!b.docketUploaded) currStage='Docket Verification';
+  let idx=stages.indexOf(currStage);
+  if(idx===-1) idx=0;
+
+  let nextIdx = dir==='next' ? idx+1 : idx-1;
+  if(nextIdx < 0 || nextIdx >= stages.length) return;
+
+  const targetStage = stages[nextIdx];
+
+  // Chronological Lock Safeguard: Future jobs cannot be moved to Invoiced
+  if(targetStage==='Invoiced' && new Date(b.startTime) > new Date()){
+    alert(`🚫 Chronological Safeguard: Job for ${b.clientName} is scheduled in the future and cannot be moved to Invoiced until work is executed.`);
+    return;
+  }
+
+  // Billing Lockout Safeguard: Cannot move to Completed/Invoiced without verified docket
+  if((targetStage==='Completed'||targetStage==='Invoiced') && !b.docketUploaded && currStage==='Docket Verification'){
+    alert(`🔒 Billing Lockout: You must click "Upload Field Docket" to verify hours via DocuWare Intelligent Indexing before advancing.`);
+    return;
+  }
+
+  b.status = targetStage;
   renderJobBoard();
   renderCalendar();
 }
