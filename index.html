@@ -107,13 +107,23 @@
           <span class="display-date" id="display-date"></span>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <div class="calendar-legend">
-            <div class="legend-item"><span class="dot-pill draft"></span> Scheduled / Draft</div>
-            <div class="legend-item"><span class="dot-pill secured"></span> Contract Secured</div>
-            <div class="legend-item"><span class="dot-pill onsite"></span> On-Site</div>
-            <div class="legend-item"><span class="dot-pill missing"></span> Missing Docket</div>
-            <div class="legend-item"><span class="dot-pill verified"></span> Docket Verified</div>
-            <div class="legend-item"><span class="dot-pill archived"></span> Invoiced &amp; Archived</div>
+          <!-- Sleek Document Status Legend Popover Trigger -->
+          <div class="legend-popover-wrapper">
+            <button class="btn-secondary" style="height:32px;padding:0 10px;font-size:11px;gap:6px;" onclick="toggleLegendPopover()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>DocuWare Pipeline Legend</span>
+            </button>
+            <div class="legend-popover-menu" id="legend-popover-menu">
+              <div class="legend-popover-title">DocuWare Document Lifecycle</div>
+              <div class="legend-popover-grid">
+                <div class="legend-item"><span class="dot-pill draft"></span> Scheduled / Draft</div>
+                <div class="legend-item"><span class="dot-pill secured"></span> Contract Secured</div>
+                <div class="legend-item"><span class="dot-pill onsite"></span> Active On-Site</div>
+                <div class="legend-item"><span class="dot-pill missing"></span> Missing Docket</div>
+                <div class="legend-item"><span class="dot-pill verified"></span> Docket Verified</div>
+                <div class="legend-item"><span class="dot-pill archived"></span> Invoiced &amp; Archived</div>
+              </div>
+            </div>
           </div>
           <div class="view-toggles">
             <button class="view-btn active" onclick="setCalendarView('Day')">Day</button>

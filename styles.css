@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Michroma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Phase 1: Brand & Layout Tokens */
-  --brand-primary: #0f172a;       /* Deep Slate / Navy for structural elements */
-  --brand-secondary: #1e293b;     /* Elevated Slate */
-  --brand-bg: #f8fafc;            /* Off-white / light grey canvas */
+  /* Global Brand Tokens */
+  --brand-primary: #0f172a;       /* Deep Slate / Navy */
+  --brand-secondary: #1e293b;
+  --brand-bg: #f8fafc;            /* Crisp off-white canvas */
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
@@ -17,11 +17,11 @@
   --border-light: rgba(15,23,42,0.08);
   --border-strong: rgba(15,23,42,0.15);
   
-  /* Phase 1: Strict Operational Semantic Palette */
-  --color-compliant: #059669;     /* Deep Emerald Green (NO LIME GREEN EVER) */
-  --color-warning: #d97706;       /* Amber / Deep Yellow for Service Due / Pending Signature */
-  --color-danger: #dc2626;        /* Crimson / Deep Red EXCLUSIVELY for Cert Expired & Locks */
-  --color-info: #3b82f6;          /* Corporate Blue for Scheduled / General Draft */
+  /* Strict Operational Semantic Palette */
+  --color-compliant: #059669;     /* Deep Emerald Green (NO LIME GREEN) */
+  --color-warning: #d97706;       /* Amber / Deep Yellow */
+  --color-danger: #dc2626;        /* Crimson Red EXCLUSIVELY for Cert Expired */
+  --color-info: #3b82f6;          /* Corporate Blue */
   
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -30,28 +30,66 @@
   --shadow-md: 0 4px 18px rgba(15,23,42,0.08);
   --shadow-lg: 0 12px 36px rgba(15,23,42,0.12);
 
-  /* Asset Identifier Muted Palette (Does NOT compete with Red/Amber alerts!) */
+  /* Asset Identifier Palette */
   --color-ex01: #0ea5e9;
   --color-ex02: #06b6d4;
   --color-sk03: #8b5cf6;
-  --color-dz04: #475569; /* Neutral Slate Charcoal */
+  --color-dz04: #475569;
   --color-fl05: #6366f1;
   --color-fl06: #2563eb;
   --color-sc07: #059669;
   --color-bm08: #b45309;
-  --color-cr09: #334155; /* Neutral Steel */
+  --color-cr09: #334155;
   --color-dt10: #9333ea;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+body, button, input, select, textarea {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--brand-bg);
   color: var(--text-primary);
   overflow: hidden;
   height: 100vh;
 }
+
+.display-date { 
+  font-size: 15px; 
+  font-weight: 800; 
+  min-width: 180px; 
+  text-align: center; 
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+/* Sleek Legend Popover System */
+.legend-popover-wrapper { position: relative; }
+.legend-popover-menu {
+  position: absolute;
+  top: 100%; right: 0; margin-top: 6px;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+  width: 280px;
+  display: none;
+  z-index: 100;
+}
+.legend-popover-menu.open { display: block; animation: fadeIn 0.15s ease-out; }
+.legend-popover-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.legend-popover-grid { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.dot-pill { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-pill.draft { background: #ffffff; border: 1.5px solid #94a3b8; }
+.dot-pill.secured { background: #3b82f6; }
+.dot-pill.onsite { background: #d97706; }
+.dot-pill.missing { background: #f97316; }
+.dot-pill.verified { background: #059669; }
+.dot-pill.archived { background: #334155; }
 
 /* Phase 1 Component Library: Standardized DocuWare Status Pills */
 .dw-status-pill {

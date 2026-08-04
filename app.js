@@ -745,6 +745,20 @@ function resetDisplayHours(){
   renderCalendar();
 }
 
+function toggleLegendPopover(){
+  const menu=document.getElementById('legend-popover-menu');
+  if(menu) menu.classList.toggle('open');
+}
+
+// Close popovers on outside click
+document.addEventListener('click',(e)=>{
+  const wrapper=document.querySelector('.legend-popover-wrapper');
+  const menu=document.getElementById('legend-popover-menu');
+  if(wrapper && menu && !wrapper.contains(e.target)){
+    menu.classList.remove('open');
+  }
+});
+
 function formatHourLabel(h){
   if(h===0)return'12 AM';
   if(h<12)return h+' AM';
