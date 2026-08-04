@@ -665,17 +665,21 @@ function renderAnalytics(){
 /* ── RENDER CALENDAR ── */
 function getToggleBtnLabel(){
   if(currentView==='Day'){
-    return currentDate.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+    return formatAUDate(currentDate.toISOString()); // e.g. 04/08/2026
   }
-  if(currentView==='Month') return 'This Month';
-  return 'This Week';
+  if(currentView==='Month') return currentDate.toLocaleDateString('en-AU',{month:'short',year:'numeric'});
+  // Week / Work Week
+  const dow=currentDate.getDay();
+  const monday=new Date(currentDate);monday.setDate(monday.getDate()-(dow===0?6:dow-1));
+  return formatAUDate(monday.toISOString());
 }
+
 function getDateLabel(){
   if(currentView==='Day'){
-    return currentDate.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+    return currentDate.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   }
   if(currentView==='Month'){
-    return currentDate.toLocaleDateString('en-AU',{month:'long',year:'numeric'}).toUpperCase();
+    return currentDate.toLocaleDateString('en-AU',{month:'long',year:'numeric'});
   }
   // Week / Work Week — show range Mon–Sun or Mon–Fri
   const dow=currentDate.getDay();
@@ -685,17 +689,20 @@ function getDateLabel(){
   const fmtShort=d=>d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
   const fmtFull=d=>d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
   if(monday.getMonth()===endDay.getMonth()){
-    return (monday.getDate()+'–'+fmtFull(endDay)).toUpperCase();
+    return monday.getDate()+'–'+fmtFull(endDay);
   }
-  return (fmtShort(monday)+'–'+fmtFull(endDay)).toUpperCase();
+  return fmtShort(monday)+'–'+fmtFull(endDay);
 }
+
 function renderCalendar(){
   const body=document.getElementById('calendar-body');
-  // Update toggle button label
-  const toggleBtn=document.getElementById('date-toggle-btn');
-  if(toggleBtn) toggleBtn.textContent=getToggleBtnLabel();
-  // Update date label
-  document.getElementById('display-date').textContent=getDateLabel();
+  // Update date toggle button label (e.g. 04/08/2026)
+  const toggleLabelEl=document.getElementById('date-toggle-label');
+  if(toggleLabelEl) toggleLabelEl.textContent=getToggleBtnLabel();
+  // Update written date banner above toolbar (e.g. Tuesday, 4 August 2026)
+  const dateBannerEl=document.getElementById('display-date');
+  if(dateBannerEl) dateBannerEl.textContent=getDateLabel();
+
   if(currentView==='Day'){
     if(dayTransposed)renderDayTransposedView(body);
     else renderDayView(body);

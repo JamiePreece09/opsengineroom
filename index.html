@@ -92,19 +92,27 @@
         </div>
       </div>
 
+      <!-- Date Banner Above Toolbar -->
+      <div class="calendar-header-banner">
+        <div class="display-date-title" id="display-date">Tuesday, 4 August 2026</div>
+        <div class="header-live-badge">● Real-Time Dispatch Schedule</div>
+      </div>
+
       <!-- Calendar Toolbar -->
       <div class="calendar-toolbar">
         <div class="calendar-nav">
-          <button class="nav-btn" onclick="changeDate(-1)">
+          <button class="nav-btn" onclick="changeDate(-1)" title="Previous Day">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <div class="date-toggle-wrapper">
-            <button class="today-btn" id="date-toggle-btn" onclick="openDatePicker()">Today</button>
+            <button class="today-btn" id="date-toggle-btn" onclick="openDatePicker()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span id="date-toggle-label">04/08/2026</span>
+            </button>
           </div>
-          <button class="nav-btn" onclick="changeDate(1)">
+          <button class="nav-btn" onclick="changeDate(1)" title="Next Day">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
-          <span class="display-date" id="display-date"></span>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
           <!-- Sleek Document Status Legend Popover Trigger -->
