@@ -1443,7 +1443,7 @@ function triggerDocuWareDoc(id,clientName){
   alert(`Document Engine Workflow Triggered\n\nGenerating legal agreement record for ${clientName} (Order #${id})...\nArchived into Enterprise Document Repository.`);
 }
 
-/* ── ENTERPRISE CLIENT DIRECTORY ── */
+/* ── ENTERPRISE CLIENT DIRECTORY WITH FINANCIAL PIPELINE FLOW ── */
 function renderClientsView(){
   const container=document.getElementById('clients-container');
   if(!container)return;
@@ -1467,6 +1467,7 @@ function renderClientsView(){
   const clientMap={};
   let grandTotalRevenue=0;
   let grandTotalDeployments=0;
+  let grandTotalUnbilled=0;
 
   bookings.forEach(b=>{
     const c=b.clientName||'Unknown Client';
@@ -1475,6 +1476,8 @@ function renderClientsView(){
         name:c,
         jobs:0,
         totalSpend:0,
+        unbilledSpend:0,
+        invoicedSpend:0,
         assetsUsed:new Set(),
         lastJob:b.startTime,
         creditTerms:creditTermsMap[c]||'30-Day Credit Approved'
@@ -1487,6 +1490,14 @@ function renderClientsView(){
 
     clientMap[c].jobs++;
     clientMap[c].totalSpend+=rev;
+
+    if(b.status==='Invoiced'||b.status==='Completed') {
+      clientMap[c].invoicedSpend+=rev;
+    } else {
+      clientMap[c].unbilledSpend+=rev;
+      grandTotalUnbilled+=rev;
+    }
+
     clientMap[c].assetsUsed.add(b.assetNumber);
     if(new Date(b.startTime)>new Date(clientMap[c].lastJob)) clientMap[c].lastJob=b.startTime;
 
@@ -1511,7 +1522,7 @@ function renderClientsView(){
 
   const activeAccountsCount=clients.length;
   const formattedGrandTotal='$'+Math.round(grandTotalRevenue).toLocaleString()+' AUD';
-  const avgSpendPerAccount=activeAccountsCount?'$'+Math.round(grandTotalRevenue/activeAccountsCount).toLocaleString()+' AUD':'$0 AUD';
+  const formattedUnbilled='$'+Math.round(grandTotalUnbilled).toLocaleString()+' AUD';
 
   let html=`
   <!-- Client Directory KPI Header Bar -->
@@ -1527,51 +1538,68 @@ function renderClientsView(){
       <div class="ck-sub">Across ${grandTotalDeployments} plant hire deployments</div>
     </div>
     <div class="client-kpi-card glass-panel">
-      <div class="ck-label">Average Revenue / Client</div>
-      <div class="ck-val">${avgSpendPerAccount}</div>
-      <div class="ck-sub">Commercial contract yield</div>
+      <div class="ck-label">Unbilled Work-In-Progress</div>
+      <div class="ck-val" style="color:#d97706;">${formattedUnbilled}</div>
+      <div class="ck-sub">Active &amp; scheduled job revenue</div>
     </div>
   </div>
 
-  <!-- Enterprise Client Table -->
+  <!-- Enterprise Client Table with Financial Pipeline Flow -->
   <div class="compliance-table-wrap">
     <table class="compliance-table">
       <thead>
         <tr>
           <th>Client Account Name</th>
-          <th>Account Credit Terms</th>
-          <th style="text-align:center;">Hire Jobs</th>
-          <th>Total Billed (AUD)</th>
-          <th>Fleet Equipment Hired</th>
-          <th>Last Active Booking</th>
+          <th>Credit Terms</th>
+          <th style="text-align:center;">Jobs</th>
+          <th>Financial Flow (WIP vs Invoiced)</th>
+          <th>Total Revenue</th>
+          <th>Equipment Hired</th>
+          <th>Last Active</th>
           <th>Account Actions</th>
         </tr>
       </thead>
       <tbody>`;
 
   if(clients.length===0){
-    html+=`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No client accounts match your search query.</td></tr>`;
+    html+=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No client accounts match your search query.</td></tr>`;
   } else {
     clients.forEach(c=>{
-      const formattedSpend='$'+Math.round(c.totalSpend).toLocaleString();
+      const formattedTotal='$'+Math.round(c.totalSpend).toLocaleString();
+      const formattedWip='$'+Math.round(c.unbilledSpend).toLocaleString();
+      const formattedInv='$'+Math.round(c.invoicedSpend).toLocaleString();
       const assetsList=Array.from(c.assetsUsed).join(', ');
       const lastDate=formatAUDate(c.lastJob);
 
       let termBadgeCls='valid';
       if(c.creditTerms.includes('Pre-paid')) termBadgeCls='warning';
 
-      html+=`<tr style="cursor:pointer;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
+      const total=c.totalSpend||1;
+      const pctInv=Math.round((c.invoicedSpend/total)*100);
+      const pctWip=100-pctInv;
+
+      html+=`<tr style="cursor:pointer;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')" title="Click to view detailed job & financial ledger">
         <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${c.name}</td>
         <td><span class="status-pill ${termBadgeCls}">${c.creditTerms}</span></td>
         <td style="font-weight:700;text-align:center;">${c.jobs}</td>
-        <td style="font-weight:700;color:var(--accent-primary);">${formattedSpend}</td>
+        <td style="min-width:180px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:3px;">
+            <span style="color:#d97706;">WIP: ${formattedWip}</span>
+            <span style="color:#10b981;">Inv: ${formattedInv}</span>
+          </div>
+          <div style="height:6px;width:100%;background:rgba(217,119,6,0.18);border-radius:4px;overflow:hidden;display:flex;">
+            <div style="width:${pctWip}%;background:#d97706;height:100%;" title="Unbilled WIP: ${formattedWip}"></div>
+            <div style="width:${pctInv}%;background:#10b981;height:100%;" title="Invoiced Revenue: ${formattedInv}"></div>
+          </div>
+        </td>
+        <td style="font-weight:700;color:var(--accent-primary);font-size:14px;">${formattedTotal}</td>
         <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
-        <td style="font-weight:600;">${lastDate}</td>
+        <td style="font-weight:600;font-size:12px;">${lastDate}</td>
         <td style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation();">
-          <button class="btn-primary" style="height:32px;padding:0 12px;font-size:11px;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
+          <button class="btn-primary" style="height:30px;padding:0 10px;font-size:11px;" onclick="openClientLedger('${c.name.replace(/'/g,"\\'")}')">
             View Ledger &amp; Jobs
           </button>
-          <button class="btn-secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="alert('Generating Verified Account Statement PDF for ${c.name}...')">
+          <button class="btn-secondary" style="height:30px;padding:0 8px;font-size:11px;" onclick="alert('Generating Verified Account Statement PDF for ${c.name}...')">
             Statement PDF
           </button>
         </td>
