@@ -28,13 +28,43 @@ let complianceRegistry={
 
 // Derived — rebuilt by syncAssets()
 let ASSET_HEX={
-  Urgent:'#ef4444',   // Semantic Red ONLY for Urgent Safety Alerts
-  Invoiced:'#10b981', // Semantic Emerald for Invoiced & Complete
+  Urgent:'#dc2626',   // Semantic Red ONLY for Urgent Safety Alerts
+  Invoiced:'#059669', // Semantic Emerald for Invoiced & Complete (NO LIME GREEN)
   Scheduled:'#3b82f6',// Semantic Blue for Scheduled
   Other:'#64748b'
 };
 let validAssets=[];
 const HOURLY_RATES={EX:250,SK:180,DZ:280,FL:150,SC:120,BM:180,CR:350,DT:200};
+
+/* ── PHASE 1: CORE SYSTEM RULES & FORMATTERS ── */
+
+// 1. Compliance Dominance Rule: Checks if asset compliance is expired/locked
+function isComplianceLocked(assetId){
+  return complianceRegistry[assetId]?.status === 'expired';
+}
+
+// 2. Chronological Integrity Rule: Prevents future bookings from prematurely carrying historical states (Invoiced/Completed)
+function sanitizeBookingChronology(b){
+  if(!b || !b.startTime) return b;
+  const now = new Date();
+  const start = new Date(b.startTime);
+  if(start > now && (b.status === 'Invoiced' || b.status === 'Completed')){
+    b.status = 'Scheduled'; // Force future bookings strictly to Scheduled or Draft
+  }
+  return b;
+}
+
+// 3. Global Data Scrubbing & Formatters
+function formatPercentage(value){
+  if(value === null || value === undefined || isNaN(value)) return '0%';
+  const cleanNum = Math.round(Number(value));
+  return `${cleanNum}%`;
+}
+
+function formatAUDCurrency(amount){
+  if(amount === null || amount === undefined || isNaN(amount)) return '$0 AUD';
+  return `$${Math.round(Number(amount)).toLocaleString('en-AU')} AUD`;
+}
 
 function d(h,m){const n=new Date();n.setHours(h,m||0,0,0);return n.toISOString();}
 function dOffset(days,h,m){const n=new Date();n.setDate(n.getDate()+days);n.setHours(h,m||0,0,0);return n.toISOString();}
@@ -2071,6 +2101,9 @@ function renderNotifications(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  // Phase 1: Sanitize chronological integrity across all bookings
+  bookings.forEach(sanitizeBookingChronology);
+  
   // Toolbar hour selects
   populateHourSelect(document.getElementById('display-start-hour'), displayHoursStart, true);
   populateHourSelect(document.getElementById('display-end-hour'), displayHoursEnd, false);
