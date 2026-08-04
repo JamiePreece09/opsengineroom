@@ -1,18 +1,38 @@
 // Mutable asset registry — source of truth for fleet assets
 let assetRegistry=[
-  {id:'EX01',description:'Excavator 20T',hex:'#4ac77a'},
-  {id:'EX02',description:'Excavator 35T',hex:'#09e3df'},
-  {id:'SK03',description:'Skid Steer',hex:'#835ac7'},
-  {id:'DZ04',description:'Dozer D6',hex:'#e3cd09'},
-  {id:'FL05',description:'Forklift 5T',hex:'#8f09e3'},
-  {id:'FL06',description:'Forklift 10T',hex:'#1187f5'},
-  {id:'SC07',description:'Scissor Lift 12m',hex:'#076307'},
-  {id:'BM08',description:'Boom Lift 17m',hex:'#ed5d09'},
-  {id:'CR09',description:'Crawler Crane 50T',hex:'#1206bf'},
-  {id:'DT10',description:'Dump Truck',hex:'#d41561'}
+  {id:'EX01',description:'Excavator 20T',hex:'#0ea5e9'},
+  {id:'EX02',description:'Excavator 35T',hex:'#06b6d4'},
+  {id:'SK03',description:'Skid Steer',hex:'#8b5cf6'},
+  {id:'DZ04',description:'Dozer D6',hex:'#475569'}, // Neutral Slate — NOT solid red!
+  {id:'FL05',description:'Forklift 5T',hex:'#6366f1'},
+  {id:'FL06',description:'Forklift 10T',hex:'#2563eb'},
+  {id:'SC07',description:'Scissor Lift 12m',hex:'#059669'},
+  {id:'BM08',description:'Boom Lift 17m',hex:'#d97706'},
+  {id:'CR09',description:'Crawler Crane 50T',hex:'#334155'}, // Neutral Steel!
+  {id:'DT10',description:'Dump Truck',hex:'#9333ea'}
 ];
+
+// Authoritative Compliance & Safety Registry
+let complianceRegistry={
+  EX01:{rego:'REG-8829-EX',certDate:'2026-11-15',status:'valid',risk:'Low'},
+  EX02:{rego:'REG-4410-EX',certDate:'2026-08-16',status:'warning',risk:'Medium'}, // Service Due (30d)
+  SK03:{rego:'REG-1204-SK',certDate:'2026-12-01',status:'valid',risk:'Low'},
+  DZ04:{rego:'REG-9912-DZ',certDate:'2027-01-20',status:'valid',risk:'Low'},
+  FL05:{rego:'REG-3319-FL',certDate:'2026-09-10',status:'valid',risk:'Low'},
+  FL06:{rego:'REG-5521-FL',certDate:'2026-10-04',status:'valid',risk:'Low'},
+  SC07:{rego:'REG-7714-SC',certDate:'2026-08-28',status:'warning',risk:'Medium'}, // Service Due (30d)
+  BM08:{rego:'REG-8840-BM',certDate:'2026-11-30',status:'valid',risk:'Low'},
+  CR09:{rego:'REG-0012-CR',certDate:'2026-07-30',status:'expired',risk:'HIGH'}, // CERT EXPIRED! HARD INTERLOCK!
+  DT10:{rego:'REG-6632-DT',certDate:'2026-12-15',status:'valid',risk:'Low'}
+};
+
 // Derived — rebuilt by syncAssets()
-let ASSET_HEX={Urgent:'#e30909',Invoiced:'#d67e83',Other:'#f5a9cc'};
+let ASSET_HEX={
+  Urgent:'#ef4444',   // Semantic Red ONLY for Urgent Safety Alerts
+  Invoiced:'#10b981', // Semantic Emerald for Invoiced & Complete
+  Scheduled:'#3b82f6',// Semantic Blue for Scheduled
+  Other:'#64748b'
+};
 let validAssets=[];
 const HOURLY_RATES={EX:250,SK:180,DZ:280,FL:150,SC:120,BM:180,CR:350,DT:200};
 
@@ -689,7 +709,20 @@ function renderDayView(body){
   html+=`<div style="width:64px;flex-shrink:0;"></div>`;
   validAssets.forEach(asset=>{
     const hex=ASSET_HEX[asset]||'#888';
-    html+=`<div style="flex:1;min-width:80px;padding:10px 8px;text-align:center;font-size:12px;font-weight:700;border-left:1px solid var(--border-light);color:${hex};border-bottom:2px solid ${hex};">${asset}</div>`;
+    const comp=complianceRegistry[asset];
+    const isExpired=comp&&comp.status==='expired';
+    const isWarning=comp&&comp.status==='warning';
+
+    let headerStyle=`color:${hex};border-bottom:2px solid ${hex};`;
+    let headerContent=asset;
+    if(isExpired){
+      headerStyle=`background:rgba(239,68,68,0.15);color:#dc2626;border-bottom:2px solid #dc2626;`;
+      headerContent=`${asset} <span style="font-size:9px;background:#dc2626;color:#fff;padding:1px 4px;border-radius:3px;">🔒 LOCKED</span>`;
+    } else if(isWarning){
+      headerContent=`${asset} <span style="font-size:9px;background:#f59e0b;color:#fff;padding:1px 4px;border-radius:3px;">⚠️ 30d</span>`;
+    }
+
+    html+=`<div style="flex:1;min-width:80px;padding:10px 8px;text-align:center;font-size:12px;font-weight:700;border-left:1px solid var(--border-light);${headerStyle}">${headerContent}</div>`;
   });
   html+=`</div>`;
   html+=`<div style="flex:1;overflow-y:auto;overflow-x:auto;display:flex;" id="day-scroll">`;
@@ -699,12 +732,25 @@ function renderDayView(body){
   validAssets.forEach(asset=>{
     const hex=ASSET_HEX[asset]||'#888';
     const totalH=hours.length*PX;
+    const comp=complianceRegistry[asset];
+    const isExpired=comp&&comp.status==='expired';
+    const isWarning=comp&&comp.status==='warning';
+
     html+=`<div style="flex:1;min-width:80px;position:relative;border-left:1px solid var(--border-light);" data-asset="${asset}" id="col-${asset}">`;
-    // Tint overlay sized to exact content height so it covers all rendered slots
+
+    if(isExpired){
+      // Interlock Overlay for Expired Assets
+      html+=`<div class="locked-column-overlay" onclick="alert('🚫 SAFETY INTERLOCK: Asset ${asset} has an EXPIRED DocuWare Safety Certificate (${comp.rego}). Dispatch is locked until a new cert is indexed in DocuWare.')">
+        <div class="locked-banner-pill">🔒 ASSET DISPATCH LOCKED</div>
+      </div>`;
+    }
+
+    // Tint overlay
     html+=`<div style="position:absolute;top:0;left:0;right:0;height:${totalH}px;background:${hex};opacity:0.07;pointer-events:none;z-index:0;"></div>`;
     hours.forEach(h=>{
-      html+=`<div style="height:${PX}px;border-bottom:1px solid color-mix(in srgb, ${hex} 15%, transparent);" class="paint-slot" data-hour="${h}" data-asset="${asset}" onmousedown="startPaint(event,${h},'${asset}')"></div>`;
+      html+=`<div style="height:${PX}px;border-bottom:1px solid color-mix(in srgb, ${hex} 15%, transparent);" class="paint-slot" data-hour="${h}" data-asset="${asset}" onmousedown="${isExpired ? `alert('🚫 Safety Interlock: Asset ${asset} is locked due to expired DocuWare cert.')` : `startPaint(event,${h},'${asset}')`}"></div>`;
     });
+
     const aBookings=dayBookings.filter(b=>b.assetNumber===asset);
     aBookings.forEach(b=>{
       const startD=new Date(b.startTime),endD=new Date(b.endTime);
@@ -712,11 +758,24 @@ function renderDayView(body){
       const dur=(endD-startD)/60000;
       const top=startMins*(PX/60);
       const height=Math.max(dur*(PX/60),22);
-      const color=getBookingColor(b);
-      html+=`<div class="booking-card" id="${b.id}" style="top:${top}px;height:${height}px;background:${color};" onmousedown="startDrag(event,'${b.id}')" ondblclick="editBooking('${b.id}')">
-        <div class="booking-asset-code">${b.assetNumber}</div>
+      
+      let color=getBookingColor(b);
+      if(b.status==='Invoiced') color='#10b981';
+
+      let statusTag='📄 Draft';
+      if(b.status==='Invoiced') statusTag='⚡ Invoiced';
+      else if(b.status==='Completed') statusTag='📝 Docket Verified';
+      else if(b.status==='On-Site') statusTag='🚜 On-Site';
+      else if(b.status==='Urgent') statusTag='🔴 Urgent';
+
+      html+=`<div class="booking-card" id="${b.id}" style="top:${top}px;height:${height}px;background:${color};" onmousedown="${isExpired ? `alert('🚫 Safety Interlock: Asset ${asset} is locked.')` : `startDrag(event,'${b.id}')`}" ondblclick="editBooking('${b.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="booking-asset-code">${b.assetNumber}</span>
+          <span style="font-size:9px;font-weight:700;background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">${statusTag}</span>
+        </div>
         <div class="booking-client">${b.clientName}</div>
         <div class="booking-operator">${b.operatorName||''}</div>
+        ${isWarning ? `<div style="font-size:9px;font-weight:800;color:#fef08a;margin-top:2px;">⚠️ Service Due 30d</div>` : ''}
         <div class="booking-resize-handle" onmousedown="startResize(event,'${b.id}')"></div>
       </div>`;
     });
@@ -1343,6 +1402,166 @@ function switchTab(tab){
   else if(tab==='calendar') renderCalendar();
 }
 
+/* ── DOCUWARE CONTRACT E-SIGNATURE & FIELD DOCKET WORKFLOWS ── */
+let _activeDWBookingId = null;
+
+function openDocuWareContractModal(id){
+  const b=bookings.find(x=>x.id===id);
+  if(!b)return;
+  _activeDWBookingId=id;
+  
+  const summaryEl=document.getElementById('dw-contract-summary');
+  if(summaryEl){
+    const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+    const prefix=b.assetNumber.replace(/[0-9]/g,'');
+    const rate=HOURLY_RATES[prefix]||200;
+    const total=dur*rate;
+
+    summaryEl.innerHTML=`
+      <strong>Client:</strong> ${b.clientName}<br>
+      <strong>Asset:</strong> ${b.assetNumber} (${b.jobDescription||'Plant hire operation'})<br>
+      <strong>Rate / Estimated Total:</strong> $${rate}/hr — $${Math.round(total)} AUD (${dur.toFixed(1)} hrs)<br>
+      <strong>DocuWare Document ID:</strong> #DW-AGR-${b.id.toUpperCase()}
+    `;
+  }
+  document.getElementById('docuware-signature-modal').classList.add('open');
+}
+
+function executeDocuWareSign(){
+  const b=bookings.find(x=>x.id===_activeDWBookingId);
+  if(b){
+    b.contractSigned=true;
+    b.contractStatus='✓ Contract Signed & Archived';
+  }
+  closeDocuWareModal('docuware-signature-modal');
+  alert(`✅ DocuWare Sign Workflow Executed!\n\nHire Agreement #DW-AGR-${_activeDWBookingId?.toUpperCase()} sent to client. E-Signature verified & stored in DocuWare Vault.`);
+  renderJobBoard();
+  renderCalendar();
+}
+
+function openDocuWareDocketModal(id){
+  const b=bookings.find(x=>x.id===id);
+  if(!b)return;
+  _activeDWBookingId=id;
+
+  const summaryEl=document.getElementById('dw-docket-summary');
+  const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+  const prefix=b.assetNumber.replace(/[0-9]/g,'');
+  const rate=HOURLY_RATES[prefix]||200;
+
+  if(summaryEl){
+    summaryEl.innerHTML=`
+      <strong>Client:</strong> ${b.clientName} | <strong>Asset:</strong> ${b.assetNumber}<br>
+      <strong>Operator:</strong> ${b.operatorName||'On-site operator'}<br>
+      <strong>Job Scope:</strong> ${b.jobDescription||'Plant hire'}<br>
+      <strong>Docket Reference:</strong> #WD-${Math.floor(10000 + Math.random() * 90000)}
+    `;
+  }
+
+  document.getElementById('dw-actual-hours').value=dur.toFixed(1);
+  document.getElementById('dw-docket-rate').value=`$${rate}/hr`;
+  document.getElementById('dw-docket-total').value=`$${Math.round(dur*rate).toLocaleString()} AUD`;
+
+  document.getElementById('docuware-docket-modal').classList.add('open');
+}
+
+function recalcDocketTotal(){
+  const hours=parseFloat(document.getElementById('dw-actual-hours').value)||0;
+  const b=bookings.find(x=>x.id===_activeDWBookingId);
+  if(!b)return;
+  const prefix=b.assetNumber.replace(/[0-9]/g,'');
+  const rate=HOURLY_RATES[prefix]||200;
+  document.getElementById('dw-docket-total').value=`$${Math.round(hours*rate).toLocaleString()} AUD`;
+}
+
+function executeDocketUpload(){
+  const b=bookings.find(x=>x.id===_activeDWBookingId);
+  if(b){
+    b.docketUploaded=true;
+    b.status='Completed';
+  }
+  closeDocuWareModal('docuware-docket-modal');
+  alert(`⚡ DocuWare Intelligent Indexing Completed!\n\nField Wet-Hire Docket indexed successfully. Machine hours extracted, billable total verified, and job advanced to Completed!`);
+  renderJobBoard();
+  renderCalendar();
+  renderClientsView();
+}
+
+function openDocuWareSmartConnect(clientName){
+  const modal=document.getElementById('docuware-smartconnect-modal');
+  const titleEl=document.getElementById('smartconnect-title');
+  const bodyEl=document.getElementById('smartconnect-body');
+  if(!modal||!bodyEl)return;
+
+  titleEl.textContent=`DocuWare Smart Connect — ${clientName}`;
+
+  const clientBookings=bookings.filter(b=>b.clientName===clientName);
+  let html=`
+  <div style="background:rgba(26,86,219,0.06);border:1px solid rgba(26,86,219,0.2);padding:12px;border-radius:var(--radius-md);font-size:12px;display:flex;justify-content:space-between;align-items:center;">
+    <div><strong>Organization Vault:</strong> Ops Engine Room Main Archive</div>
+    <div style="color:#10b981;font-weight:700;">● Live Smart Connect Link Active</div>
+  </div>
+  <div class="compliance-table-wrap">
+    <table class="compliance-table">
+      <thead>
+        <tr>
+          <th>Document Title / Type</th>
+          <th>DocID</th>
+          <th>Indexed Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  clientBookings.forEach(b=>{
+    const dateStr=formatAUDate(b.startTime);
+    html+=`
+    <tr>
+      <td><strong>Signed Hire Agreement PDF</strong> (${b.assetNumber})</td>
+      <td style="font-family:monospace;">#DW-AGR-${b.id}</td>
+      <td>${dateStr}</td>
+      <td><span class="status-pill valid">Signed &amp; Indexed</span></td>
+      <td><button class="btn-secondary" style="height:28px;padding:0 8px;font-size:10px;" onclick="alert('Opening DocuWare PDF Viewer for #DW-AGR-${b.id}...')">View Contract PDF</button></td>
+    </tr>
+    <tr>
+      <td><strong>Verified Field Docket</strong> (#WD-${b.id})</td>
+      <td style="font-family:monospace;">#DW-DOC-${b.id}</td>
+      <td>${dateStr}</td>
+      <td><span class="status-pill valid">Hours Verified</span></td>
+      <td><button class="btn-secondary" style="height:28px;padding:0 8px;font-size:10px;" onclick="alert('Opening DocuWare Field Docket Viewer for #DW-DOC-${b.id}...')">View Docket PDF</button></td>
+    </tr>
+    <tr>
+      <td><strong>Tax Invoice Record</strong> (#INV-${b.id})</td>
+      <td style="font-family:monospace;">#DW-INV-${b.id}</td>
+      <td>${dateStr}</td>
+      <td><span class="status-pill ${b.status==='Invoiced'?'valid':'warning'}">${b.status==='Invoiced'?'Invoiced &amp; Synced':'Draft Invoice'}</span></td>
+      <td><button class="btn-secondary" style="height:28px;padding:0 8px;font-size:10px;" onclick="alert('Opening DocuWare Tax Invoice Viewer for #DW-INV-${b.id}...')">View Invoice PDF</button></td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  bodyEl.innerHTML=html;
+  modal.classList.add('open');
+}
+
+function closeDocuWareModal(id){
+  const modal=document.getElementById(id);
+  if(modal) modal.classList.remove('open');
+}
+
+/* Webhook sync release for expired certs */
+function indexDocuWareCert(assetId){
+  if(complianceRegistry[assetId]){
+    complianceRegistry[assetId].status='valid';
+    complianceRegistry[assetId].certDate='2027-07-30';
+  }
+  alert(`✅ DocuWare Webhook Received!\n\nNew Safety & Inspection Certificate for ${assetId} verified and indexed in DocuWare Vault.\nHard Dispatch Interlock RELEASED! ${assetId} is now available for booking.`);
+  renderComplianceView();
+  renderCalendar();
+  renderJobBoard();
+}
+
 /* ── JOB BOARD KANBAN WITH SEARCH & FILTER ── */
 function renderJobBoard(){
   const container=document.getElementById('job-board-container');
@@ -1392,11 +1611,29 @@ function renderJobBoard(){
         const dateStr=formatAUDate(b.startTime);
         
         let docActionText='Generate Agreement';
-        let docBadgeText='Contract Draft';
-        if(b.status==='Dispatched'){docActionText='Dispatch Docket';docBadgeText='Dispatched';}
-        else if(b.status==='On-Site'){docActionText='Site Checklist';docBadgeText='Active On-Site';}
-        else if(b.status==='Completed'){docActionText='Issue Invoice';docBadgeText='Ready to Bill';}
-        else if(b.status==='Invoiced'){docActionText='View Billing Record';docBadgeText='Archived & Billed';}
+        let docActionFn=`openDocuWareContractModal('${b.id}')`;
+        let docBadgeText=b.contractSigned?'✓ Contract Signed':'Contract Draft';
+
+        if(b.status==='Dispatched'){
+          docActionText='Dispatch Docket';
+          docActionFn=`triggerDocuWareDoc('${b.id}','${b.clientName}')`;
+          docBadgeText='Dispatched';
+        }
+        else if(b.status==='On-Site'){
+          docActionText='Upload Field Docket';
+          docActionFn=`openDocuWareDocketModal('${b.id}')`;
+          docBadgeText=b.docketUploaded?'✓ Docket Verified':'Active On-Site';
+        }
+        else if(b.status==='Completed'){
+          docActionText='Issue Invoice';
+          docActionFn=`triggerDocuWareDoc('${b.id}','${b.clientName}')`;
+          docBadgeText='Ready to Bill';
+        }
+        else if(b.status==='Invoiced'){
+          docActionText='View Billing Record';
+          docActionFn=`openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')`;
+          docBadgeText='Archived & Billed';
+        }
 
         html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
           <div class="kb-card-top">
@@ -1411,7 +1648,7 @@ function renderJobBoard(){
           </div>
           <div class="kb-dw-badge">
             <span>${docBadgeText}</span>
-            <button class="kb-action-btn" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">${docActionText}</button>
+            <button class="kb-action-btn" onclick="event.stopPropagation();${docActionFn}">${docActionText}</button>
           </div>
           <div style="display:flex;gap:4px;margin-top:4px;">
             ${col.id!=='Scheduled'?`<button class="kb-action-btn" style="background:#6b7280;padding:2px 8px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
@@ -1732,23 +1969,20 @@ function renderComplianceView(){
   const searchQuery=(document.getElementById('compliance-search')?.value||'').toLowerCase().trim();
   const statusFilter=document.getElementById('compliance-status-filter')?.value||'ALL';
 
-  const mockCompliance=[
-    {id:'EX01',type:'Excavator 20T',rego:'REG-8829-EX',certDate:'2026-11-15',status:'valid',risk:'Low'},
-    {id:'EX02',type:'Excavator 35T',rego:'REG-4410-EX',certDate:'2026-08-16',status:'warning',risk:'Medium'},
-    {id:'SK03',type:'Skid Steer',rego:'REG-1204-SK',certDate:'2026-12-01',status:'valid',risk:'Low'},
-    {id:'DZ04',type:'Dozer D6',rego:'REG-9912-DZ',certDate:'2027-01-20',status:'valid',risk:'Low'},
-    {id:'FL05',type:'Forklift 5T',rego:'REG-3319-FL',certDate:'2026-09-10',status:'valid',risk:'Low'},
-    {id:'FL06',type:'Forklift 10T',rego:'REG-5521-FL',certDate:'2026-10-04',status:'valid',risk:'Low'},
-    {id:'SC07',type:'Scissor Lift 12m',rego:'REG-7714-SC',certDate:'2026-08-28',status:'warning',risk:'Medium'},
-    {id:'BM08',type:'Boom Lift 17m',rego:'REG-8840-BM',certDate:'2026-11-30',status:'valid',risk:'Low'},
-    {id:'CR09',type:'Crawler Crane 50T',rego:'REG-0012-CR',certDate:'2026-07-30',status:'expired',risk:'HIGH'},
-    {id:'DT10',type:'Dump Truck',rego:'REG-6632-DT',certDate:'2026-12-15',status:'valid',risk:'Low'}
-  ];
-
-  let filtered=mockCompliance;
+  let list=assetRegistry.map(a=>{
+    const comp=complianceRegistry[a.id]||{rego:'REG-8800',certDate:'2026-12-31',status:'valid',risk:'Low'};
+    return {
+      id:a.id,
+      type:a.description,
+      rego:comp.rego,
+      certDate:comp.certDate,
+      status:comp.status,
+      risk:comp.risk||'Low'
+    };
+  });
 
   if(searchQuery){
-    filtered=filtered.filter(item=>
+    list=list.filter(item=>
       item.id.toLowerCase().includes(searchQuery)||
       item.type.toLowerCase().includes(searchQuery)||
       item.rego.toLowerCase().includes(searchQuery)
@@ -1756,7 +1990,7 @@ function renderComplianceView(){
   }
 
   if(statusFilter!=='ALL'){
-    filtered=filtered.filter(item=>item.status===statusFilter);
+    list=list.filter(item=>item.status===statusFilter);
   }
 
   let html=`<div class="compliance-table-wrap">
@@ -1768,28 +2002,38 @@ function renderComplianceView(){
           <th>Registration #</th>
           <th>Service / Risk Cert Expiry (DD/MM/YYYY)</th>
           <th>Compliance Status</th>
-          <th>Document Repository</th>
+          <th>Document Repository &amp; Webhook Trigger</th>
         </tr>
       </thead>
       <tbody>`;
 
-  if(filtered.length===0){
+  if(list.length===0){
     html+=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No compliance records match criteria.</td></tr>`;
   } else {
-    filtered.forEach(item=>{
+    list.forEach(item=>{
       let pillCls='valid';let pillText='Valid Record';
       if(item.status==='warning'){pillCls='warning';pillText='Service Due (30d)';}
-      else if(item.status==='expired'){pillCls='expired';pillText='Cert Expired';}
+      else if(item.status==='expired'){pillCls='expired';pillText='🚫 Cert Expired (LOCKED)';}
 
       const formattedCertDate=formatAUDate(item.certDate);
 
-      html+=`<tr>
+      html+=`<tr ${item.status==='expired'?'style="background:rgba(239,68,68,0.04);"' : ''}>
         <td style="font-weight:700;">${item.id}</td>
         <td>${item.type}</td>
         <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
         <td style="font-weight:600;">${formattedCertDate}</td>
         <td><span class="status-pill ${pillCls}">${pillText}</span></td>
-        <td><button class="btn-secondary" style="height:30px;padding:0 12px;font-size:11px;" onclick="alert('Retrieving certified inspection record for ${item.id} from Document Vault...')">Fetch Cert Record</button></td>
+        <td style="display:flex;gap:6px;align-items:center;">
+          ${item.status==='expired' ? `
+            <button class="btn-primary" style="height:30px;padding:0 10px;font-size:11px;background:#dc2626;" onclick="indexDocuWareCert('${item.id}')">
+              📄 Index New Cert in DocuWare (Release Lock)
+            </button>
+          ` : `
+            <button class="btn-secondary" style="height:30px;padding:0 10px;font-size:11px;" onclick="alert('Retrieving certified inspection record for ${item.id} from DocuWare Vault...')">
+              Fetch Cert Record
+            </button>
+          `}
+        </td>
       </tr>`;
     });
   }

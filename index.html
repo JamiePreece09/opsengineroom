@@ -521,6 +521,105 @@
   </div>
 </div>
 
+<!-- DocuWare Contract E-Signature Modal -->
+<div class="modal-overlay" id="docuware-signature-modal">
+  <div class="modal-box" style="max-width:540px;width:90vw;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">DOCUWARE SIGN // E-SIGNATURE WORKFLOW</div>
+        <h2>Generate Hire Agreement</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-signature-modal')">✕</button>
+    </div>
+    <div style="padding:16px 0;display:flex;flex-direction:column;gap:12px;">
+      <div style="background:rgba(26,86,219,0.06);border:1px solid rgba(26,86,219,0.2);padding:14px;border-radius:var(--radius-md);font-size:12px;">
+        <div style="font-weight:700;color:var(--accent-primary);margin-bottom:4px;">📄 Automated Template Population</div>
+        <div id="dw-contract-summary" style="color:var(--text-secondary);line-height:1.4;"></div>
+      </div>
+      <div class="form-group">
+        <label>Customer Signatory Email</label>
+        <input type="email" id="dw-signer-email" value="site.manager@clientcorp.com.au">
+      </div>
+      <div class="form-group">
+        <label>Verification Method</label>
+        <select id="dw-sign-type" class="dropdown-btn" style="width:100%;height:38px;padding:0 10px;">
+          <option value="Validated ID">DocuWare Sign (Validated ID)</option>
+          <option value="SMS OTP">SMS OTP Verification</option>
+          <option value="Wet Signature Upload">Manual Wet-Signature Scan</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-signature-modal')">Cancel</button>
+      <button class="btn-primary" onclick="executeDocuWareSign()">Trigger E-Signature Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- DocuWare Field Docket Upload & Indexing Modal -->
+<div class="modal-overlay" id="docuware-docket-modal">
+  <div class="modal-box" style="max-width:560px;width:90vw;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">DOCUWARE INTELLIGENT INDEXING // FIELD DOCKET</div>
+        <h2>Upload Machine Field Docket</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-docket-modal')">✕</button>
+    </div>
+    <div style="padding:16px 0;display:flex;flex-direction:column;gap:12px;">
+      <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);padding:14px;border-radius:var(--radius-md);font-size:12px;">
+        <div style="font-weight:700;color:#10b981;margin-bottom:4px;">🚜 Field Operator Run-Hour Verification</div>
+        <div id="dw-docket-summary" style="color:var(--text-secondary);line-height:1.4;"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Actual Machine Run Hours</label>
+          <input type="number" id="dw-actual-hours" value="8.0" step="0.5" oninput="recalcDocketTotal()">
+        </div>
+        <div class="form-group">
+          <label>Hourly Hire Rate ($/hr)</label>
+          <input type="text" id="dw-docket-rate" readonly style="background:var(--bg-tertiary);">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Calculated Billable Subtotal ($ AUD)</label>
+        <input type="text" id="dw-docket-total" readonly style="font-weight:800;color:var(--accent-primary);font-size:16px;">
+      </div>
+      <div class="form-group">
+        <label>Site Representative Signature Status</label>
+        <select id="dw-site-sign" class="dropdown-btn" style="width:100%;height:38px;padding:0 10px;">
+          <option value="Signed on Site Tablet">✓ Verified Signed on Site Tablet</option>
+          <option value="Paper Docket Scan Attached">✓ Paper Docket Scan Attached</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-docket-modal')">Cancel</button>
+      <button class="btn-primary" onclick="executeDocketUpload()">Index Docket &amp; Auto-Populate Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- DocuWare Smart Connect Document Viewer Overlay -->
+<div class="modal-overlay" id="docuware-smartconnect-modal">
+  <div class="modal-box" style="max-width:820px;width:92vw;max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">DOCUWARE SMART CONNECT // DOCUMENT REPOSITORY</div>
+        <h2 id="smartconnect-title">DocuWare Smart Connect</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-smartconnect-modal')">✕</button>
+    </div>
+    <div id="smartconnect-body" style="flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:14px;">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-smartconnect-modal')">Close Viewer</button>
+      <button class="btn-primary" onclick="alert('Launching DocuWare Desktop Viewer Suite...')">Open in Full DocuWare Viewer</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 <div id="cdp-popup"></div>
