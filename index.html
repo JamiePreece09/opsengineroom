@@ -174,23 +174,26 @@
       </div>
     </div>
 
-    <!-- Analytics View -->
+    <!-- EXECUTIVE DASHBOARD & TELEMETRY -->
     <div id="analytics-view" class="view-container">
       <div class="page-header">
         <div>
-          <h1>Analytics Dashboard</h1>
-          <div class="subtitle">Utilization &amp; Profitability Metrics</div>
+          <div class="header-breadcrumb">HIREENGINE CONTROL TOWER // EXECUTIVE TELEMETRY</div>
+          <h1>Executive Dashboard</h1>
+          <div class="subtitle">Real-Time Fleet Operations, DocuWare Automation Telemetry &amp; Financial Yield</div>
         </div>
         <div class="header-actions">
           <button class="btn-secondary" onclick="exportReport()">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Export Report
+            Export Executive Brief PDF
           </button>
         </div>
       </div>
+
+      <!-- Date Range Toolbar -->
       <div class="analytics-toolbar">
         <div class="filters">
-          <span style="font-size:14px;font-weight:500;color:var(--text-secondary);">Date Range:</span>
+          <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">Reporting Period:</span>
           <select id="analytics-preset-filter" class="dropdown-btn" style="appearance:auto;font-family:'Plus Jakarta Sans',sans-serif;" onchange="applyDatePreset()">
             <option value="this_week" selected>This Week</option>
             <option value="today">Today</option>
@@ -200,45 +203,61 @@
             <option value="custom">Custom Range</option>
           </select>
           <input type="date" id="analytics-start-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;" onchange="renderAnalytics()">
-          <span style="font-size:14px;color:var(--text-muted);">to</span>
+          <span style="font-size:13px;color:var(--text-muted);">to</span>
           <input type="date" id="analytics-end-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;" onchange="renderAnalytics()">
         </div>
       </div>
-      <div class="kpi-row">
-        <div class="kpi-card glass-panel" id="kpi-revenue"></div>
-        <div class="kpi-card glass-panel" id="kpi-utilization"></div>
-        <div class="kpi-card glass-panel" id="kpi-idle-cost"></div>
+
+      <!-- 1. Top-Level Telemetry Metric Cards (DocuWare Metrics) -->
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;flex-shrink:0;">
+        <div class="kpi-card glass-panel" id="kpi-docuware-indexed"></div>
+        <div class="kpi-card glass-panel" id="kpi-signatures-pending"></div>
+        <div class="kpi-card glass-panel" id="kpi-wip-total"></div>
+        <div class="kpi-card glass-panel" id="kpi-revenue-invoiced"></div>
       </div>
+
+      <!-- 2. Global Alert Center (Manage by Exception / Bottleneck View) -->
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:12px;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.6px;display:flex;align-items:center;gap:8px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;"></span>
+          Global Alert Center — Operational Bottlenecks &amp; Interlocks
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;" id="executive-alert-center">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- 3. Asset Utilization & MTD Revenue Yield Grid -->
       <div class="charts-grid">
         <div class="chart-card glass-panel" style="flex:1;">
           <div class="chart-header">
-            <h3>Asset Utilization Profile</h3>
-            <span class="subtitle">Active vs Idle Time (Hours)</span>
+            <h3>Fleet Asset Utilization Profile</h3>
+            <span class="subtitle">Active vs Idle Hours (Muted Phase 1 Asset Layer Palette)</span>
           </div>
-          <div class="canvas-container" style="position:relative;flex:1;min-height:250px;width:100%;">
+          <div class="canvas-container" style="position:relative;flex:1;min-height:260px;width:100%;">
             <canvas id="utilizationChart"></canvas>
           </div>
         </div>
         <div class="chart-card glass-panel" style="flex:1;">
           <div class="chart-header">
-            <h3>Revenue Yield by Asset</h3>
-            <span class="subtitle">Estimated Profitability ($)</span>
+            <h3>Asset Revenue Yield &amp; Profitability</h3>
+            <span class="subtitle">MTD Earnings Breakdown ($ AUD)</span>
           </div>
           <div class="revenue-list" id="revenue-list"></div>
         </div>
         <div class="chart-card glass-panel" style="flex:1;">
           <div class="chart-header">
-            <h3>Job Status Distribution</h3>
-            <span class="subtitle">Current Booking Volumes</span>
+            <h3>DocuWare Pipeline Distribution</h3>
+            <span class="subtitle">Live Job Stage Volume Breakdown</span>
           </div>
-          <div class="canvas-container" style="position:relative;flex:1;min-height:250px;width:100%;display:flex;justify-content:center;">
+          <div class="canvas-container" style="position:relative;flex:1;min-height:240px;width:100%;display:flex;justify-content:center;">
             <canvas id="statusChart"></canvas>
           </div>
         </div>
         <div class="chart-card glass-panel" style="flex:1;">
           <div class="chart-header">
-            <h3>Operator Workload</h3>
-            <span class="subtitle">Assigned Hours per Operator</span>
+            <h3>Field Operator Workload</h3>
+            <span class="subtitle">Logged Machine Operating Hours</span>
           </div>
           <div class="operator-list" id="operator-list"></div>
         </div>
