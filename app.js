@@ -1294,6 +1294,17 @@ function populateHourSelect(sel, defaultVal, includeHourZero){
   }
 }
 
+/* ── AUSTRALIAN DATE FORMAT HELPER ── */
+function formatAUDate(dateInput){
+  if(!dateInput) return '';
+  const d = new Date(dateInput);
+  if(isNaN(d.getTime())) return String(dateInput);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 /* ── TAB SWITCHING & PHASE 2 MODULES ── */
 function switchTab(tab){
   const viewMap={
@@ -1378,6 +1389,7 @@ function renderJobBoard(){
         const assetColor=ASSET_HEX[b.assetNumber]||'#1C4B8B';
         const startD=new Date(b.startTime);
         const timeStr=startD.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+        const dateStr=formatAUDate(b.startTime);
         
         let docActionText='Generate Agreement';
         let docBadgeText='Contract Draft';
@@ -1389,7 +1401,7 @@ function renderJobBoard(){
         html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
           <div class="kb-card-top">
             <span class="kb-asset-badge" style="background:${assetColor};">${b.assetNumber}</span>
-            <span class="kb-time">${timeStr}</span>
+            <span class="kb-time">${dateStr} ${timeStr}</span>
           </div>
           <div class="kb-client">${b.clientName}</div>
           <div class="kb-desc">${b.jobDescription||'General plant hire operation'}</div>
@@ -1431,7 +1443,7 @@ function triggerDocuWareDoc(id,clientName){
   alert(`Document Engine Workflow Triggered\n\nGenerating legal agreement record for ${clientName} (Order #${id})...\nArchived into Enterprise Document Repository.`);
 }
 
-/* ── STREAMLINED CLIENTS DIRECTORY WITH SEARCH & FILTER ── */
+/* ── ENTERPRISE TABLE CLIENTS DIRECTORY ── */
 function renderClientsView(){
   const container=document.getElementById('clients-container');
   if(!container)return;
@@ -1440,6 +1452,9 @@ function renderClientsView(){
   const sortOption=document.getElementById('client-sort-filter')?.value||'revenue_desc';
 
   const clientMap={};
+  let grandTotalRevenue=0;
+  let grandTotalDeployments=0;
+
   bookings.forEach(b=>{
     const c=b.clientName||'Unknown Client';
     if(!clientMap[c]){
@@ -1448,10 +1463,15 @@ function renderClientsView(){
     const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
     const prefix=b.assetNumber.replace(/[0-9]/g,'');
     const rate=HOURLY_RATES[prefix]||200;
+    const rev=dur*rate;
+
     clientMap[c].jobs++;
-    clientMap[c].totalSpend+=dur*rate;
+    clientMap[c].totalSpend+=rev;
     clientMap[c].assetsUsed.add(b.assetNumber);
     if(new Date(b.startTime)>new Date(clientMap[c].lastJob)) clientMap[c].lastJob=b.startTime;
+
+    grandTotalRevenue+=rev;
+    grandTotalDeployments++;
   });
 
   let clients=Object.values(clientMap);
@@ -1469,47 +1489,71 @@ function renderClientsView(){
   else if(sortOption==='jobs_desc') clients.sort((a,b)=>b.jobs-a.jobs);
   else if(sortOption==='name_asc') clients.sort((a,b)=>a.name.localeCompare(b.name));
 
+  const activeAccountsCount=clients.length;
+  const formattedGrandTotal='$'+Math.round(grandTotalRevenue).toLocaleString()+' AUD';
+  const avgSpendPerAccount=activeAccountsCount?'$'+Math.round(grandTotalRevenue/activeAccountsCount).toLocaleString()+' AUD':'$0 AUD';
+
+  let html=`
+  <!-- Client Directory KPI Header Bar -->
+  <div class="client-kpi-bar">
+    <div class="client-kpi-card glass-panel">
+      <div class="ck-label">Active Client Accounts</div>
+      <div class="ck-val">${activeAccountsCount}</div>
+      <div class="ck-sub">Verified Enterprise Accounts</div>
+    </div>
+    <div class="client-kpi-card glass-panel">
+      <div class="ck-label">Total Portfolio Revenue</div>
+      <div class="ck-val" style="color:var(--accent-primary);">${formattedGrandTotal}</div>
+      <div class="ck-sub">Billed across ${grandTotalDeployments} deployments</div>
+    </div>
+    <div class="client-kpi-card glass-panel">
+      <div class="ck-label">Average Account Value</div>
+      <div class="ck-val">${avgSpendPerAccount}</div>
+      <div class="ck-sub">Per active client relationship</div>
+    </div>
+  </div>
+
+  <!-- Enterprise Client Table -->
+  <div class="compliance-table-wrap">
+    <table class="compliance-table">
+      <thead>
+        <tr>
+          <th>Client Account</th>
+          <th>Account Tier</th>
+          <th>Deployments</th>
+          <th>Total Billed (AUD)</th>
+          <th>Fleet Deployed</th>
+          <th>Last Active Date</th>
+          <th>Account Actions</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
   if(clients.length===0){
-    container.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">No client accounts match your search query.</div>`;
-    return;
+    html+=`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No client accounts match your search query.</td></tr>`;
+  } else {
+    clients.forEach(c=>{
+      const formattedSpend='$'+Math.round(c.totalSpend).toLocaleString();
+      const assetsList=Array.from(c.assetsUsed).join(', ');
+      const lastDate=formatAUDate(c.lastJob);
+
+      html+=`<tr>
+        <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${c.name}</td>
+        <td><span class="status-pill valid">Enterprise Verified</span></td>
+        <td style="font-weight:700;text-align:center;">${c.jobs}</td>
+        <td style="font-weight:700;color:var(--accent-primary);">${formattedSpend}</td>
+        <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
+        <td style="font-weight:600;">${lastDate}</td>
+        <td>
+          <button class="btn-secondary" style="height:32px;padding:0 12px;font-size:11px;" onclick="alert('Generating Verified Account Ledger & Statement PDF for ${c.name}...')">
+            Generate Statement PDF
+          </button>
+        </td>
+      </tr>`;
+    });
   }
 
-  let html=`<div class="clients-grid">`;
-  clients.forEach(c=>{
-    const formattedSpend='$'+Math.round(c.totalSpend).toLocaleString();
-    const assetsList=Array.from(c.assetsUsed).join(', ');
-    const lastDate=new Date(c.lastJob).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-
-    html+=`<div class="client-card">
-      <div class="client-card-header">
-        <div>
-          <div class="client-name">${c.name}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Enterprise Account</div>
-        </div>
-        <span class="client-stat-pill">Verified Account</span>
-      </div>
-      <div class="client-stats-row">
-        <div class="cs-item">
-          <div class="cs-num">${c.jobs}</div>
-          <div class="cs-lbl">Deployments</div>
-        </div>
-        <div class="cs-item">
-          <div class="cs-num" style="color:var(--accent-primary);">${formattedSpend}</div>
-          <div class="cs-lbl">Total Billed</div>
-        </div>
-        <div class="cs-item">
-          <div class="cs-num">${c.assetsUsed.size}</div>
-          <div class="cs-lbl">Fleet Types</div>
-        </div>
-      </div>
-      <div class="client-meta-line">
-        <span><strong>Active Fleet:</strong> ${assetsList}</span>
-        <span><strong>Last Booking:</strong> ${lastDate}</span>
-      </div>
-      <button class="btn-secondary" style="width:100%;justify-content:center;" onclick="alert('Generating Verified Account Ledger & Statement PDF for ${c.name}...')">Generate Account Statement</button>
-    </div>`;
-  });
-  html+=`</div>`;
+  html+=`</tbody></table></div>`;
 
   container.innerHTML=html;
 }
@@ -1556,7 +1600,7 @@ function renderComplianceView(){
           <th>Asset Code</th>
           <th>Description</th>
           <th>Registration #</th>
-          <th>Service / Risk Cert Expiry</th>
+          <th>Service / Risk Cert Expiry (DD/MM/YYYY)</th>
           <th>Compliance Status</th>
           <th>Document Repository</th>
         </tr>
@@ -1571,11 +1615,13 @@ function renderComplianceView(){
       if(item.status==='warning'){pillCls='warning';pillText='Service Due (30d)';}
       else if(item.status==='expired'){pillCls='expired';pillText='Cert Expired';}
 
+      const formattedCertDate=formatAUDate(item.certDate);
+
       html+=`<tr>
         <td style="font-weight:700;">${item.id}</td>
         <td>${item.type}</td>
         <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
-        <td style="font-weight:600;">${item.certDate}</td>
+        <td style="font-weight:600;">${formattedCertDate}</td>
         <td><span class="status-pill ${pillCls}">${pillText}</span></td>
         <td><button class="btn-secondary" style="height:30px;padding:0 12px;font-size:11px;" onclick="alert('Retrieving certified inspection record for ${item.id} from Document Vault...')">Fetch Cert Record</button></td>
       </tr>`;
@@ -1599,10 +1645,10 @@ function renderNotifications(){
   if(!body)return;
 
   const items=[
-    {type:'urgent',title:'High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30 July. Future bookings flagged for risk review.',time:'10 mins ago'},
+    {type:'urgent',title:'High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30/07/2026. Future bookings flagged for risk review.',time:'10 mins ago'},
     {type:'dw',title:'Automated Document Event',msg:'Hire Agreement #HA-9942 signed & archived for Fulton Hogan (Job b23).',time:'1 hour ago'},
-    {type:'normal',title:'Maintenance Scheduled',msg:'EX02 Excavator 35T service due in 12 days (16 Aug 2026).',time:'3 hours ago'},
-    {type:'dw',title:'Billing Record Archived',msg:'Automated billing engine filed invoice for Metro Rail Authority ($2,400).',time:'Yesterday'}
+    {type:'normal',title:'Maintenance Scheduled',msg:'EX02 Excavator 35T service due in 12 days (16/08/2026).',time:'3 hours ago'},
+    {type:'dw',title:'Billing Record Archived',msg:'Automated billing engine filed invoice for Metro Rail Authority ($2,400 AUD).',time:'Yesterday'}
   ];
 
   body.innerHTML=items.map(item=>`
@@ -1629,5 +1675,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderCalendar();
   applyDatePreset();
 });
+
 
 
