@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ops Engine Room | Command Center</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Michroma&family=Cedarville+Cursive&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-container">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand-logo">
+      <img src="ops-logo.jpg" alt="Ops Engine Room" class="main-logo"
+           onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-family:Michroma,sans-serif;color:#fff;font-size:18px;letter-spacing:2px;\'>OPS<br>ENGINE ROOM</span>';">
+    </div>
+    <div class="nav-section">
+      <div class="nav-item active" id="nav-calendar" onclick="switchTab('calendar')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Command Center
+      </div>
+      <div class="nav-item" id="nav-analytics" onclick="switchTab('analytics')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Asset Utilization
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="content-wrapper">
+
+    <!-- Calendar / Command Center View -->
+    <div id="calendar-view" class="view-container active">
+      <div class="page-header">
+        <div>
+          <h1 id="page-title">Command Center</h1>
+          <div class="subtitle" id="page-subtitle">Fleet &amp; Asset Allocation</div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </button>
+          <button class="icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
+          <div class="user-info">
+            <div class="name">Dispatcher Admin</div>
+            <div class="role">Logistics</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Toolbar -->
+      <div class="calendar-toolbar">
+        <div class="calendar-nav">
+          <button class="nav-btn" onclick="changeDate(-1)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="date-toggle-wrapper">
+            <button class="today-btn" id="date-toggle-btn" onclick="openDatePicker()">Today</button>
+          </div>
+          <button class="nav-btn" onclick="changeDate(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <span class="display-date" id="display-date"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="calendar-legend">
+            <div class="legend-item"><span class="dot" style="background-color:var(--color-urgent);"></span> Urgent</div>
+            <div class="legend-item"><span class="dot" style="background-color:var(--color-invoiced);"></span> Invoiced</div>
+          </div>
+          <div class="view-toggles">
+            <button class="view-btn active" onclick="setCalendarView('Day')">Day</button>
+            <button class="view-btn" onclick="setCalendarView('Week')">Week</button>
+            <button class="view-btn" onclick="setCalendarView('Work Week')">Work Week</button>
+            <button class="view-btn" onclick="setCalendarView('Month')">Month</button>
+          </div>
+          <!-- Day transpose toggle — shown only in Day view -->
+          <button id="day-transpose-btn" class="transpose-btn" onclick="toggleDayTranspose()" title="Toggle between column and row layout" style="display:none;">
+            <svg id="transpose-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <span id="transpose-label">Asset View</span>
+          </button>
+        </div>
+
+        <!-- Display Hours Control -->
+        <div class="display-hours-control" id="display-hours-control">
+          <span class="display-hours-label">Hours</span>
+          <select id="display-start-hour" class="hours-select"
+            onchange="setDisplayHours(this.value, document.getElementById('display-end-hour').value)">
+          </select>
+          <span class="hours-separator">→</span>
+          <select id="display-end-hour" class="hours-select"
+            onchange="setDisplayHours(document.getElementById('display-start-hour').value, this.value)">
+          </select>
+          <button class="hours-reset-btn" title="Reset to auto-fit" onclick="resetDisplayHours()">↺</button>
+        </div>
+
+        <button class="btn-primary" onclick="openModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Quick Book
+        </button>
+      </div>
+
+      <!-- Asset Filter Bar (Week/Work Week/Month only — populated by JS) -->
+      <div class="asset-filter-bar" id="asset-filter-bar" style="display:none;"></div>
+
+      <!-- Calendar Body -->
+      <div class="calendar-body glass-panel" id="calendar-body">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Analytics View -->
+    <div id="analytics-view" class="view-container">
+      <div class="page-header">
+        <div>
+          <h1>Analytics Dashboard</h1>
+          <div class="subtitle">Utilization &amp; Profitability Metrics</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-secondary" onclick="exportReport()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+      <div class="analytics-toolbar">
+        <div class="filters">
+          <span style="font-size:14px;font-weight:500;color:var(--text-secondary);">Date Range:</span>
+          <select id="analytics-preset-filter" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;" onchange="applyDatePreset()">
+            <option value="this_week" selected>This Week</option>
+            <option value="today">Today</option>
+            <option value="next_week">Next Week</option>
+            <option value="this_month">This Month</option>
+            <option value="all">All Time</option>
+            <option value="custom">Custom Range</option>
+          </select>
+          <input type="date" id="analytics-start-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:13px;" onchange="renderAnalytics()">
+          <span style="font-size:14px;color:var(--text-muted);">to</span>
+          <input type="date" id="analytics-end-date" class="dropdown-btn" style="padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:13px;" onchange="renderAnalytics()">
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-card glass-panel" id="kpi-revenue"></div>
+        <div class="kpi-card glass-panel" id="kpi-utilization"></div>
+        <div class="kpi-card glass-panel" id="kpi-idle-cost"></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card glass-panel" style="flex:1;">
+          <div class="chart-header">
+            <h3>Asset Utilization Profile</h3>
+            <span class="subtitle">Active vs Idle Time (Hours)</span>
+          </div>
+          <div class="canvas-container" style="position:relative;flex:1;min-height:250px;width:100%;">
+            <canvas id="utilizationChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card glass-panel" style="flex:1;">
+          <div class="chart-header">
+            <h3>Revenue Yield by Asset</h3>
+            <span class="subtitle">Estimated Profitability ($)</span>
+          </div>
+          <div class="revenue-list" id="revenue-list"></div>
+        </div>
+        <div class="chart-card glass-panel" style="flex:1;">
+          <div class="chart-header">
+            <h3>Job Status Distribution</h3>
+            <span class="subtitle">Current Booking Volumes</span>
+          </div>
+          <div class="canvas-container" style="position:relative;flex:1;min-height:250px;width:100%;display:flex;justify-content:center;">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card glass-panel" style="flex:1;">
+          <div class="chart-header">
+            <h3>Operator Workload</h3>
+            <span class="subtitle">Assigned Hours per Operator</span>
+          </div>
+          <div class="operator-list" id="operator-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settings-view" class="view-container">
+      <div class="page-header">
+        <div>
+          <h1>System Settings</h1>
+          <div class="subtitle">Integrations &amp; Configuration</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-card glass-panel">
+          <div class="settings-section-title">DocuWare Integration</div>
+          <div class="settings-section-subtitle">Connect to your DocuWare instance for automated document sync</div>
+          <div class="settings-field">
+            <label>DocuWare Server URL</label>
+            <input type="url" placeholder="https://your-instance.docuware.cloud" id="dw-url">
+          </div>
+          <div class="settings-field">
+            <label>Organisation ID</label>
+            <input type="text" placeholder="Enter Organisation ID" id="dw-org">
+          </div>
+          <div class="settings-field">
+            <label>API Token</label>
+            <input type="password" placeholder="••••••••••••••••" id="dw-token">
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+            <button class="btn-primary" onclick="saveDocuWare()">Save &amp; Connect</button>
+            <span class="status-badge disconnected" id="dw-status">● Disconnected</span>
+          </div>
+        </div>
+        <div class="settings-card glass-panel">
+          <div class="settings-section-title">Webhook Configuration</div>
+          <div class="settings-section-subtitle">Configure inbound DocuWare webhook for live booking creation</div>
+          <div class="settings-field">
+            <label>Webhook Endpoint</label>
+            <input type="text" value="https://your-domain.com/api/docuware-webhook" readonly style="color:var(--text-muted);">
+          </div>
+          <div class="settings-field">
+            <label>Webhook Secret</label>
+            <input type="password" placeholder="Set a secure webhook secret" id="webhook-secret">
+          </div>
+          <div class="settings-field">
+            <label>Last Sync</label>
+            <input type="text" value="Never" readonly id="last-sync" style="color:var(--text-muted);">
+          </div>
+          <button class="btn-secondary" onclick="alert('Document sync triggered manually for recent invoices.')">Force Sync Now</button>
+        </div>
+        <div class="settings-card glass-panel">
+          <div class="settings-section-title">Notification Preferences</div>
+          <div class="settings-section-subtitle">Manage how you receive booking and schedule alerts</div>
+          <div class="settings-field">
+            <label>Notification Email</label>
+            <input type="email" placeholder="dispatcher@yourcompany.com" id="notif-email">
+          </div>
+          <div class="settings-field">
+            <label>Alert Threshold</label>
+            <select id="notif-threshold" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+              <option>All Events</option>
+              <option selected>Urgent Only</option>
+              <option>None</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="alert('Notification preferences saved.')">Save Preferences</button>
+        </div>
+        <div class="settings-card glass-panel">
+          <div class="settings-section-title">Localisation &amp; Timezone</div>
+          <div class="settings-section-subtitle">Set regional defaults for the scheduling engine</div>
+          <div class="settings-field">
+            <label>Timezone</label>
+            <select class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+              <option selected>Australia/Brisbane (AEST, UTC+10)</option>
+              <option>Australia/Sydney (AEDT, UTC+11)</option>
+              <option>Australia/Perth (AWST, UTC+8)</option>
+            </select>
+          </div>
+          <div class="settings-field">
+            <label>Date Format</label>
+            <select class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;">
+              <option selected>DD/MM/YYYY</option>
+              <option>MM/DD/YYYY</option>
+              <option>YYYY-MM-DD</option>
+            </select>
+          </div>
+          <div class="settings-field">
+            <label>Default Work Hours</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <select id="settings-work-start" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;"><!-- populated by JS --></select>
+              <span style="color:var(--text-muted);font-size:13px;">to</span>
+              <select id="settings-work-end" class="dropdown-btn" style="appearance:auto;font-family:'Montserrat',sans-serif;"><!-- populated by JS --></select>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Controls the default visible hours on the Command Center calendar.</div>
+          </div>
+          <button class="btn-primary" onclick="saveWorkHours()">Save Settings</button>
+        </div>
+
+        <!-- Fleet Asset Management — full width -->
+        <div class="settings-card glass-panel" style="grid-column:span 2;">
+          <div class="settings-section-title">Fleet Asset Management</div>
+          <div class="settings-section-subtitle">Add or remove assets and configure their calendar colour codes</div>
+          <!-- Column headers -->
+          <div class="am-header">
+            <span></span>
+            <span>Asset ID</span>
+            <span>Description</span>
+            <span>Hex Colour</span>
+            <span></span>
+          </div>
+          <!-- Rows populated by renderAssetManager() -->
+          <div id="asset-manager-list"></div>
+          <!-- Add new asset -->
+          <div class="am-add-row">
+            <input type="text" id="new-asset-id" class="am-input-new" placeholder="ID e.g. FC14" maxlength="8">
+            <input type="text" id="new-asset-desc" class="am-input-new am-input-wide" placeholder="Description e.g. Franna Crane">
+            <div class="am-color-wrap">
+              <input type="color" id="new-asset-hex-color" value="#888888" class="am-color-picker">
+              <input type="text" id="new-asset-hex-text" placeholder="#888888" class="am-hex-text" maxlength="7"
+                onchange="document.getElementById('new-asset-hex-color').value=this.value">
+            </div>
+            <button class="btn-primary" onclick="addAsset()">+ Add Asset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Quick Book Modal -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-title">New Quick Book</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <input type="hidden" id="booking-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Asset Code</label>
+        <select id="booking-asset"><!-- populated by JS --></select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="booking-status">
+          <option value="Scheduled">Scheduled</option>
+          <option value="Urgent">Urgent</option>
+          <option value="Invoiced">Invoiced</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Client / Company Name</label>
+      <input type="text" id="booking-client" placeholder="e.g. BuildCorp Inc.">
+    </div>
+    <div class="form-group">
+      <label>Operator Name</label>
+      <input type="text" id="booking-operator" placeholder="e.g. John Smith">
+    </div>
+    <div class="form-group">
+      <label>Job Description</label>
+      <textarea id="booking-desc" placeholder="Describe the job..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="booking-date">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="time" id="booking-start" value="08:00">
+      </div>
+      <div class="form-group">
+        <label>End Time</label>
+        <input type="time" id="booking-end" value="09:00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="delete-btn" style="display:none;color:#ef4444;border-color:#ef4444;" onclick="deleteBooking()">Delete</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveBooking()">Save Booking</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+<div id="cdp-popup"></div>
+</body>
+</html>
