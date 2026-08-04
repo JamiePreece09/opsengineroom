@@ -13,23 +13,56 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="brand-logo">
-      <img src="ops-logo.jpg" alt="Ops Engine Room" class="main-logo"
-           onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-family:Michroma,sans-serif;color:#fff;font-size:18px;letter-spacing:2px;\'>OPS<br>ENGINE ROOM</span>';">
+      <div class="brand-wordmark">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"></polygon>
+            <polyline points="2 7 12 12 22 7"></polyline>
+            <polyline points="12 22 12 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">OPS ENGINE ROOM</span>
+          <span class="brand-subtitle">DocuWare Operations Layer</span>
+        </div>
+      </div>
+      <div class="live-pill">
+        <span class="live-dot"></span> Live
+      </div>
     </div>
     <div class="nav-section">
       <div class="nav-item active" id="nav-calendar" onclick="switchTab('calendar')">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Command Center
       </div>
+      <div class="nav-item" id="nav-job-board" onclick="switchTab('job-board')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+        Job Board
+      </div>
       <div class="nav-item" id="nav-analytics" onclick="switchTab('analytics')">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Asset Utilization
+      </div>
+      <div class="nav-item" id="nav-clients" onclick="switchTab('clients')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clients Directory
+      </div>
+      <div class="nav-item" id="nav-compliance" onclick="switchTab('compliance')">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        Compliance &amp; Certs
       </div>
     </div>
     <div class="sidebar-footer">
       <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
+      </div>
+      <div class="user-profile-block">
+        <div class="user-avatar">DA</div>
+        <div class="user-details">
+          <div class="user-name">Dispatcher Admin</div>
+          <div class="dw-badge"><span class="dw-dot"></span> DocuWare connected</div>
+        </div>
       </div>
     </div>
   </nav>
@@ -45,10 +78,11 @@
           <div class="subtitle" id="page-subtitle">Fleet &amp; Asset Allocation</div>
         </div>
         <div class="header-actions">
-          <button class="icon-btn">
+          <button class="icon-btn" onclick="toggleNotifications()" title="Notifications" style="position:relative;">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge">3</span>
           </button>
-          <button class="icon-btn">
+          <button class="icon-btn" onclick="switchTab('settings')" title="User Profile">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
           <div class="user-info">
@@ -187,6 +221,42 @@
           <div class="operator-list" id="operator-list"></div>
         </div>
       </div>
+    </div>
+
+    <!-- Job Board View -->
+    <div id="job-board-view" class="view-container">
+      <div class="page-header">
+        <div>
+          <h1>Job Board &amp; Pipeline</h1>
+          <div class="subtitle">Live Dispatch Workflow &amp; DocuWare Document Triggers</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-primary" onclick="openModal()">+ Quick Book</button>
+        </div>
+      </div>
+      <div id="job-board-container" style="flex:1;overflow-x:auto;"></div>
+    </div>
+
+    <!-- Clients View -->
+    <div id="clients-view" class="view-container">
+      <div class="page-header">
+        <div>
+          <h1>Clients Directory</h1>
+          <div class="subtitle">Client Account Intelligence &amp; Statement Triggers</div>
+        </div>
+      </div>
+      <div id="clients-container" style="flex:1;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Compliance View -->
+    <div id="compliance-view" class="view-container">
+      <div class="page-header">
+        <div>
+          <h1>Compliance &amp; Certifications</h1>
+          <div class="subtitle">Fleet Risk Assessment &amp; DocuWare Document Pull</div>
+        </div>
+      </div>
+      <div id="compliance-container" style="flex:1;overflow-y:auto;"></div>
     </div>
 
     <!-- Settings View -->
@@ -368,6 +438,19 @@
       <button class="btn-secondary" id="delete-btn" style="display:none;color:#ef4444;border-color:#ef4444;" onclick="deleteBooking()">Delete</button>
       <button class="btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn-primary" onclick="saveBooking()">Save Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Slide-in Notifications Drawer -->
+<div id="notifications-overlay" class="notifications-overlay" onclick="toggleNotifications()">
+  <div class="notifications-drawer" onclick="event.stopPropagation()">
+    <div class="drawer-header">
+      <h3>Notifications &amp; Activity</h3>
+      <button class="modal-close" onclick="toggleNotifications()">✕</button>
+    </div>
+    <div class="drawer-body" id="notifications-body">
+      <!-- Populated by renderNotifications() -->
     </div>
   </div>
 </div>

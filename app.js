@@ -1294,6 +1294,266 @@ function populateHourSelect(sel, defaultVal, includeHourZero){
   }
 }
 
+/* ── TAB SWITCHING & PHASE 2 MODULES ── */
+function switchTab(tab){
+  const viewMap={
+    'calendar':'calendar-view',
+    'job-board':'job-board-view',
+    'analytics':'analytics-view',
+    'clients':'clients-view',
+    'compliance':'compliance-view',
+    'settings':'settings-view'
+  };
+  const navMap={
+    'calendar':'nav-calendar',
+    'job-board':'nav-job-board',
+    'analytics':'nav-analytics',
+    'clients':'nav-clients',
+    'compliance':'nav-compliance',
+    'settings':'nav-settings'
+  };
+
+  document.querySelectorAll('.view-container').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+
+  const viewId=viewMap[tab]||'calendar-view';
+  const navId=navMap[tab]||'nav-calendar';
+
+  const viewEl=document.getElementById(viewId);
+  const navEl=document.getElementById(navId);
+
+  if(viewEl) viewEl.classList.add('active');
+  if(navEl) navEl.classList.add('active');
+
+  if(tab==='job-board') renderJobBoard();
+  else if(tab==='analytics') renderAnalytics();
+  else if(tab==='clients') renderClientsView();
+  else if(tab==='compliance') renderComplianceView();
+  else if(tab==='calendar') renderCalendar();
+}
+
+/* ── JOB BOARD KANBAN ── */
+function renderJobBoard(){
+  const container=document.getElementById('job-board-container');
+  if(!container)return;
+
+  const columns=[
+    {id:'Scheduled',title:'Scheduled',icon:'📅',color:'#1C4B8B'},
+    {id:'Dispatched',title:'Dispatched',icon:'🚛',color:'#835ac7'},
+    {id:'On-Site',title:'On-Site',icon:'🏗',color:'#4ac77a'},
+    {id:'Completed',title:'Complete',icon:'✅',color:'#09e3df'},
+    {id:'Invoiced',title:'Invoiced',icon:'📄',color:'#d67e83'}
+  ];
+
+  let html=`<div class="kanban-board">`;
+
+  columns.forEach(col=>{
+    const colBookings=bookings.filter(b=>(b.status||'Scheduled')===col.id);
+    html+=`<div class="kanban-col">
+      <div class="kanban-header">
+        <div class="kanban-title"><span style="color:${col.color}">${col.icon}</span> ${col.title}</div>
+        <span class="kanban-count">${colBookings.length}</span>
+      </div>
+      <div class="kanban-cards">`;
+
+    if(colBookings.length===0){
+      html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs in this stage</div>`;
+    } else {
+      colBookings.forEach(b=>{
+        const assetColor=ASSET_HEX[b.assetNumber]||'#1C4B8B';
+        const startD=new Date(b.startTime);
+        const timeStr=startD.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+        
+        let dwActionText='📄 Generate Agreement';
+        let dwBadgeText='DocuWare: Draft';
+        if(b.status==='Dispatched'){dwActionText='📄 Dispatch Slip';dwBadgeText='DocuWare: Dispatched';}
+        else if(b.status==='On-Site'){dwActionText='📄 Site Check-in';dwBadgeText='DocuWare: Active Job';}
+        else if(b.status==='Completed'){dwActionText='📄 Generate Invoice';dwBadgeText='DocuWare: Complete';}
+        else if(b.status==='Invoiced'){dwActionText='📄 View Invoice PDF';dwBadgeText='DocuWare: Filed';}
+
+        html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
+          <div class="kb-card-top">
+            <span class="kb-asset-badge" style="background:${assetColor};">${b.assetNumber}</span>
+            <span class="kb-time">${timeStr}</span>
+          </div>
+          <div class="kb-client">${b.clientName}</div>
+          <div class="kb-desc">${b.jobDescription||'General plant hire operation'}</div>
+          <div class="kb-operator">👤 ${b.operatorName||'Unassigned'}</div>
+          <div class="kb-dw-badge">
+            <span>${dwBadgeText}</span>
+            <button class="kb-action-btn" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">${dwActionText}</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px;">
+            ${col.id!=='Scheduled'?`<button class="kb-action-btn" style="background:#6b7280;padding:2px 6px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
+            ${col.id!=='Invoiced'?`<button class="kb-action-btn" style="background:#1C4B8B;flex:1;padding:2px 6px;" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">Advance Stage →</button>`:''}
+          </div>
+        </div>`;
+      });
+    }
+
+    html+=`</div></div>`;
+  });
+
+  html+=`</div>`;
+  container.innerHTML=html;
+}
+
+function moveBookingStatus(id,dir){
+  const stages=['Scheduled','Dispatched','On-Site','Completed','Invoiced'];
+  const b=bookings.find(x=>x.id===id);
+  if(!b)return;
+  const curIdx=stages.indexOf(b.status||'Scheduled');
+  if(dir==='next'&&curIdx<stages.length-1) b.status=stages[curIdx+1];
+  else if(dir==='prev'&&curIdx>0) b.status=stages[curIdx-1];
+  renderJobBoard();
+  renderCalendar();
+}
+
+function triggerDocuWareDoc(id,clientName){
+  alert(`⚡ DocuWare Automation Triggered!\n\nGenerating document workflow for ${clientName} (Job #${id})...\nDocument archived to DocuWare Cabinet: "Plant Hire Contracts & Invoices".`);
+}
+
+/* ── CLIENTS DIRECTORY ── */
+function renderClientsView(){
+  const container=document.getElementById('clients-container');
+  if(!container)return;
+
+  const clientMap={};
+  bookings.forEach(b=>{
+    const c=b.clientName||'Unknown Client';
+    if(!clientMap[c]){
+      clientMap[c]={name:c,jobs:0,totalSpend:0,assetsUsed:new Set(),lastJob:b.startTime};
+    }
+    const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+    const prefix=b.assetNumber.replace(/[0-9]/g,'');
+    const rate=HOURLY_RATES[prefix]||200;
+    clientMap[c].jobs++;
+    clientMap[c].totalSpend+=dur*rate;
+    clientMap[c].assetsUsed.add(b.assetNumber);
+    if(new Date(b.startTime)>new Date(clientMap[c].lastJob)) clientMap[c].lastJob=b.startTime;
+  });
+
+  const clients=Object.values(clientMap).sort((a,b)=>b.totalSpend-a.totalSpend);
+
+  let html=`<div class="clients-grid">`;
+  clients.forEach(c=>{
+    const formattedSpend='$'+Math.round(c.totalSpend).toLocaleString();
+    const assetsList=Array.from(c.assetsUsed).join(', ');
+    const lastDate=new Date(c.lastJob).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+
+    html+=`<div class="client-card glass-panel">
+      <div class="client-card-header">
+        <div>
+          <div class="client-name">${c.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);">Active Account</div>
+        </div>
+        <span class="client-stat-pill">DocuWare Verified</span>
+      </div>
+      <div class="client-stats-row">
+        <div>
+          <div class="cs-num">${c.jobs}</div>
+          <div class="cs-lbl">Total Jobs</div>
+        </div>
+        <div>
+          <div class="cs-num" style="color:var(--accent-primary);">${formattedSpend}</div>
+          <div class="cs-lbl">Revenue</div>
+        </div>
+        <div>
+          <div class="cs-num">${c.assetsUsed.size}</div>
+          <div class="cs-lbl">Assets Used</div>
+        </div>
+      </div>
+      <div class="client-recent-job">
+        <strong>Assets deployed:</strong> ${assetsList}<br>
+        <strong>Last Booking:</strong> ${lastDate}
+      </div>
+      <button class="btn-secondary" style="width:100%;justify-content:center;margin-top:4px;" onclick="alert('⚡ Generating DocuWare Client Account Statement PDF for ${c.name}...')">📄 Send DocuWare Statement</button>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  container.innerHTML=html;
+}
+
+/* ── COMPLIANCE & CERTS ── */
+function renderComplianceView(){
+  const container=document.getElementById('compliance-container');
+  if(!container)return;
+
+  const mockCompliance=[
+    {id:'EX01',type:'Excavator 20T',rego:'REG-8829-EX',certDate:'2026-11-15',status:'valid',risk:'Low'},
+    {id:'EX02',type:'Excavator 35T',rego:'REG-4410-EX',certDate:'2026-08-16',status:'warning',risk:'Medium'},
+    {id:'SK03',type:'Skid Steer',rego:'REG-1204-SK',certDate:'2026-12-01',status:'valid',risk:'Low'},
+    {id:'DZ04',type:'Dozer D6',rego:'REG-9912-DZ',certDate:'2027-01-20',status:'valid',risk:'Low'},
+    {id:'FL05',type:'Forklift 5T',rego:'REG-3319-FL',certDate:'2026-09-10',status:'valid',risk:'Low'},
+    {id:'FL06',type:'Forklift 10T',rego:'REG-5521-FL',certDate:'2026-10-04',status:'valid',risk:'Low'},
+    {id:'SC07',type:'Scissor Lift 12m',rego:'REG-7714-SC',certDate:'2026-08-28',status:'warning',risk:'Medium'},
+    {id:'BM08',type:'Boom Lift 17m',rego:'REG-8840-BM',certDate:'2026-11-30',status:'valid',risk:'Low'},
+    {id:'CR09',type:'Crawler Crane 50T',rego:'REG-0012-CR',certDate:'2026-07-30',status:'expired',risk:'HIGH'},
+    {id:'DT10',type:'Dump Truck',rego:'REG-6632-DT',certDate:'2026-12-15',status:'valid',risk:'Low'}
+  ];
+
+  let html=`<div class="compliance-table-wrap">
+    <table class="compliance-table">
+      <thead>
+        <tr>
+          <th>Asset Code</th>
+          <th>Description</th>
+          <th>Registration #</th>
+          <th>Service / Risk Cert Expiry</th>
+          <th>Compliance Status</th>
+          <th>DocuWare Records</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  mockCompliance.forEach(item=>{
+    let pillCls='valid';let pillText='✅ Valid';
+    if(item.status==='warning'){pillCls='warning';pillText='🟡 Service Due (30d)';}
+    else if(item.status==='expired'){pillCls='expired';pillText='🔴 CERT EXPIRED';}
+
+    html+=`<tr>
+      <td style="font-weight:700;">${item.id}</td>
+      <td>${item.type}</td>
+      <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
+      <td style="font-weight:600;">${item.certDate}</td>
+      <td><span class="status-pill ${pillCls}">${pillText}</span></td>
+      <td><button class="btn-secondary" style="height:30px;padding:0 10px;font-size:11px;" onclick="alert('⚡ Fetching certified inspection record for ${item.id} from DocuWare Cloud Cabinet...')">📄 Pull DocuWare Cert</button></td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  container.innerHTML=html;
+}
+
+/* ── NOTIFICATIONS DRAWER ── */
+function toggleNotifications(){
+  const overlay=document.getElementById('notifications-overlay');
+  if(!overlay)return;
+  overlay.classList.toggle('open');
+  if(overlay.classList.contains('open')) renderNotifications();
+}
+
+function renderNotifications(){
+  const body=document.getElementById('notifications-body');
+  if(!body)return;
+
+  const items=[
+    {type:'urgent',title:'🔴 High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30 July. Future bookings flagged for risk review.',time:'10 mins ago'},
+    {type:'dw',title:'⚡ DocuWare Webhook Event',msg:'Hire Agreement #HA-9942 signed by Fulton Hogan for job b23.',time:'1 hour ago'},
+    {type:'normal',title:'🟡 Maintenance Warning',msg:'EX02 Excavator 35T service due in 12 days (16 Aug 2026).',time:'3 hours ago'},
+    {type:'dw',title:'📄 Invoice Archived',msg:'DocuWare automated billing engine filed invoice for Metro Rail Authority ($2,400).',time:'Yesterday'}
+  ];
+
+  body.innerHTML=items.map(item=>`
+    <div class="notif-item ${item.type}">
+      <div class="notif-title">${item.title}</div>
+      <div class="notif-msg">${item.msg}</div>
+      <div class="notif-time">${item.time}</div>
+    </div>
+  `).join('');
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   // Toolbar hour selects
   populateHourSelect(document.getElementById('display-start-hour'), displayHoursStart, true);
@@ -1309,3 +1569,4 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderCalendar();
   applyDatePreset();
 });
+
