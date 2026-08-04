@@ -2202,6 +2202,122 @@ function exportClientLedgerPDF(){
   alert(`⚡ Exporting Comprehensive Commercial Account Ledger PDF for ${name}...\nIncludes all deployment history, hourly rate breakdowns, and verified invoice records.`);
 }
 
+/* ── PHASE 5: COMPLIANCE & CERTS ENFORCEMENT ── */
+let currentCertAssetId = null;
+
+function openCertViewModal(assetId){
+  currentCertAssetId = assetId;
+  const modal=document.getElementById('docuware-cert-view-modal');
+  const titleEl=document.getElementById('cert-view-title');
+  const bodyEl=document.getElementById('cert-view-body');
+  if(!modal||!bodyEl)return;
+
+  const comp=complianceRegistry[assetId]||{rego:'REG-8800',certDate:'2026-12-31',status:'valid',risk:'Low'};
+  const asset=assetRegistry.find(a=>a.id===assetId)||{description:'Plant equipment'};
+
+  titleEl.textContent=`DocuWare Cert Record — ${assetId} (${asset.description})`;
+
+  let statusBadgeHtml=`<span class="status-pill valid">✓ Valid Compliance Record</span>`;
+  if(comp.status==='warning') statusBadgeHtml=`<span class="status-pill warning">⚠️ Service Due (30d)</span>`;
+  else if(comp.status==='expired') statusBadgeHtml=`<span class="status-pill expired">🚫 Cert Expired (LOCKED)</span>`;
+
+  let html=`
+  <div style="display:flex;flex-direction:column;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:var(--bg-secondary);padding:14px;border-radius:var(--radius-md);font-size:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Registration Number</div>
+        <div style="font-family:'Plus Jakarta Sans',monospace;font-size:14px;font-weight:800;color:var(--text-primary);margin-top:2px;font-variant-numeric:tabular-nums;">${comp.rego}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Expiry Date</div>
+        <div style="font-family:'Plus Jakarta Sans',monospace;font-size:14px;font-weight:800;color:var(--text-primary);margin-top:2px;font-variant-numeric:tabular-nums;">${formatAUDate(comp.certDate)}</div>
+      </div>
+      <div style="grid-column:span 2;display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border-light);">
+        <span style="font-size:11px;font-weight:700;color:var(--text-secondary);">Compliance Status:</span>
+        ${statusBadgeHtml}
+      </div>
+    </div>
+
+    <!-- DocuWare Drag-and-Drop Zone -->
+    <div style="border:2px dashed var(--accent-primary);background:rgba(15,23,42,0.02);border-radius:var(--radius-md);padding:20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;" onclick="alert('Select updated inspection PDF to upload into DocuWare Safety Cabinet...')">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Upload Updated Risk Audit / Service Record</div>
+      <div style="font-size:11px;color:var(--text-muted);">Drag and drop PDF certificate file here or click to browse</div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);font-style:italic;line-height:1.4;background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);padding:10px 12px;border-radius:var(--radius-md);">
+      ℹ️ <strong>Automation Proof:</strong> Documents uploaded here are instantly indexed into the DocuWare Safety Cabinet and will automatically update the registry expiry date.
+    </div>
+  </div>`;
+
+  bodyEl.innerHTML=html;
+  modal.classList.add('open');
+}
+
+function saveCertUpdate(){
+  if(currentCertAssetId && complianceRegistry[currentCertAssetId]){
+    complianceRegistry[currentCertAssetId].status='valid';
+    complianceRegistry[currentCertAssetId].certDate='2027-08-30';
+  }
+  closeDocuWareModal('docuware-cert-view-modal');
+  renderComplianceView();
+  renderCalendar();
+  alert(`✅ DocuWare Webhook: Compliance record updated for ${currentCertAssetId}. Registry synchronized!`);
+}
+
+function openCertUploadModal(assetId){
+  currentCertAssetId = assetId;
+  const modal=document.getElementById('docuware-cert-upload-modal');
+  const titleEl=document.getElementById('cert-upload-title');
+  const bodyEl=document.getElementById('cert-upload-body');
+  if(!modal||!bodyEl)return;
+
+  const comp=complianceRegistry[assetId]||{rego:'REG-9909-CR',certDate:'2026-07-30',status:'expired'};
+  const asset=assetRegistry.find(a=>a.id===assetId)||{description:'Crawler Crane'};
+
+  titleEl.textContent=`Release Safety Lock — ${assetId} (${asset.description})`;
+
+  let html=`
+  <div style="display:flex;flex-direction:column;gap:14px;font-family:'Plus Jakarta Sans',sans-serif;">
+    <div style="background:#FEF2F2;border:1px solid rgba(220,38,38,0.3);padding:14px;border-radius:var(--radius-md);display:flex;align-items:center;gap:12px;">
+      <div style="font-size:24px;">🚫</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#dc2626;">HARD DISPATCH INTERLOCK ACTIVE (${assetId})</div>
+        <div style="font-size:11px;color:#991b1b;margin-top:2px;">Service certificate expired on ${formatAUDate(comp.certDate)}. Column is locked in Command Center.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>New Certificate Expiry Date</label>
+      <input type="date" id="new-cert-date" value="2027-08-30" style="font-family:'Plus Jakarta Sans',monospace;">
+    </div>
+    <div class="form-group">
+      <label>Certifying Engineer / Inspector</label>
+      <input type="text" id="new-cert-inspector" value="QAS Safety Certifications Queensland">
+    </div>
+
+    <div style="border:2px dashed #059669;background:rgba(5,150,105,0.04);border-radius:var(--radius-md);padding:18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;" onclick="alert('Select certified inspection PDF to attach...')">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div style="font-size:12px;font-weight:700;color:#059669;">Attach Signed Inspection &amp; Test Plan (ITP) PDF</div>
+      <div style="font-size:10px;color:var(--text-muted);">Triggers DocuWare Webhook to automatically lift lock</div>
+    </div>
+  </div>`;
+
+  bodyEl.innerHTML=html;
+  modal.classList.add('open');
+}
+
+function executeCertLockRelease(){
+  if(currentCertAssetId && complianceRegistry[currentCertAssetId]){
+    complianceRegistry[currentCertAssetId].status='valid';
+    complianceRegistry[currentCertAssetId].certDate='2027-08-30';
+  }
+  closeDocuWareModal('docuware-cert-upload-modal');
+  renderComplianceView();
+  renderCalendar();
+  alert(`✅ DocuWare Webhook Event Triggered!\n\nSafety compliance lock successfully RELEASED for ${currentCertAssetId}.\nAsset column is now UNLOCKED for dispatch in the Command Center.`);
+}
+
 /* ── COMPLIANCE & CERTS WITH SEARCH & FILTER ── */
 function renderComplianceView(){
   const container=document.getElementById('compliance-container');
@@ -2252,25 +2368,33 @@ function renderComplianceView(){
     html+=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No compliance records match criteria.</td></tr>`;
   } else {
     list.forEach(item=>{
-      let pillCls='valid';let pillText='Valid Record';
-      if(item.status==='warning'){pillCls='warning';pillText='Service Due (30d)';}
-      else if(item.status==='expired'){pillCls='expired';pillText='🚫 Cert Expired (LOCKED)';}
+      let pillCls='valid';let pillText='✓ Valid Record';
+      let rowStyle='';
+      if(item.status==='warning'){
+        pillCls='warning';
+        pillText='⚠️ Service Due (30d)';
+      }
+      else if(item.status==='expired'){
+        pillCls='expired';
+        pillText='🚫 Cert Expired (LOCKED)';
+        rowStyle='style="background:#FEF2F2;border-left:4px solid #dc2626;"';
+      }
 
       const formattedCertDate=formatAUDate(item.certDate);
 
-      html+=`<tr ${item.status==='expired'?'style="background:rgba(239,68,68,0.04);"' : ''}>
-        <td style="font-weight:700;">${item.id}</td>
-        <td>${item.type}</td>
-        <td style="font-family:monospace;font-size:12px;">${item.rego}</td>
-        <td style="font-weight:600;">${formattedCertDate}</td>
+      html+=`<tr ${rowStyle}>
+        <td style="font-weight:800;font-size:13px;color:var(--text-primary);">${item.id}</td>
+        <td style="font-weight:600;">${item.type}</td>
+        <td style="font-family:'Plus Jakarta Sans',monospace;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">${item.rego}</td>
+        <td style="font-family:'Plus Jakarta Sans',monospace;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">${formattedCertDate}</td>
         <td><span class="status-pill ${pillCls}">${pillText}</span></td>
         <td style="display:flex;gap:6px;align-items:center;">
           ${item.status==='expired' ? `
-            <button class="btn-primary" style="height:30px;padding:0 10px;font-size:11px;background:#dc2626;" onclick="indexDocuWareCert('${item.id}')">
-              📄 Index New Cert in DocuWare (Release Lock)
+            <button class="dw-action-btn" style="height:32px;padding:0 12px;font-size:11px;background:#dc2626;" onclick="openCertUploadModal('${item.id}')">
+              📄 Upload New Cert to DocuWare (Release Lock)
             </button>
           ` : `
-            <button class="btn-secondary" style="height:30px;padding:0 10px;font-size:11px;" onclick="alert('Retrieving certified inspection record for ${item.id} from DocuWare Vault...')">
+            <button class="dw-action-btn secondary" style="height:32px;padding:0 12px;font-size:11px;" onclick="openCertViewModal('${item.id}')">
               Fetch Cert Record
             </button>
           `}

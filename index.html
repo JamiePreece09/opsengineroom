@@ -661,6 +661,46 @@
   </div>
 </div>
 
+<!-- DocuWare Compliance Certificate View & Frictionless Upload Modal -->
+<div class="modal-overlay" id="docuware-cert-view-modal">
+  <div class="modal-box" style="max-width:620px;width:90vw;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">DOCUWARE SAFETY CABINET // COMPLIANCE RECORD</div>
+        <h2 id="cert-view-title">Asset Safety &amp; Risk Certificate</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-cert-view-modal')">✕</button>
+    </div>
+    <div id="cert-view-body" style="padding:16px 0;display:flex;flex-direction:column;gap:14px;">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-cert-view-modal')">Close Record</button>
+      <button class="btn-primary" onclick="saveCertUpdate()">Save Updated Record to DocuWare</button>
+    </div>
+  </div>
+</div>
+
+<!-- DocuWare Certificate Lock Release Modal (CR09 Interlock Release) -->
+<div class="modal-overlay" id="docuware-cert-upload-modal">
+  <div class="modal-box" style="max-width:580px;width:90vw;">
+    <div class="modal-header">
+      <div>
+        <div class="header-breadcrumb">CRITICAL SAFETY INTERLOCK // LOCK RELEASE</div>
+        <h2 id="cert-upload-title">Upload Compliance Cert to Release Lock</h2>
+      </div>
+      <button class="modal-close" onclick="closeDocuWareModal('docuware-cert-upload-modal')">✕</button>
+    </div>
+    <div id="cert-upload-body" style="padding:16px 0;display:flex;flex-direction:column;gap:14px;">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" onclick="closeDocuWareModal('docuware-cert-upload-modal')">Cancel</button>
+      <button class="btn-primary" style="background:#059669;" onclick="executeCertLockRelease()">Upload Cert &amp; Release System Lock</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 <div id="cdp-popup"></div>
