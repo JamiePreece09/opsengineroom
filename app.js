@@ -188,9 +188,42 @@ function switchTab(tab){
 }
 
 function getBookingColor(b){
-  if(b.status==='Urgent')return ASSET_HEX.Urgent;
-  if(b.status==='Invoiced')return ASSET_HEX.Invoiced;
-  return ASSET_HEX[b.assetNumber]||ASSET_HEX.Other;
+  // Layer 1 (Block Background): Inherits asset column color so dispatcher instantly identifies asset!
+  const assetObj = assetRegistry.find(a => a.id === b.assetNumber);
+  return assetObj ? assetObj.hex : (ASSET_HEX[b.assetNumber] || '#475569');
+}
+
+/* Layer 2: Granular DocuWare Pipeline Status Pill Generator */
+function renderDocuWarePill(b){
+  const now = new Date();
+  const startD = new Date(b.startTime);
+  
+  // Future Lock Rule: Future bookings cannot carry Invoiced or Completed states!
+  if(startD > now && (b.status === 'Invoiced' || b.status === 'Completed')){
+    b.status = 'Scheduled';
+  }
+
+  let pillCls = 'draft';
+  let pillText = 'Scheduled / Draft';
+
+  if(b.status === 'Invoiced'){
+    pillCls = 'archived';
+    pillText = 'Invoiced & Archived';
+  } else if(b.status === 'Completed' && b.docketUploaded){
+    pillCls = 'verified';
+    pillText = 'Docket Verified';
+  } else if(b.status === 'Completed' && !b.docketUploaded){
+    pillCls = 'missing';
+    pillText = 'Missing Docket';
+  } else if(b.status === 'On-Site'){
+    pillCls = 'onsite';
+    pillText = 'On-Site';
+  } else if(b.contractSigned || b.status === 'Dispatched'){
+    pillCls = 'secured';
+    pillText = 'Contract Secured';
+  }
+
+  return `<span class="card-dw-pill ${pillCls}">${pillText}</span>`;
 }
 
 function hasOverlap(asset,start,end,excludeId){
@@ -787,24 +820,20 @@ function renderDayView(body){
       const startMins=(startD.getHours()-minH)*60+startD.getMinutes();
       const dur=(endD-startD)/60000;
       const top=startMins*(PX/60);
-      const height=Math.max(dur*(PX/60),22);
+      const height=Math.max(dur*(PX/60),26);
       
-      let color=getBookingColor(b);
-      if(b.status==='Invoiced') color='#10b981';
+      // Layer 1: Asset background color (fixes DZ04 blank red block bug!)
+      const color=getBookingColor(b);
+      // Layer 2: Embedded DocuWare Status Pill
+      const statusPillHtml=renderDocuWarePill(b);
 
-      let statusTag='📄 Draft';
-      if(b.status==='Invoiced') statusTag='⚡ Invoiced';
-      else if(b.status==='Completed') statusTag='📝 Docket Verified';
-      else if(b.status==='On-Site') statusTag='🚜 On-Site';
-      else if(b.status==='Urgent') statusTag='🔴 Urgent';
-
-      html+=`<div class="booking-card" id="${b.id}" style="top:${top}px;height:${height}px;background:${color};" onmousedown="${isExpired ? `alert('🚫 Safety Interlock: Asset ${asset} is locked.')` : `startDrag(event,'${b.id}')`}" ondblclick="editBooking('${b.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
+      html+=`<div class="booking-card" id="${b.id}" style="top:${top}px;height:${height}px;background:${color};" onmousedown="${isExpired ? `alert('🚫 Asset Dispatch Locked: Awaiting New Cert in DocuWare')` : `startDrag(event,'${b.id}')`}" ondblclick="editBooking('${b.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
           <span class="booking-asset-code">${b.assetNumber}</span>
-          <span style="font-size:9px;font-weight:700;background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">${statusTag}</span>
+          ${statusPillHtml}
         </div>
         <div class="booking-client">${b.clientName}</div>
-        <div class="booking-operator">${b.operatorName||''}</div>
+        <div class="booking-operator">${b.operatorName ? '👤 ' + b.operatorName : '👤 Unassigned'}</div>
         ${isWarning ? `<div style="font-size:9px;font-weight:800;color:#fef08a;margin-top:2px;">⚠️ Service Due 30d</div>` : ''}
         <div class="booking-resize-handle" onmousedown="startResize(event,'${b.id}')"></div>
       </div>`;

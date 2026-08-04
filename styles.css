@@ -254,25 +254,55 @@ body {
 .time-slot { height: 60px; position: relative; cursor: crosshair; }
 .time-slot:hover { background-color: rgba(0,0,0,0.02); }
 
+.calendar-legend { display: flex; align-items: center; gap: 12px; margin: 0 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+.dot-pill { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.dot-pill.draft { background: #ffffff; border: 1px solid #94a3b8; }
+.dot-pill.secured { background: #3b82f6; }
+.dot-pill.onsite { background: #d97706; }
+.dot-pill.missing { background: #f97316; }
+.dot-pill.verified { background: #059669; }
+.dot-pill.archived { background: #334155; }
+
 /* Day view header row */
 .calendar-header-row { display: flex; border-bottom: 1px solid var(--border-light); flex-shrink: 0; background: var(--bg-secondary); }
 .calendar-gutter-header { width: 64px; flex-shrink: 0; border-right: 1px solid var(--border-light); }
 .calendar-col-header { flex: 1; padding: 10px 8px; text-align: center; font-size: 12px; font-weight: 700; border-right: 1px solid var(--border-light); }
 .calendar-col-header:last-child { border-right: none; }
 
-/* Booking cards */
+/* Booking cards — Dual-Layer Visual System */
 .booking-card {
-  position: absolute; left: 3px; right: 3px; border-radius: var(--radius-sm);
-  padding: 5px 8px; font-size: 11px; color: #ffffff; overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  position: absolute; left: 3px; right: 3px; border-radius: var(--radius-md);
+  padding: 6px 8px; font-size: 11px; color: #ffffff; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
   cursor: grab; transition: box-shadow 0.2s, transform 0.1s; z-index: 1;
   display: flex; flex-direction: column; gap: 2px;
 }
-.booking-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 5; }
+.booking-card:hover { box-shadow: 0 6px 16px rgba(15,23,42,0.28); z-index: 5; transform: translateY(-1px); }
 .booking-card:active { cursor: grabbing; }
-.booking-asset-code { font-weight: 700; font-size: 11px; }
-.booking-client { font-size: 11px; font-weight: 600; opacity: 0.95; }
-.booking-operator { font-size: 10px; opacity: 0.8; }
+
+/* Layer 2: Embedded DocuWare Status Pill */
+.card-dw-pill {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.card-dw-pill.draft { background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; }
+.card-dw-pill.secured { background: #3b82f6; color: #ffffff; }
+.card-dw-pill.onsite { background: #d97706; color: #ffffff; }
+.card-dw-pill.missing { background: #f97316; color: #ffffff; }
+.card-dw-pill.verified { background: #059669; color: #ffffff; }
+.card-dw-pill.archived { background: #334155; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); }
+
+.booking-asset-code { font-weight: 800; font-size: 11px; letter-spacing: 0.5px; }
+.booking-client { font-size: 11px; font-weight: 700; opacity: 0.98; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+.booking-operator { font-size: 10px; font-weight: 500; opacity: 0.9; color: rgba(255,255,255,0.9); }
 .booking-resize-handle {
   position: absolute; bottom: 0; left: 0; right: 0; height: 8px;
   cursor: ns-resize; background-color: rgba(255,255,255,0.15);

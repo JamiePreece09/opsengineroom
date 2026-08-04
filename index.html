@@ -108,8 +108,12 @@
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
           <div class="calendar-legend">
-            <div class="legend-item"><span class="dot" style="background-color:var(--color-urgent);"></span> Urgent</div>
-            <div class="legend-item"><span class="dot" style="background-color:var(--color-invoiced);"></span> Invoiced</div>
+            <div class="legend-item"><span class="dot-pill draft"></span> Scheduled / Draft</div>
+            <div class="legend-item"><span class="dot-pill secured"></span> Contract Secured</div>
+            <div class="legend-item"><span class="dot-pill onsite"></span> On-Site</div>
+            <div class="legend-item"><span class="dot-pill missing"></span> Missing Docket</div>
+            <div class="legend-item"><span class="dot-pill verified"></span> Docket Verified</div>
+            <div class="legend-item"><span class="dot-pill archived"></span> Invoiced &amp; Archived</div>
           </div>
           <div class="view-toggles">
             <button class="view-btn active" onclick="setCalendarView('Day')">Day</button>
