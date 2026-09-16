@@ -1,49 +1,50 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Ultra-Premium Glass/Dark Palette (Vercel / Linear inspired) */
-  --bg-primary: #000000;
-  --bg-secondary: #0A0A0A;
-  --bg-tertiary: #161618;
-  --brand-primary: #000000;
-  --brand-secondary: #0A0A0A;
-  --brand-bg: #000000;
+  /* High-Trust Industrial Palette (Premium & Professional) */
+  --bg-primary: #0F1115;      /* Deep Industrial Slate */
+  --bg-secondary: #191C20;    /* Card/Module Background */
+  --bg-tertiary: #23272D;     /* Hover states */
+  --brand-primary: #0F1115;
+  --brand-secondary: #191C20;
+  --brand-bg: #0F1115;
   
-  --text-primary: #F3F4F6;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
+  --text-primary: #E2E8F0;    /* Crisp off-white */
+  --text-secondary: #94A3B8;  /* Professional grey */
+  --text-muted: #64748B;
   
-  --accent-primary: #3B82F6; /* Vibrant Azure */
-  --accent-hover: #60A5FA;
+  --accent-primary: #EAB308;  /* CAT/Industrial Amber */
+  --accent-hover: #FACC15;
+  --accent-blue: #3B82F6;     /* Action Blue */
   
-  --border-light: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-light: #2A2F37;
+  --border-strong: #374151;
   
   /* Semantic */
   --color-compliant: #10B981;
-  --color-warning: #F5A623;
+  --color-warning: #F59E0B;
   --color-danger: #EF4444;
   --color-info: #3B82F6;
   
-  /* Radius & Shadows */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.7);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.9);
+  /* Radius & Shadows - Tighter, more structured */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
   
-  /* Asset Colors - Jewel Tones for contrast */
-  --color-ex01: #0EA5E9;
-  --color-ex02: #2DD4BF;
-  --color-sk03: #A855F7;
-  --color-dz04: #F43F5E;
-  --color-fl05: #3B82F6;
-  --color-fl06: #14B8A6;
-  --color-sc07: #10B981;
-  --color-bm08: #F5A623;
-  --color-cr09: #6366F1;
-  --color-dt10: #EC4899;
+  /* Asset Colors - Professional, Muted Operational Tones */
+  --color-ex01: #3B82F6; /* Blue */
+  --color-ex02: #0EA5E9; /* Light Blue */
+  --color-sk03: #8B5CF6; /* Purple */
+  --color-dz04: #F43F5E; /* Rose */
+  --color-fl05: #10B981; /* Emerald */
+  --color-fl06: #14B8A6; /* Teal */
+  --color-sc07: #EAB308; /* Amber */
+  --color-bm08: #F97316; /* Orange */
+  --color-cr09: #64748B; /* Slate */
+  --color-dt10: #475569; /* Dark Slate */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1383,64 +1384,62 @@ tr.expired-row td {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Ultra-Premium Glassmorphism & UI Enhancements */
-body {
-    background-color: var(--bg-primary);
-    background-image: 
-        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.04), transparent 25%);
-    background-attachment: fixed;
-}
 
 .view-container, .top-nav, .sidebar {
-    background: rgba(10, 10, 10, 0.6) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: var(--bg-secondary) !important;
     border: 1px solid var(--border-light);
 }
 
-.sidebar { border-right: 1px solid var(--border-light); }
-.top-nav { border-bottom: 1px solid var(--border-light); }
-
 .booking-card, .gantt-bar {
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15) !important;
-    border-radius: var(--radius-sm);
+    border-radius: 4px !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+    background-image: none !important;
     color: #fff !important;
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    overflow: hidden;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.booking-card:hover, .gantt-bar:hover {
+    transform: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+    z-index: 20;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+/* Calendar Specific Styles (Google Calendar on Steroids) */
+.paint-slot {
+    border-bottom: 1px solid var(--border-light) !important;
+    border-right: 1px solid var(--border-light) !important;
+    background: transparent;
+    transition: background 0.1s;
+}
+.paint-slot:hover {
+    background: rgba(255,255,255,0.02);
+}
+.drag-over-active { 
+    background: rgba(234, 179, 8, 0.1) !important; /* Amber highlight */
+    border: 2px dashed var(--accent-primary) !important; 
 }
 
 .btn-primary, .kb-primary-btn {
-    background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent-primary) 100%) !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
-    border: none !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    background: var(--accent-blue) !important;
+    box-shadow: var(--shadow-sm) !important;
+    border-radius: var(--radius-sm) !important;
     font-weight: 600 !important;
     color: #fff !important;
+    text-shadow: none !important;
 }
-
 .btn-primary:hover, .kb-primary-btn:hover {
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.6), inset 0 1px 0 rgba(255,255,255,0.4) !important;
-    transform: translateY(-1px);
-}
-
-.dw-status-pill, .status-pill, .hire-type-pill {
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.compliance-table th {
-    background: rgba(255,255,255,0.03) !important;
-}
-.compliance-table tr:hover {
-    background: rgba(255,255,255,0.02) !important;
+    background: #2563EB !important; /* Darker blue */
+    transform: none !important;
 }
 
 .modal-box {
-    background: rgba(16, 16, 20, 0.85) !important;
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-light) !important;
+    box-shadow: var(--shadow-lg) !important;
+    border-radius: var(--radius-md) !important;
 }

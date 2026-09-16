@@ -121,7 +121,7 @@ function switchTab(tab) {
     'calendar': 'calendar-view',
     'job-board': 'job-board-view',
     'analytics': 'analytics-view',
-    'clients': 'clients-view',
+    'operator': 'operator-view',
     'compliance': 'compliance-view',
     'settings': 'settings-view'
   };
@@ -129,7 +129,7 @@ function switchTab(tab) {
      'calendar': 'nav-calendar',
     'job-board': 'nav-job-board',
     'analytics': 'nav-analytics',
-    'clients': 'nav-clients',
+    'operator': 'nav-operator',
     'compliance': 'nav-compliance',
     'settings': 'nav-settings'
   };
@@ -143,7 +143,7 @@ function switchTab(tab) {
   if (navEl) navEl.classList.add('active');
   if (tab === 'job-board') renderJobBoard();
   else if (tab === 'analytics') renderAnalytics();
-  else if (tab === 'clients') renderClientsView();
+  else if (tab === 'operator') renderOperatorPortal();
   else if (tab === 'compliance') renderComplianceView();
   else if (tab === 'calendar') renderCalendar();
 }
@@ -469,7 +469,16 @@ function openModal(asset,startH,endH,dateStr){
  document.getElementById('booking-start').value=startH||'08:00';
  document.getElementById('booking-end').value=endH||'09:00';
  document.getElementById('delete-btn').style.display='none';
- document.getElementById('booking-modal').classList.add('open');
+ 
+  // Populate worker selects
+  const opSelect = document.getElementById('booking-wet-operator');
+  const dgSelect = document.getElementById('booking-wet-dogman');
+  if(opSelect && dgSelect) {
+    opSelect.innerHTML = '<option value="">-- Select Operator --</option>' + workerRegistry.filter(w => w.role === 'Crane Operator' || w.role === 'Plant Operator').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+    dgSelect.innerHTML = '<option value="">-- Select Dogman/Rigger --</option>' + workerRegistry.filter(w => w.role === 'Dogman' || w.role === 'Rigger').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+  }
+
+  document.getElementById('booking-modal').classList.add('open');
 }
 
 function editBooking(id){
@@ -486,7 +495,16 @@ function editBooking(id){
  document.getElementById('booking-start').value=`${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')}`;
  document.getElementById('booking-end').value=`${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
  document.getElementById('delete-btn').style.display='inline-flex';
- document.getElementById('booking-modal').classList.add('open');
+ 
+  // Populate worker selects
+  const opSelect = document.getElementById('booking-wet-operator');
+  const dgSelect = document.getElementById('booking-wet-dogman');
+  if(opSelect && dgSelect) {
+    opSelect.innerHTML = '<option value="">-- Select Operator --</option>' + workerRegistry.filter(w => w.role === 'Crane Operator' || w.role === 'Plant Operator').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+    dgSelect.innerHTML = '<option value="">-- Select Dogman/Rigger --</option>' + workerRegistry.filter(w => w.role === 'Dogman' || w.role === 'Rigger').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+  }
+
+  document.getElementById('booking-modal').classList.add('open');
 }
 
 function closeModal(){document.getElementById('booking-modal').classList.remove('open');}
@@ -1806,6 +1824,104 @@ function openClientStatementPDF(clientName){
 }
 
 /* ── ENTERPRISE CLIENT DIRECTORY WITH FINANCIAL PIPELINE FLOW ── */
+
+/* ── PHASE 2.5: OPERATOR PORTAL (MOBILE-FIRST EMULATION) ── */
+window._selectedOperatorId = null;
+
+function renderOperatorPortal() {
+  const container = document.getElementById('operator-portal-container');
+  if (!container) return;
+  
+  let optionsHtml = '<option value="">-- Select your Operator ID --</option>';
+  workerRegistry.forEach(w => {
+     optionsHtml += `<option value="${w.id}" ${window._selectedOperatorId === w.id ? 'selected' : ''}>${w.name} (${w.role})</option>`;
+  });
+
+  let html = `
+    <div style="max-width:600px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:24px;">
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:24px;box-shadow:var(--shadow-md);">
+        <h2 style="font-size:18px;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Field Operator Login
+        </h2>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Select your identity to access today's Run Sheet.</p>
+        <select class="module-filter-select" style="width:100%;font-size:14px;padding:10px;" onchange="window._selectedOperatorId = this.value; renderOperatorPortal();">
+          ${optionsHtml}
+        </select>
+      </div>
+  `;
+
+  if (window._selectedOperatorId) {
+    const todayISO = currentDate.toDateString();
+    const myJobs = bookings.filter(b => {
+      const isToday = new Date(b.startTime).toDateString() === todayISO;
+      const isMe = b.wetHireResources?.some(r => r.workerId === window._selectedOperatorId) || b.operatorName === workerRegistry.find(w=>w.id===window._selectedOperatorId).name;
+      return isToday && isMe;
+    });
+
+    html += `
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <h3 style="font-size:16px;color:var(--text-primary);margin-top:8px;">My Run Sheet (Today)</h3>
+    `;
+
+    if (myJobs.length === 0) {
+      html += `<div style="padding:24px;background:var(--bg-secondary);border-radius:var(--radius-md);text-align:center;color:var(--text-muted);font-size:13px;">No jobs dispatched for you today.</div>`;
+    } else {
+      myJobs.forEach(b => {
+        const isPrestartDone = b.preStartStatus === 'pushed' || b.preStartStatus === 'completed';
+        const startT = new Date(b.startTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        
+        html += `
+          <div style="background:var(--bg-secondary);border:1px solid ${isPrestartDone ? 'var(--border-strong)' : 'var(--accent-primary)'};border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-md);">
+            <!-- Card Header -->
+            <div style="background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border-light);padding:16px;display:flex;justify-content:space-between;align-items:center;">
+               <div>
+                 <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${b.clientName}</div>
+                 <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${b.siteAddress}</div>
+               </div>
+               <div style="text-align:right;">
+                 <div style="font-size:14px;font-weight:800;color:var(--accent-blue);">${startT}</div>
+                 <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Asset: ${b.assetNumber}</div>
+               </div>
+            </div>
+            
+            <!-- Actions -->
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+              ${!isPrestartDone ? `
+                <div style="background:rgba(234, 179, 8, 0.1);border:1px solid rgba(234, 179, 8, 0.3);padding:12px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px;">
+                  <span style="font-size:20px;">⚠️</span>
+                  <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:700;color:var(--color-warning);">Compliance Lock Active</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">You must complete the Asset Pre-Start Checklist before accessing the Digital Docket.</div>
+                  </div>
+                  <button class="kb-primary-btn" style="background:var(--color-warning) !important;color:#000 !important;font-weight:800;" onclick="executeMobilePreStart('${b.id}')">Start Checklist</button>
+                </div>
+              ` : `
+                <div style="display:flex;gap:12px;">
+                  <button class="kb-primary-btn" style="flex:1;background:var(--color-compliant) !important;" disabled>✅ Pre-Start Passed</button>
+                  <button class="kb-primary-btn" style="flex:1;" onclick="openDocuWareDocketModal('${b.id}')">📝 Digital Docket</button>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+window.executeMobilePreStart = function(bookingId) {
+  const b = bookings.find(x => x.id === bookingId);
+  if(b) {
+    b.preStartStatus = 'completed';
+    showToast('Asset Pre-Start Checklist successfully synced to DocuWare. Docket Unlocked.', 'success');
+    renderOperatorPortal();
+  }
+};
+
 function renderClientsView(){
  const container=document.getElementById('clients-container');
  if(!container)return;
@@ -2447,7 +2563,7 @@ Object.assign(window, {
   toggleNotifications, toggleLegendPopover,
   renderAssetManager, updateAssetDesc, updateAssetHex, updateAssetHexText,
   addAsset: window._addNewAssetFromForm, promptDeleteAsset, cancelDeleteAsset, confirmDeleteAsset,
-  renderAnalytics, exportReport, applyDatePreset, saveDocuWare, saveWorkHours,
+  renderAnalytics, exportReport, applyDatePreset, saveDocuWare, saveWorkHours, renderOperatorPortal,
   openDocuWareContractModal, executeDocuWareSign,
   openDocuWareDocketModal, recalcDocketTotal, executeDocketUpload,
   openDocuWareSmartConnect, closeDocuWareModal, indexDocuWareCert,
