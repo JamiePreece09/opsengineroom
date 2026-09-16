@@ -27,6 +27,7 @@ function isWorkerDoubleBooked(b) {
     const end = new Date(b.endTime).getTime();
     
     for (const other of bookings) {
+        if (!other) continue;
         if (other.id === b.id) continue;
         if (other.status === 'Completed' || other.status === 'Invoiced') continue;
         
@@ -71,6 +72,7 @@ function isComplianceLocked(assetId) {
 }
 
 function sanitizeBookingChronology(b) {
+  if (!b) return;
   const now = new Date();
   const startD = new Date(b.startTime);
   if (startD > now && (b.status === 'Invoiced' || b.status === 'Completed')) {
@@ -116,37 +118,52 @@ function showToast(message, type = 'info', title = '') {
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 5000);
 }
+
+window.quickCallContact = function(client, phone) {
+  showToast(`Initiating quick-call to ${client} (${phone || '0412 889 900'})...`, 'info', 'Quick Call');
+};
+
 function switchTab(tab) {
   const viewMap = {
+    'scheduler': 'calendar-view',
     'calendar': 'calendar-view',
-    'job-board': 'job-board-view',
-    'analytics': 'analytics-view',
-    'operator': 'operator-view',
     'compliance': 'compliance-view',
-    'settings': 'settings-view'
+    'job-board': 'job-board-view',
+    'reports': 'analytics-view',
+    'analytics': 'analytics-view',
+    'administration': 'operator-view',
+    'operator': 'operator-view',
+    'settings': 'settings-view',
+    'system-settings': 'settings-view'
   };
   const navMap = {
-     'calendar': 'nav-calendar',
-    'job-board': 'nav-job-board',
-    'analytics': 'nav-analytics',
-    'operator': 'nav-operator',
+    'scheduler': 'nav-scheduler',
+    'calendar': 'nav-scheduler',
     'compliance': 'nav-compliance',
-    'settings': 'nav-settings'
+    'job-board': 'nav-job-board',
+    'reports': 'nav-reports',
+    'analytics': 'nav-reports',
+    'administration': 'nav-administration',
+    'operator': 'nav-administration',
+    'settings': 'nav-settings',
+    'system-settings': 'nav-settings'
   };
   document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.gcal-nav-item').forEach(el => el.classList.remove('active'));
   const viewId = viewMap[tab] || 'calendar-view';
-  const navId = navMap[tab] || 'nav-calendar';
+  const navId = navMap[tab] || 'nav-scheduler';
   const viewEl = document.getElementById(viewId);
   const navEl = document.getElementById(navId);
   if (viewEl) viewEl.classList.add('active');
   if (navEl) navEl.classList.add('active');
   if (tab === 'job-board') renderJobBoard();
-  else if (tab === 'analytics') renderAnalytics();
-  else if (tab === 'operator') { renderOperatorPortal(); renderWorkersView(); }
+  else if (tab === 'reports' || tab === 'analytics') renderAnalytics();
+  else if (tab === 'administration' || tab === 'operator') { renderOperatorPortal(); renderWorkersView(); }
   else if (tab === 'compliance') renderComplianceView();
-  else if (tab === 'calendar') renderCalendar();
+  else if (tab === 'scheduler' || tab === 'calendar') renderCalendar();
 }
+window.switchTab = switchTab;
+window._appSwitchTab = switchTab;
 
 function getBookingColor(b){
  // Layer 1 (Block Background): Inherits asset column color so dispatcher instantly identifies asset!
@@ -156,6 +173,7 @@ function getBookingColor(b){
 
 /* Layer 2: Granular DocuWare Pipeline Status Pill Generator */
 function renderDocuWarePill(b){
+ if(!b) return '';
  const now = new Date();
  const startD = new Date(b.startTime);
  
@@ -296,6 +314,7 @@ function cdpPickDay(ds){currentDate=new Date(ds+'T12:00:00');renderCalendar();cl
 function cdpPickMonth(y,m){currentDate=new Date(y,m,1);renderCalendar();closeDatePicker();}
 
 function goToToday(){currentDate=new Date();renderCalendar();}
+function goToDay(iso){if(iso)currentDate=new Date(iso);setCalendarView('Day');}
 
 function changeDate(dir){
  if(currentView==='Day')currentDate.setDate(currentDate.getDate()+dir);
@@ -309,16 +328,18 @@ function setCalendarView(view){
  const selectBox = document.getElementById('calendar-view-select');
  if(selectBox && selectBox.value !== view) selectBox.value = view;
  
+ document.querySelectorAll('.segmented-view-btn').forEach(b=>{
+   b.classList.toggle('active', b.id === `view-btn-${view.toLowerCase()}`);
+ });
  document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===view));
- const filterBar=document.getElementById('asset-filter-bar');
- if(filterBar) filterBar.style.display=(view==='Day')?'none':'flex';
+ 
  const hoursCtrl=document.getElementById('display-hours-control');
  if(hoursCtrl)hoursCtrl.style.display=(view==='Month')?'none':'flex';
  // Show toggle for Day, Week, Work Week — hide for Month
  const transposeBtn=document.getElementById('day-transpose-btn');
  if(transposeBtn){
   const show=(view==='Day'||view==='Week'||view==='Work Week');
-  transposeBtn.style.display=show?'flex':'none';
+  transposeBtn.style.display=show?'inline-flex':'none';
   if(show)updateTransposeLabel();
  }
  renderCalendar();
@@ -346,6 +367,14 @@ function toggleDayTranspose(){
  renderCalendar();
 }
 
+function toggleAssetTray(){
+ const tray = document.getElementById('asset-filter-bar');
+ const trigger = document.getElementById('filter-assets-trigger');
+ if(!tray) return;
+ const isHidden = tray.classList.toggle('hidden');
+ if(trigger) trigger.classList.toggle('active', !isHidden);
+}
+
 function toggleAssetFilter(asset){
  if(activeAssetFilters.has(asset))activeAssetFilters.delete(asset);
  else activeAssetFilters.add(asset);
@@ -366,11 +395,22 @@ function syncAssets(){
 function renderFilterBar(){
  const bar=document.getElementById('asset-filter-bar');
  if(!bar)return;
- let html=`<span class="filter-label">Filter:</span><button class="asset-chip-all" onclick="clearAssetFilter()">All Assets</button>`;
+ 
+ const badge = document.getElementById('filter-count-badge');
+ if(badge) {
+   if(activeAssetFilters.size > 0) {
+     badge.textContent = activeAssetFilters.size;
+     badge.style.display = 'inline-block';
+   } else {
+     badge.style.display = 'none';
+   }
+ }
+
+ let html=`<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-right:4px;">Filter Fleet:</span><button class="asset-chip-all" onclick="clearAssetFilter()">All Fleet (${assetRegistry.length})</button>`;
  assetRegistry.forEach(a=>{
   let cls='asset-chip';
   if(activeAssetFilters.size>0)cls+=activeAssetFilters.has(a.id)?' active':' inactive';
-  html+=`<span class="${cls}" data-asset="${a.id}" onclick="toggleAssetFilter('${a.id}')" style="background:${a.hex};">${a.id}</span>`;
+  html+=`<span class="${cls}" data-asset="${a.id}" onclick="toggleAssetFilter('${a.id}')" style="background:${a.hex};" title="${a.description} (${a.category})">${a.id}</span>`;
  });
  bar.innerHTML=html;
 }
@@ -401,7 +441,7 @@ function renderAssetManager(){
    </div>
    ${confirming
     ? `<div class="am-confirm-wrap"><span class="am-confirm-label">Remove?</span><button class="am-confirm-yes" onclick="confirmDeleteAsset(${i})">Yes</button><button class="am-confirm-no" onclick="cancelDeleteAsset()">No</button></div>`
-    : `<button class="am-delete-btn" onclick="promptDeleteAsset(${i})" title="Remove asset">✕</button>`
+    : `<button class="am-delete-btn" onclick="promptDeleteAsset(${i})" title="Remove asset"><span class="material-symbols-outlined" style="font-size:16px;">close</span></button>`
    }
   </div>`;
  }).join('');
@@ -457,161 +497,393 @@ function getFilteredBookings(){
  return bookings.filter(b=>activeAssetFilters.has(b.assetNumber));
 }
 
-/* MODAL */
+/* ── SMART BOOKING MODAL LOGIC ── */
 
-window.toggleClientType = function() {
-  const isNew = document.querySelector('input[name="client_type"]:checked').value === 'new';
-  document.getElementById('existing-client-section').style.display = isNew ? 'none' : 'block';
-  document.getElementById('new-client-section').style.display = isNew ? 'block' : 'none';
-};
+window.toggleClientType = function(type) {
+  const selected = type || (document.querySelector('input[name="client_type"]:checked')?.value || 'existing');
+  const existingSec = document.getElementById('existing-client-section');
+  const newSec = document.getElementById('new-client-section');
+  const labelExisting = document.getElementById('label-client-existing');
+  const labelNew = document.getElementById('label-client-new');
+  const radioExisting = document.getElementById('radio-client-existing');
+  const radioNew = document.getElementById('radio-client-new');
 
-window.loadClientProjects = function(clientId) {
-  const projSelect = document.getElementById('booking-project-select');
-  projSelect.innerHTML = '<option value="">-- Select Project / Site --</option><option value="NEW">+ Create New Project</option>';
-  if(!clientId) return;
-  const projects = projectsRegistry.filter(p => p.clientId === clientId);
-  projects.forEach(p => {
-    projSelect.innerHTML += `<option value="${p.id}">${p.name} - ${p.address}</option>`;
-  });
-};
-
-window.populateProjectDefaults = function() {
-  const projId = document.getElementById('booking-project-select').value;
-  if(projId && projId !== 'NEW') {
-    const p = projectsRegistry.find(x => x.id === projId);
-    if(p) {
-      document.getElementById('booking-address').value = p.address || '';
-      document.getElementById('booking-site-contact').value = p.contact || '';
-    }
+  if (selected === 'existing') {
+    if (radioExisting) radioExisting.checked = true;
+    if (labelExisting) labelExisting.classList.add('active');
+    if (labelNew) labelNew.classList.remove('active');
+    if (existingSec) existingSec.style.display = 'block';
+    if (newSec) newSec.style.display = 'none';
   } else {
-    document.getElementById('booking-address').value = '';
-    document.getElementById('booking-site-contact').value = '';
+    if (radioNew) radioNew.checked = true;
+    if (labelExisting) labelExisting.classList.remove('active');
+    if (labelNew) labelNew.classList.add('active');
+    if (existingSec) existingSec.style.display = 'none';
+    if (newSec) newSec.style.display = 'block';
   }
 };
 
+window.onClientSelectChange = function() {
+  const cSelect = document.getElementById('booking-client-select');
+  const pSelect = document.getElementById('booking-project-select');
+  if (!cSelect || !pSelect) return;
+  const clientId = cSelect.value;
+  pSelect.innerHTML = '<option value="">-- Choose Job Site --</option>';
+
+  if (!clientId) {
+    if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
+    if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
+    return;
+  }
+
+  const matchingProjects = projectsRegistry.filter(p => p.clientId === clientId);
+  matchingProjects.forEach(p => {
+    pSelect.innerHTML += `<option value="${p.id}">${p.name} (${p.address})</option>`;
+  });
+
+  if (matchingProjects.length > 0) {
+    pSelect.value = matchingProjects[0].id;
+    window.onProjectSelectChange();
+  } else {
+    if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
+    if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
+  }
+};
+
+window.onProjectSelectChange = function() {
+  const pSelect = document.getElementById('booking-project-select');
+  if (!pSelect) return;
+  const projId = pSelect.value;
+  const proj = projectsRegistry.find(p => p.id === projId);
+  if (proj) {
+    if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = proj.address || '';
+    if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = proj.contact || '';
+  } else {
+    if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
+    if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
+  }
+};
+
+window.toggleCrewSelection = function() {
+  const opCheck = document.getElementById('crew-operator-check');
+  const dgCheck = document.getElementById('crew-dogman-check');
+  const opGroup = document.getElementById('operator-select-group');
+  const dgGroup = document.getElementById('dogman-select-group');
+
+  if (opGroup) opGroup.style.display = opCheck && opCheck.checked ? 'block' : 'none';
+  if (dgGroup) dgGroup.style.display = dgCheck && dgCheck.checked ? 'block' : 'none';
+};
+
 window.toggleInspection = function() {
-  const isReq = document.getElementById('inspection-required').checked;
-  document.getElementById('inspection-date-group').style.display = isReq ? 'block' : 'none';
+  const isReq = document.getElementById('inspection-required')?.checked || false;
+  const group = document.getElementById('inspection-date-group');
+  if (group) group.style.display = isReq ? 'block' : 'none';
+};
+
+window.quickCallContact = function(name, phone) {
+  showToast(`Calling ${name}: ${phone}...`, 'info');
+};
+
+window.onAssetSelectChange = function() {
+  const assetId = document.getElementById('booking-asset')?.value;
+  if (!assetId) return;
+  const compliance = window.assetComplianceRegistry?.[assetId];
+  if (compliance && compliance.overallStatus === 'EXPIRED') {
+    showToast(`Note: Asset ${assetId} has pending compliance or inspection items.`, 'warning');
+  }
 };
 
 function openModal(asset, startH, endH, dateStr) {
   document.getElementById('booking-id').value = '';
-  document.getElementById('modal-title').textContent = 'New Booking / Enquiry';
-  
-  // Hydrate client dropdown
-  const cSelect = document.getElementById('booking-client-select');
-  cSelect.innerHTML = '<option value="">-- Search or Select Client --</option>' + 
-    clientsRegistry.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  
-  // Reset radios
-  document.querySelector('input[name="client_type"][value="existing"]').checked = true;
-  toggleClientType();
-  loadClientProjects('');
-  
-  document.getElementById('new-client-name').value = '';
-  document.getElementById('new-client-phone').value = '';
-  document.getElementById('new-client-email').value = '';
-  document.getElementById('booking-address').value = '';
-  document.getElementById('booking-site-contact').value = '';
-  document.getElementById('booking-desc').value = '';
-  
-  document.getElementById('inspection-required').checked = false;
-  toggleInspection();
-  document.getElementById('inspection-date').value = '';
+  document.getElementById('modal-title').textContent = 'Smart Booking & Allocation';
 
+  // 1. Hydrate Client dropdown
+  const cSelect = document.getElementById('booking-client-select');
+  if (cSelect) {
+    cSelect.innerHTML = '<option value="">-- Choose Corporate Client --</option>' +
+      clientsRegistry.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if (clientsRegistry.length > 0) {
+      cSelect.value = clientsRegistry[0].id;
+    }
+  }
+
+  // Set toggle to existing and run cascading auto-fill
+  window.toggleClientType('existing');
+  window.onClientSelectChange();
+
+  // Reset blank inputs for new client
+  if (document.getElementById('new-client-name')) document.getElementById('new-client-name').value = '';
+  if (document.getElementById('new-client-contact')) document.getElementById('new-client-contact').value = '';
+  if (document.getElementById('new-client-phone')) document.getElementById('new-client-phone').value = '';
+  if (document.getElementById('new-client-email')) document.getElementById('new-client-email').value = '';
+  if (document.getElementById('new-client-address')) document.getElementById('new-client-address').value = '';
+
+  // 2. Asset & Status hydration
+  const assetSelect = document.getElementById('booking-asset');
+  if (assetSelect) {
+    assetSelect.innerHTML = assetRegistry.map(a => `<option value="${a.id}">${a.id} — ${a.description || a.assetType}</option>`).join('');
+    assetSelect.value = asset || 'EX01';
+  }
+  if (document.getElementById('booking-hire-type')) document.getElementById('booking-hire-type').value = 'wet';
+  if (document.getElementById('booking-status')) document.getElementById('booking-status').value = 'Scheduled';
+
+  // 3. Timing
   const refDate = dateStr ? new Date(dateStr) : new Date(currentDate);
-  document.getElementById('booking-date').value = refDate.toISOString().slice(0,10);
-  document.getElementById('booking-start').value = startH || '08:00';
-  document.getElementById('booking-end').value = endH || '09:00';
-  
-  // Rate Review default (+6 months)
+  if (document.getElementById('booking-date')) document.getElementById('booking-date').value = refDate.toISOString().slice(0, 10);
+  if (document.getElementById('booking-start')) document.getElementById('booking-start').value = startH || '07:00';
+  if (document.getElementById('booking-end')) document.getElementById('booking-end').value = endH || '15:00';
+
+  // 4. Crew Selection
+  const opCheck = document.getElementById('crew-operator-check');
+  const dgCheck = document.getElementById('crew-dogman-check');
+  if (opCheck) opCheck.checked = true;
+  if (dgCheck) dgCheck.checked = false;
+  window.toggleCrewSelection();
+
+  const opSelect = document.getElementById('booking-wet-operator');
+  const dgSelect = document.getElementById('booking-wet-dogman');
+  if (opSelect) {
+    const operators = workerRegistry.filter(w => (w.role || '').toLowerCase().includes('operator'));
+    opSelect.innerHTML = '<option value="">-- Select Certified Operator --</option>' +
+      operators.map(w => `<option value="${w.id}">${w.name} (${(w.licenses||[]).map(l=>l.type).join(',') || 'HRWL'})</option>`).join('');
+    if (operators.length > 0) opSelect.value = operators[0].id;
+  }
+  if (dgSelect) {
+    const dogmen = workerRegistry.filter(w => (w.role || '').toLowerCase().includes('dogman') || (w.role || '').toLowerCase().includes('rigger'));
+    dgSelect.innerHTML = '<option value="">-- Select Certified Dogman --</option>' +
+      dogmen.map(w => `<option value="${w.id}">${w.name} (${(w.licenses||[]).map(l=>l.type).join(',') || 'DG'})</option>`).join('');
+    if (dogmen.length > 0) dgSelect.value = dogmen[0].id;
+  }
+
+  // 5. Inspection Workflow
+  const inspCheck = document.getElementById('inspection-required');
+  if (inspCheck) inspCheck.checked = false;
+  window.toggleInspection();
+  const inspDate = document.getElementById('inspection-datetime');
+  if (inspDate) {
+    const inspDefault = new Date(refDate);
+    inspDefault.setHours(6, 30, 0, 0);
+    inspDate.value = inspDefault.toISOString().slice(0, 16);
+  }
+
+  // 6. Rate Review Automation: defaults to exactly 6 months from today's date
   const rrDate = new Date();
   rrDate.setMonth(rrDate.getMonth() + 6);
-  document.getElementById('rate-review-date').value = rrDate.toISOString().slice(0,10);
+  const rrInput = document.getElementById('rate-review-date');
+  if (rrInput) rrInput.value = rrDate.toISOString().slice(0, 10);
 
-  // Asset hydration
-  const assetSelect = document.getElementById('booking-asset');
-  assetSelect.innerHTML = assetRegistry.map(a => `<option value="${a.id}">${a.id} - ${a.type}</option>`).join('');
-  document.getElementById('booking-asset').value = asset || 'EX01';
+  if (document.getElementById('booking-desc')) document.getElementById('booking-desc').value = '';
+  if (document.getElementById('delete-btn')) document.getElementById('delete-btn').style.display = 'none';
 
-  document.getElementById('booking-status').value = 'Scheduled';
-
-  // Workers
-  const opSelect = document.getElementById('booking-wet-operator');
-  const dgSelect = document.getElementById('booking-wet-dogman');
-  if(opSelect && dgSelect) {
-    opSelect.innerHTML = '<option value="">-- Auto-Allocate or Select --</option>' + workerRegistry.filter(w => w.role.includes('Operator')).map(w => `<option value="${w.id}">${w.name} (${w.status})</option>`).join('');
-    dgSelect.innerHTML = '<option value="">-- Auto-Allocate or Select --</option>' + workerRegistry.filter(w => w.role.includes('Dogman') || w.role.includes('Rigger')).map(w => `<option value="${w.id}">${w.name} (${w.status})</option>`).join('');
+  const modal = document.getElementById('booking-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('open');
   }
-  
-  document.getElementById('delete-btn').style.display = 'none';
-  document.getElementById('booking-modal').style.display = 'flex';
 }
 
+function editBooking(id) {
+  const b = bookings.find(x => x.id === id);
+  if (!b) return;
+  openModal(b.assetNumber, null, null, b.startTime);
 
-function editBooking(id){
- const b=bookings.find(x=>x.id===id);if(!b)return;
- document.getElementById('booking-id').value=b.id;
- document.getElementById('modal-title').textContent='Edit Booking';
- document.getElementById('booking-asset').value=b.assetNumber;
- document.getElementById('booking-status').value=b.status||'Scheduled';
- document.getElementById('booking-client').value=b.clientName;
- document.getElementById('booking-operator').value=b.operatorName||'';
- document.getElementById('booking-desc').value=b.jobDescription||'';
- const s=new Date(b.startTime),e=new Date(b.endTime);
- document.getElementById('booking-date').value=s.toISOString().slice(0,10);
- document.getElementById('booking-start').value=`${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')}`;
- document.getElementById('booking-end').value=`${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
- document.getElementById('delete-btn').style.display='inline-flex';
- 
-  // Populate worker selects
-  const opSelect = document.getElementById('booking-wet-operator');
-  const dgSelect = document.getElementById('booking-wet-dogman');
-  if(opSelect && dgSelect) {
-    opSelect.innerHTML = '<option value="">-- Select Operator --</option>' + workerRegistry.filter(w => w.role === 'Crane Operator' || w.role === 'Plant Operator').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
-    dgSelect.innerHTML = '<option value="">-- Select Dogman/Rigger --</option>' + workerRegistry.filter(w => w.role === 'Dogman' || w.role === 'Rigger').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+  document.getElementById('booking-id').value = b.id;
+  document.getElementById('modal-title').textContent = `Edit Booking: ${b.assetNumber}`;
+
+  if (document.getElementById('booking-status')) document.getElementById('booking-status').value = b.status || 'Scheduled';
+  if (document.getElementById('booking-hire-type')) document.getElementById('booking-hire-type').value = b.hireType || 'wet';
+
+  // Check if client is existing in registry
+  const cSelect = document.getElementById('booking-client-select');
+  const matchedClient = clientsRegistry.find(c => c.name.toLowerCase() === (b.clientName || '').toLowerCase());
+  if (matchedClient && cSelect) {
+    cSelect.value = matchedClient.id;
+    window.onClientSelectChange();
+  } else {
+    window.toggleClientType('new');
+    if (document.getElementById('new-client-name')) document.getElementById('new-client-name').value = b.clientName || '';
+    if (document.getElementById('new-client-address')) document.getElementById('new-client-address').value = b.siteAddress || '';
+    if (document.getElementById('new-client-phone')) document.getElementById('new-client-phone').value = b.clientPhone || '';
   }
 
-  document.getElementById('booking-modal').classList.add('open');
+  if (document.getElementById('booking-site-address') && b.siteAddress) {
+    document.getElementById('booking-site-address').value = b.siteAddress;
+  }
+  if (document.getElementById('booking-desc')) {
+    document.getElementById('booking-desc').value = b.jobDescription || '';
+  }
+
+  const s = new Date(b.startTime), e = new Date(b.endTime);
+  if (document.getElementById('booking-date')) document.getElementById('booking-date').value = s.toISOString().slice(0, 10);
+  if (document.getElementById('booking-start')) document.getElementById('booking-start').value = `${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')}`;
+  if (document.getElementById('booking-end')) document.getElementById('booking-end').value = `${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
+
+  // Crew allocation restore
+  const hasOp = (b.wetHireResources && b.wetHireResources.some(r => r.role === 'Operator')) || !!b.operatorName;
+  const hasDg = b.wetHireResources && b.wetHireResources.some(r => r.role === 'Dogman' || r.role === 'Rigger');
+  if (document.getElementById('crew-operator-check')) document.getElementById('crew-operator-check').checked = hasOp;
+  if (document.getElementById('crew-dogman-check')) document.getElementById('crew-dogman-check').checked = hasDg;
+  window.toggleCrewSelection();
+
+  if (b.inspectionRequired) {
+    if (document.getElementById('inspection-required')) document.getElementById('inspection-required').checked = true;
+    window.toggleInspection();
+    if (document.getElementById('inspection-datetime') && b.inspectionDateTime) {
+      document.getElementById('inspection-datetime').value = b.inspectionDateTime;
+    }
+  }
+
+  if (b.rateReviewDate && document.getElementById('rate-review-date')) {
+    document.getElementById('rate-review-date').value = b.rateReviewDate;
+  }
+
+  const delBtn = document.getElementById('delete-btn');
+  if (delBtn) delBtn.style.display = 'inline-flex';
+
+  const modal = document.getElementById('booking-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('open');
+  }
 }
 
-function closeModal(){document.getElementById('booking-modal').style.display='none';}
-
-function saveBooking(){
- const id=document.getElementById('booking-id').value;
- const asset=document.getElementById('booking-asset').value;
- const status=document.getElementById('booking-status').value;
- const startStr=document.getElementById('booking-start').value;
- const endStr=document.getElementById('booking-end').value;
- const dateVal=document.getElementById('booking-date').value;
- // Use the date picker value; fall back to currentDate if somehow empty
- const refDate=dateVal?new Date(dateVal+'T00:00:00'):new Date(currentDate);
- const[sh,sm]=startStr.split(':').map(Number);
- const[eh,em]=endStr.split(':').map(Number);
- refDate.setHours(sh,sm,0,0);
- const startISO=refDate.toISOString();
- refDate.setHours(eh,em,0,0);
- const endISO=refDate.toISOString();
- if(new Date(endISO)<=new Date(startISO)){showToast('End time must be after start time.');return;}
- if(hasOverlap(asset,startISO,endISO,id||null)){showToast(`Asset ${asset} is already booked during this time.`);return;}
- const booking={
-  id:id||('b'+Date.now()),assetNumber:asset,status,
-  clientName:document.getElementById('booking-client').value||'Unknown Client',
-  operatorName:document.getElementById('booking-operator').value||'Unassigned',
-  jobDescription:document.getElementById('booking-desc').value||'',
-  startTime:startISO,endTime:endISO,type:'Crane'
- };
- if(id){const i=bookings.findIndex(b=>b.id===id);if(i>=0)bookings[i]=booking;}
- else bookings.push(booking);
- closeModal();renderCalendar();
+function closeModal() {
+  const m = document.getElementById('booking-modal');
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('open');
+  }
 }
 
-function deleteBooking(){
- const id=document.getElementById('booking-id').value;
- if(!id)return;
- if(!confirm('Delete this booking?'))return;
- bookings=bookings.filter(b=>b.id!==id);
- closeModal();renderCalendar();
+function saveBooking() {
+  const id = document.getElementById('booking-id').value;
+  const asset = document.getElementById('booking-asset').value;
+  const status = document.getElementById('booking-status').value;
+  const hireType = document.getElementById('booking-hire-type').value;
+  const startStr = document.getElementById('booking-start').value;
+  const endStr = document.getElementById('booking-end').value;
+  const dateVal = document.getElementById('booking-date').value;
+
+  const isExisting = document.querySelector('input[name="client_type"]:checked')?.value === 'existing';
+  let clientName = '';
+  let siteAddress = '';
+  let clientContact = '';
+  let clientPhone = '0412 889 900';
+  let clientEmail = '';
+
+  if (isExisting) {
+    const cSelect = document.getElementById('booking-client-select');
+    const clientId = cSelect ? cSelect.value : '';
+    const client = clientsRegistry.find(c => c.id === clientId);
+    clientName = client ? client.name : (cSelect?.selectedOptions[0]?.text || 'Corporate Client');
+    siteAddress = document.getElementById('booking-site-address')?.value || 'Brisbane Metro Site';
+    clientContact = document.getElementById('booking-site-contact')?.value || '';
+    clientPhone = client?.phone || '0412 889 900';
+    clientEmail = client?.email || 'accounts@client.com.au';
+  } else {
+    clientName = document.getElementById('new-client-name')?.value.trim() || 'New Client (EOI)';
+    clientContact = document.getElementById('new-client-contact')?.value.trim() || 'Site Supervisor';
+    clientPhone = document.getElementById('new-client-phone')?.value.trim() || '0412 889 900';
+    clientEmail = document.getElementById('new-client-email')?.value.trim() || 'contact@newclient.com.au';
+    siteAddress = document.getElementById('new-client-address')?.value.trim() || '100 Kingsford Smith Dr';
+
+    // Auto-register new client in registry for persistent cascading
+    const newCId = 'C' + (Date.now() % 10000);
+    const newPId = 'P' + (Date.now() % 10000);
+    if (!clientsRegistry.some(c => c.name.toLowerCase() === clientName.toLowerCase())) {
+      clientsRegistry.push({ id: newCId, name: clientName, phone: clientPhone, email: clientEmail });
+      projectsRegistry.push({ id: newPId, clientId: newCId, name: siteAddress.slice(0, 24) + ' Site', address: siteAddress, contact: `${clientContact} (${clientPhone})` });
+    }
+  }
+
+  // Calculate Start & End ISO timestamps
+  const refDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date(currentDate);
+  const [sh, sm] = startStr.split(':').map(Number);
+  const [eh, em] = endStr.split(':').map(Number);
+  refDate.setHours(sh, sm, 0, 0);
+  const startISO = refDate.toISOString();
+  refDate.setHours(eh, em, 0, 0);
+  const endISO = refDate.toISOString();
+
+  if (new Date(endISO) <= new Date(startISO)) {
+    showToast('End time must be strictly after start time.', 'error');
+    return;
+  }
+  if (status !== 'Out of Service' && hasOverlap(asset, startISO, endISO, id || null)) {
+    showToast(`Asset ${asset} has a scheduling clash during this time window.`, 'warning');
+    return;
+  }
+
+  // Crew Allocation
+  const opRequired = document.getElementById('crew-operator-check')?.checked || false;
+  const dgRequired = document.getElementById('crew-dogman-check')?.checked || false;
+  const opId = document.getElementById('booking-wet-operator')?.value || '';
+  const dgId = document.getElementById('booking-wet-dogman')?.value || '';
+  const wetHireResources = [];
+
+  if (opRequired) {
+    const opWorker = workerRegistry.find(w => w.id === opId) || workerRegistry.find(w => (w.role || '').toLowerCase().includes('operator')) || { id: 'W001', name: 'Luke Harris', licenses: [{ type: 'C1' }] };
+    wetHireResources.push({ role: 'Operator', workerId: opWorker.id, workerName: opWorker.name, licenseType: opWorker.licenses?.[0]?.type || 'HRWL' });
+  }
+  if (dgRequired) {
+    const dgWorker = workerRegistry.find(w => w.id === dgId) || workerRegistry.find(w => (w.role || '').toLowerCase().includes('dogman') || (w.role || '').toLowerCase().includes('rigger')) || { id: 'W012', name: 'Brad Nguyen', licenses: [{ type: 'DG' }] };
+    wetHireResources.push({ role: 'Dogman', workerId: dgWorker.id, workerName: dgWorker.name, licenseType: dgWorker.licenses?.[0]?.type || 'DG' });
+  }
+
+  const operatorName = wetHireResources.length > 0 ? wetHireResources.map(r => `${r.role === 'Operator' ? 'Op' : 'Dog'}: ${r.workerName.split(' ')[0]}`).join(' | ') : (opRequired ? 'Operator Assigned' : 'Dry Hire');
+
+  // Inspection Workflow
+  const inspectionRequired = document.getElementById('inspection-required')?.checked || false;
+  const inspectionDateTime = inspectionRequired ? document.getElementById('inspection-datetime')?.value : null;
+  const inspectionOfficer = inspectionRequired ? document.getElementById('inspection-officer')?.value : null;
+
+  // Rate Review Automation
+  const rateReviewDate = document.getElementById('rate-review-date')?.value || null;
+  const hourlyRateQuoted = Number(document.getElementById('hourly-rate-quoted')?.value) || 240;
+
+  const booking = {
+    id: id || ('b' + Date.now()),
+    assetNumber: asset,
+    status,
+    hireType,
+    clientName,
+    clientPhone,
+    clientEmail,
+    siteAddress,
+    siteContact: clientContact,
+    operatorName,
+    wetHireResources,
+    jobDescription: document.getElementById('booking-desc')?.value || '',
+    startTime: startISO,
+    endTime: endISO,
+    type: asset.startsWith('CR') ? 'Crane' : asset.startsWith('DZ') ? 'Dozer' : 'Excavator',
+    inspectionRequired,
+    inspectionDateTime,
+    inspectionOfficer,
+    rateReviewDate,
+    hourlyRateQuoted
+  };
+
+  if (id) {
+    const i = bookings.findIndex(b => b.id === id);
+    if (i >= 0) bookings[i] = booking;
+  } else {
+    bookings.push(booking);
+  }
+
+  closeModal();
+  renderCalendar();
+  showToast(`Booking saved: ${asset} allocated to ${clientName}`, 'success');
+}
+
+function deleteBooking() {
+  const id = document.getElementById('booking-id').value;
+  if (!id) return;
+  if (!confirm('Are you sure you want to delete this booking?')) return;
+  bookings = bookings.filter(b => b.id !== id);
+  closeModal();
+  renderCalendar();
+  showToast('Booking deleted successfully.', 'info');
 }
 
 function saveDocuWare(){
@@ -638,8 +910,12 @@ function saveWorkHours(){
 
 function exportReport(){showToast('Exporting BI Report as PDF... Data synchronisation complete.');}
 
-function applyDatePreset(){
- const preset=document.getElementById('analytics-preset-filter').value;
+let _isAnalyticsRunning = false;
+
+function applyDatePreset(skipRender = false){
+ const presetEl = document.getElementById('analytics-preset-filter');
+ if(!presetEl) return;
+ const preset = presetEl.value || 'this_week';
  if(preset==='custom')return;
  const now=new Date();
  let start=new Date(now),end=new Date(now);
@@ -648,22 +924,29 @@ function applyDatePreset(){
  else if(preset==='next_week'){const d=now.getDay()||7;start.setDate(now.getDate()-d+8);end=new Date(start);end.setDate(start.getDate()+6);}
  else if(preset==='this_month'){start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,0);}
  else{start=new Date(0);end=new Date(9999,0,1);}
- document.getElementById('analytics-start-date').value=start.toISOString().slice(0,10);
- document.getElementById('analytics-end-date').value=end.toISOString().slice(0,10);
- renderAnalytics();
+ const startInput = document.getElementById('analytics-start-date');
+ const endInput = document.getElementById('analytics-end-date');
+ if (startInput) startInput.value=start.toISOString().slice(0,10);
+ if (endInput) endInput.value=end.toISOString().slice(0,10);
+ if (!skipRender) {
+  renderAnalytics();
+ }
 }
 
 /* ── PHASE 6: EXECUTIVE DASHBOARD & SYSTEM TELEMETRY ── */
 function renderAnalytics(){
- const startInput=document.getElementById('analytics-start-date');
- const endInput=document.getElementById('analytics-end-date');
- if(!startInput||!endInput)return;
+ if (_isAnalyticsRunning) return;
+ _isAnalyticsRunning = true;
+ try {
+  const startInput=document.getElementById('analytics-start-date');
+  const endInput=document.getElementById('analytics-end-date');
+  if(!startInput||!endInput)return;
 
- if(!startInput.value||!endInput.value){
-  document.getElementById('analytics-preset-filter').value='this_week';
-  applyDatePreset();
-  return;
- }
+  if(!startInput.value||!endInput.value){
+   const presetEl = document.getElementById('analytics-preset-filter');
+   if (presetEl) presetEl.value='this_week';
+   applyDatePreset(true);
+  }
 
  const startOfDay=new Date(startInput.value);startOfDay.setHours(0,0,0,0);
  const endOfDay=new Date(endInput.value);endOfDay.setHours(23,59,59,999);
@@ -763,7 +1046,7 @@ function renderAnalytics(){
 
   let alert3=`
    <div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
-    <div style="font-size:11px;font-weight:800;color:#0891b2;text-transform:uppercase;">📋 STALLED FIELD DOCKETS (${missingDocketBookings.length})</div>
+    <div style="font-size:11px;font-weight:800;color:#0891b2;text-transform:uppercase;">STALLED FIELD DOCKETS (${missingDocketBookings.length})</div>
     <div style="font-size:13px;font-weight:800;color:#0e7490;">${missingDocketBookings[0] ? missingDocketBookings[0].clientName + ' (' + missingDocketBookings[0].assetNumber + ')' : 'No Stalled Dockets'}</div>
     <div style="font-size:11px;color:#155e75;">Awaiting OCR Indexing in Docket Verification stage</div>
     <button class="dw-action-btn" style="background:#0891b2;height:28px;font-size:10px;margin-top:6px;" onclick="switchTab('job-board')">Upload Dockets →</button>
@@ -809,7 +1092,7 @@ function renderAnalytics(){
 
  if(utilizationChartInst)utilizationChartInst.destroy();
  const uCanvas=document.getElementById('utilizationChart');
- if(uCanvas){
+ if(uCanvas && typeof uCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
   const uCtx=uCanvas.getContext('2d');
   utilizationChartInst=new Chart(uCtx,{
    type:'bar',
@@ -831,7 +1114,7 @@ function renderAnalytics(){
 
  if(statusChartInst)statusChartInst.destroy();
  const sCanvas=document.getElementById('statusChart');
- if(sCanvas){
+ if(sCanvas && typeof sCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
   const sCtx=sCanvas.getContext('2d');
   statusChartInst=new Chart(sCtx,{
    type:'doughnut',
@@ -849,6 +1132,9 @@ function renderAnalytics(){
     plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:11}}}}
    }
   });
+ }
+ } finally {
+  _isAnalyticsRunning = false;
  }
 }
 /* ── RENDER CALENDAR ── */
@@ -883,498 +1169,1137 @@ function getDateLabel(){
  return fmtShort(monday)+'–'+fmtFull(endDay);
 }
 
-function renderCalendar(){
- const body=document.getElementById('calendar-body');
- // Update date toggle button label (e.g. 04/08/2026)
- const toggleLabelEl=document.getElementById('date-toggle-label');
- if(toggleLabelEl) toggleLabelEl.textContent=getToggleBtnLabel();
- // Update written date banner above toolbar (e.g. Tuesday, 4 August 2026)
- const dateBannerEl=document.getElementById('display-date');
- if(dateBannerEl) dateBannerEl.textContent=getDateLabel();
+// ==========================================================================
+// REBUILT SCHEDULER MODULE: DAY VIEW DISPATCH ENGINE & MOCK DATA
+// ==========================================================================
 
- if(currentView==='Day'){
-  if(dayTransposed)renderDayTransposedView(body);
-  else renderDayView(body);
- } else {
-  body.style.height='';
-  body.style.flex='';
-  if(currentView==='Week'){
-   if(weekTransposed)renderWeekTimeView(body,7);
-   else renderWeekView(body,7);
-  } else if(currentView==='Work Week'){
-   if(weekTransposed)renderWeekTimeView(body,5);
-   else renderWeekView(body,5);
-  } else if(currentView==='Month') renderMonthView(body);
- }
- setTimeout(() => initDragAndDrop(renderCalendar, showToast), 100);
-}
+// Fixed, Prominent Site Inspections / Reps Non-Asset Lane
+const INSPECTION_LANE = {
+  id: 'INSPECTIONS',
+  label: 'Site Inspections / Reps',
+  type: 'Site Audits & Consultations',
+  color: '#6366f1',
+  isInspectionLane: true
+};
 
-function getHourRange(dayBookings){
- // If user has set explicit display hours, use those
- if(displayHoursStart!==null&&displayHoursEnd!==null){
-  currentMinHour=displayHoursStart;
-  return{minH:displayHoursStart,maxH:displayHoursEnd};
- }
- let minH=6,maxH=18;
- dayBookings.forEach(b=>{
-  const sh=new Date(b.startTime).getHours();
-  const eh=new Date(b.endTime).getHours()+(new Date(b.endTime).getMinutes()>0?1:0);
-  if(sh<minH)minH=Math.max(0,sh-1);
-  if(eh>maxH)maxH=Math.min(24,eh+1);
- });
- currentMinHour=minH;
- return{minH,maxH};
-}
+// Fleet Assets (X-Axis Columns)
+const mockFleetAssets = [
+  { id: 'AT11', label: 'AT11 - 100T', type: 'Liebherr All-Terrain Crane', category: 'all_terrain', color: '#0284c7', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5 },
+  { id: 'FC1', label: 'FC1 - 20T Franna', type: 'Terex Franna Pick & Carry', category: 'franna', color: '#059669', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true },
+  { id: 'MC2', label: 'MC2 - 60T City Crane', type: 'Kato City Compact Crane', category: 'city', color: '#d97706', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4 },
+  { id: 'CR01', label: 'CR01 - 250T Crawler', type: 'Kobelco Lattice Crawler', category: 'crawler', color: '#7c3aed', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2 },
+  { id: 'AT10', label: 'AT10 - 55T Demag', type: 'Demag All-Terrain Crane', category: 'all_terrain', color: '#dc2626', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0 }
+];
 
-function setDisplayHours(start,end){
- displayHoursStart=(start!==null)?Number(start):null;
- displayHoursEnd=(end!==null)?Number(end):null;
- renderCalendar();
-}
+// All scheduler lanes: Always includes 'Site Inspections / Reps' docked at the far left of the fleet columns
+const allSchedulerLanes = [INSPECTION_LANE, ...mockFleetAssets];
 
-function resetDisplayHours(){
- displayHoursStart=7;
- displayHoursEnd=19;
- const startSel=document.getElementById('display-start-hour');
- const endSel=document.getElementById('display-end-hour');
- if(startSel)startSel.value='7';
- if(endSel)endSel.value='19';
- renderCalendar();
-}
+// Active Contextual Filter State for Day View
+let selectedAssetFilter = 'All Assets'; // 'All Assets' | 'Frannas' | 'Crawlers' | 'All Terrains'
+let selectedWorkerFilter = 'All Workers'; // 'All Workers' | 'Available' | 'Overtime Warning'
 
-function toggleLegendPopover(){
- const menu=document.getElementById('legend-popover-menu');
- if(menu) menu.classList.toggle('open');
-}
+function getFilteredSchedulerLanes() {
+  let lanes = [INSPECTION_LANE, ...mockFleetAssets];
 
-// Close popovers on outside click
-document.addEventListener('click',(e)=>{
- const wrapper=document.querySelector('.legend-popover-wrapper');
- const menu=document.getElementById('legend-popover-menu');
- if(wrapper && menu && !wrapper.contains(e.target)){
-  menu.classList.remove('open');
- }
-});
-
-function formatHourLabel(h){
- if(h===0)return'12 AM';
- if(h<12)return h+' AM';
- if(h===12)return'12 PM';
- return(h-12)+' PM';
-}
-
-
-function renderDayView(body){
- const dayBookings=bookings.filter(b=>new Date(b.startTime).toDateString()===currentDate.toDateString());
- const{minH,maxH}=getHourRange(dayBookings);
- const hours=[];for(let h=minH;h<maxH;h++)hours.push(h);
- const PX=60;
- const HEADER_H=42; // asset name header row height
- const totalSlotH=hours.length*PX;
-
- // Size the calendar-body to exactly fit the content, capped at available viewport
- const calBody=document.getElementById('calendar-body');
- const availH=window.innerHeight-calBody.getBoundingClientRect().top-24;
- calBody.style.height=Math.min(totalSlotH+HEADER_H, availH)+'px';
- calBody.style.flex='none';
-
- let html=`<div style="display:flex;height:100%;overflow:hidden;flex-direction:column;">`;
- html+=`<div style="display:flex;flex-shrink:0;background:var(--bg-secondary);border-bottom:1px solid var(--border-light);">`;
- html+=`<div style="width:64px;flex-shrink:0;"></div>`;
- validAssets.forEach(asset=>{
-  const hex=ASSET_HEX[asset]||'#888';
-  const comp=complianceRegistry[asset];
-  const isExpired=comp&&comp.status==='expired';
-  const isWarning=comp&&comp.status==='warning';
-
-  let headerStyle=`color:${hex};border-bottom:2px solid ${hex};`;
-  let headerContent=asset;
-  if(isExpired){
-   headerStyle=`background:rgba(239,68,68,0.15);color:#dc2626;border-bottom:2px solid #dc2626;`;
-   headerContent=`${asset} <span style="font-size:9px;background:#dc2626;color:#fff;padding:1px 4px;border-radius:3px;"> LOCKED</span>`;
-  } else if(isWarning){
-   headerContent=`${asset} <span style="font-size:9px;background:#f59e0b;color:#fff;padding:1px 4px;border-radius:3px;"> 30d</span>`;
+  // 1. Filter by Asset
+  if (selectedAssetFilter === 'Frannas') {
+    lanes = mockFleetAssets.filter(a =>
+      (a.category === 'franna') ||
+      (a.type && a.type.toLowerCase().includes('franna')) ||
+      (a.label && a.label.toLowerCase().includes('franna'))
+    );
+  } else if (selectedAssetFilter === 'Crawlers') {
+    lanes = mockFleetAssets.filter(a =>
+      (a.category === 'crawler') ||
+      (a.type && a.type.toLowerCase().includes('crawler')) ||
+      (a.label && a.label.toLowerCase().includes('crawler'))
+    );
+  } else if (selectedAssetFilter === 'All Terrains') {
+    lanes = mockFleetAssets.filter(a =>
+      (a.category === 'all_terrain') ||
+      (a.type && a.type.toLowerCase().includes('terrain')) ||
+      (a.label && a.label.toLowerCase().includes('terrain'))
+    );
   }
 
-  html+=`<div style="flex:1;min-width:80px;padding:10px 8px;text-align:center;font-size:12px;font-weight:700;border-left:1px solid var(--border-light);${headerStyle}">${headerContent}</div>`;
- });
- html+=`</div>`;
- html+=`<div style="flex:1;overflow-y:auto;overflow-x:auto;display:flex;" id="day-scroll">`;
- html+=`<div style="width:64px;flex-shrink:0;background:var(--bg-secondary);border-right:1px solid var(--border-light);">`;
- html+=hours.map(h=>`<div style="height:${PX}px;display:flex;justify-content:flex-end;padding:8px 10px 0 0;font-size:11px;font-weight:600;color:var(--text-muted);">${h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM'}</div>`).join('');
- html+=`</div>`;
- validAssets.forEach(asset=>{
-  const hex=ASSET_HEX[asset]||'#888';
-  const totalH=hours.length*PX;
-  const comp=complianceRegistry[asset];
-  const isExpired=comp&&comp.status==='expired';
-  const isWarning=comp&&comp.status==='warning';
-
-  html+=`<div style="flex:1;min-width:80px;position:relative;border-left:1px solid var(--border-light);" data-asset="${asset}" id="col-${asset}">`;
-
-  if(isExpired){
-   // Interlock Overlay for Expired Assets
-   html+=`<div class="locked-column-overlay" onclick="showToast(' SAFETY INTERLOCK: Asset ${asset} has an EXPIRED DocuWare Safety Certificate (${comp.rego}). Dispatch is locked until a new cert is indexed in DocuWare.')">
-    <div class="locked-banner-pill"> ASSET DISPATCH LOCKED</div>
-   </div>`;
+  // 2. Filter by Worker
+  if (selectedWorkerFilter === 'Available') {
+    lanes = lanes.filter(a => a.isInspectionLane || a.workerStatus === 'available' || !a.overtimeWarning);
+  } else if (selectedWorkerFilter === 'Overtime Warning') {
+    lanes = lanes.filter(a => !a.isInspectionLane && (a.workerStatus === 'overtime' || a.overtimeWarning));
   }
 
-  // Tint overlay
-  html+=`<div style="position:absolute;top:0;left:0;right:0;height:${totalH}px;background:${hex};opacity:0.07;pointer-events:none;z-index:0;"></div>`;
-  hours.forEach(h=>{
-   html+=`<div style="height:${PX}px;border-bottom:1px solid color-mix(in srgb, ${hex} 15%, transparent);" class="paint-slot" data-hour="${h}" data-asset="${asset}" onmousedown="${isExpired ? `showToast(' Safety Interlock: Asset ${asset} is locked due to expired DocuWare cert.')` : `startPaint(event,${h},'${asset}')`}" ondragover="window._dragOver(event)" ondragleave="window._dragLeave(event)" ondrop="window._dropBooking(event, ${h}, '${asset}', '${currentDate.toISOString()}')"></div>`;
-  });
-
-  const aBookings=dayBookings.filter(b=>b.assetNumber===asset);
-  aBookings.forEach(b=>{
-   const startD=new Date(b.startTime),endD=new Date(b.endTime);
-   const startMins=(startD.getHours()-minH)*60+startD.getMinutes();
-   const dur=(endD-startD)/60000;
-   const top=startMins*(PX/60);
-   const height=Math.max(dur*(PX/60),26);
-   
-   // Layer 1: Asset background color (fixes DZ04 blank red block bug!)
-   const color=getBookingColor(b);
-   // Layer 2: Embedded DocuWare Status Pill
-   const statusPillHtml=renderDocuWarePill(b);
-
-   html+=`<div class="booking-card" id="${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-     <span class="booking-asset-code">${b.assetNumber}</span>
-          <span class="hire-type-pill ${b.hireType || 'dry'}">${(b.hireType || 'dry') === 'wet' ? 'WET' : 'DRY'}</span>
-          ${b.assetNumber.startsWith('CR') && b.requiredLiftCapacity > 0 ? `<span class="booking-capacity">${b.requiredLiftCapacity}T req</span>` : ''}
-     ${statusPillHtml}
-    </div>
-    <div class="booking-client">${b.clientName}</div>
-    <div class="booking-operator">${b.operatorName ? ' ' + b.operatorName : ' Unassigned'}</div>
-    ${isWarning ? `<div style="font-size:9px;font-weight:800;color:#fef08a;margin-top:2px;"> Service Due 30d</div>` : ''}
-    <div class="booking-resize-handle" onmousedown="startResize(event,'${b.id}')"></div>
-   </div>`;
-  });
-  html+=`</div>`;
- });
- html+=`</div></div>`;
- body.innerHTML=html;
+  return lanes;
 }
 
-/* ── TRANSPOSED DAY VIEW: hours-as-columns, assets-as-rows ── */
-function renderDayTransposedView(body){
- const dayBookings=bookings.filter(b=>new Date(b.startTime).toDateString()===currentDate.toDateString());
- const{minH,maxH}=getHourRange(dayBookings);
- const totalHours=maxH-minH;
- const CELL_H=56, BAR_H=36, BAR_TOP=(CELL_H-BAR_H)/2, LABEL_W=96;
- const today=new Date();
- const now=new Date();
-
- // Format time short
- function fmtT(d){const h=d.getHours(),m=d.getMinutes(),h12=h===0?12:h>12?h-12:h;return`${h12}:${String(m).padStart(2,'0')}${h<12?'A':'P'}`;}
-
- // Reset body sizing (unlike normal day view it fills flex)
- body.style.height='';
- body.style.flex='';
-
- let html=`<div style="display:flex;height:100%;overflow:hidden;flex-direction:column;">`;
-
- // ── Hour header row ──
- const isToday=currentDate.toDateString()===today.toDateString();
- html+=`<div style="display:flex;flex-shrink:0;background:var(--bg-secondary);border-bottom:2px solid var(--border-light);">`;
- html+=`<div style="width:${LABEL_W}px;flex-shrink:0;border-right:1px solid var(--border-light);"></div>`;
- // One column per hour
- for(let h=minH;h<maxH;h++){
-  const label=h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM';
-  html+=`<div style="flex:1;min-width:60px;padding:8px 4px;text-align:center;border-left:1px solid var(--border-light);font-size:11px;font-weight:600;color:var(--text-muted);">${label}</div>`;
- }
- html+=`</div>`;
-
- // ── Scrollable asset rows ──
- html+=`<div style="flex:1;overflow-y:auto;overflow-x:auto;">`;
-
- validAssets.forEach(asset=>{
-  const hex=ASSET_HEX[asset]||'#888';
-  const aBookings=dayBookings.filter(b=>b.assetNumber===asset);
-
-  html+=`<div style="display:flex;border-bottom:1px solid var(--border-light);height:${CELL_H}px;">`;
-
-  // Asset label
-  html+=`<div style="width:${LABEL_W}px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid var(--border-light);font-size:12px;font-weight:700;color:${hex};">`;
-  html+=`<div style="width:8px;height:8px;border-radius:50%;background:${hex};box-shadow:0 0 0 3px ${hex}33;flex-shrink:0;"></div>${asset}</div>`;
-
-  // Single full-width cell spanning all hours
-  html+=`<div style="flex:1;position:relative;overflow:hidden;min-width:${60*totalHours}px;" ondragover="window._dragOver(event)" ondragleave="window._dragLeave(event)" ondrop="window._dropGantt(event, '${asset}', '${currentDate.toISOString()}', ${minH}, ${totalHours})">`;
-  // Tint
-  html+=`<div style="position:absolute;inset:0;background:${hex};opacity:0.07;pointer-events:none;"></div>`;
-
-  // Hour grid dividers
-  for(let h=minH+1;h<maxH;h++){
-   const pct=(h-minH)/totalHours*100;
-   html+=`<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:1px;background:rgba(0,0,0,0.1);pointer-events:none;"></div>`;
-  }
-
-  // Live time line
-  if(isToday){
-   const nowFrac=(now.getHours()+now.getMinutes()/60-minH)/totalHours;
-   if(nowFrac>=0&&nowFrac<=1){
-    html+=`<div style="position:absolute;top:0;bottom:0;left:${nowFrac*100}%;width:2px;background:var(--color-urgent);opacity:0.8;pointer-events:none;z-index:4;"></div>`;
-   }
-  }
-
-  // Booking bars
-  aBookings.forEach(b=>{
-   const startD=new Date(b.startTime),endD=new Date(b.endTime);
-   const startFrac=Math.max(0,(startD.getHours()+startD.getMinutes()/60-minH)/totalHours);
-   const endFrac=Math.min(1,(endD.getHours()+endD.getMinutes()/60-minH)/totalHours);
-   const leftPct=startFrac*100;
-   const widthPct=Math.max(1,(endFrac-startFrac)*100);
-   const color=getBookingColor(b);
-   html+=`<div class="gantt-bar" id="dt-${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);top:${BAR_TOP}px;height:${BAR_H}px;background:${color};" ondblclick="editBooking('${b.id}')" title="${b.assetNumber} | ${fmtT(startD)} – ${fmtT(endD)}&#10;${b.clientName}&#10;${isWorkerDoubleBooked(b) ? '<span style="color:#d97706;font-weight:bold;">⚠️ ' + (b.wetHireResources?.[0]?.workerName || b.operatorName || '') + '</span>' : (b.wetHireResources?.[0]?.workerName || b.operatorName || '')}&#10;${b.jobDescription||''}">`;
-   html+=`<span class="gantt-bar-text" style="font-size:11px;">${b.clientName} <span style="opacity:0.7">${fmtT(startD)}–${fmtT(endD)}</span></span>`;
-   html+=`</div>`;
-  });
-
-  html+=`</div></div>`;
- });
-
-
-
- html+=`</div></div>`;
- body.innerHTML=html;
+function handleAssetFilterChange(val) {
+  selectedAssetFilter = val || 'All Assets';
+  renderDayViewScheduler();
 }
 
-/* \u2500\u2500 WEEK TIME VIEW: traditional vertical time grid (days as columns) \u2500\u2500 */
-function renderWeekTimeView(body,days){
- const filtered=getFilteredBookings();
- const startOfWeekD=new Date(currentDate);
- const dow=startOfWeekD.getDay();
- const monday=new Date(startOfWeekD);monday.setDate(monday.getDate()-(dow===0?6:dow-1));
- const weekDays=[];for(let i=0;i<days;i++){const d=new Date(monday);d.setDate(d.getDate()+i);weekDays.push(d);}
- const weekBookings=filtered.filter(b=>{const d=new Date(b.startTime);return weekDays.some(wd=>wd.toDateString()===d.toDateString());});
- const{minH,maxH}=getHourRange(weekBookings.length?weekBookings:bookings.filter(b=>weekDays.some(wd=>wd.toDateString()===new Date(b.startTime).toDateString())));
- const PX=60;
- const HEADER_H=52;
- const totalSlotH=(maxH-minH)*PX;
- const today=new Date();
- const now=new Date();
- const hours=[];for(let h=minH;h<maxH;h++)hours.push(h);
-
- // Size body to fit content
- const calBody=document.getElementById('calendar-body');
- const availH=window.innerHeight-calBody.getBoundingClientRect().top-24;
- calBody.style.height=Math.min(totalSlotH+HEADER_H,availH)+'px';
- calBody.style.flex='none';
-
- let html=`<div style="display:flex;height:100%;overflow:hidden;flex-direction:column;">`;
-
- // \u2500 Day header row \u2500
- html+=`<div style="display:flex;flex-shrink:0;background:var(--bg-secondary);border-bottom:2px solid var(--border-light);">`;
- html+=`<div style="width:64px;flex-shrink:0;"></div>`;
- weekDays.forEach(wd=>{
-  const isToday=wd.toDateString()===today.toDateString();
-  const dayName=wd.toLocaleDateString('en-AU',{weekday:'short'}).toUpperCase();
-  html+=`<div style="flex:1;min-width:100px;padding:8px;text-align:center;border-left:1px solid var(--border-light);${isToday?'background:rgba(28,75,139,0.05);':''}">`;
-  html+=`<div style="font-size:20px;font-weight:700;${isToday?'color:var(--accent-primary);':''}">${wd.getDate()}</div>`;
-  html+=`<div style="font-size:11px;color:var(--text-muted);font-weight:600;">${dayName}</div>`;
-  html+=`</div>`;
- });
- html+=`</div>`;
-
- // \u2500 Scrollable time grid \u2500
- html+=`<div style="flex:1;overflow-y:auto;overflow-x:auto;display:flex;">`;
-
- // Time gutter
- html+=`<div style="width:64px;flex-shrink:0;background:var(--bg-secondary);border-right:1px solid var(--border-light);">`;
- html+=hours.map(h=>`<div style="height:${PX}px;display:flex;justify-content:flex-end;padding:8px 10px 0 0;font-size:11px;font-weight:600;color:var(--text-muted);">${h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM'}</div>`).join('');
- html+=`</div>`;
-
- // Day columns
- weekDays.forEach(wd=>{
-  const isToday=wd.toDateString()===today.toDateString();
-  const dayStr=wd.toDateString();
-  const dayBk=weekBookings.filter(b=>new Date(b.startTime).toDateString()===dayStr);
-  const totalH=hours.length*PX;
-  html+=`<div style="flex:1;min-width:100px;position:relative;border-left:1px solid var(--border-light);${isToday?'background:rgba(28,75,139,0.02);':''}">`;
-
-  // Hour slots (clickable to new booking)
-  hours.forEach(h=>{
-   html+=`<div style="height:${PX}px;border-bottom:1px solid var(--border-light);cursor:crosshair;" onmousedown="openModal('',null,null,'${wd.toISOString().slice(0,10)}')"></div>`;
-  });
-
-  // Live time line
-  if(isToday){
-   const nowPx=(now.getHours()-minH)*PX+now.getMinutes()*(PX/60);
-   if(nowPx>=0&&nowPx<=totalH)
-    html+=`<div class="live-time-line" style="top:${nowPx}px;"></div>`;
-  }
-
-  // Booking cards
-  dayBk.forEach(b=>{
-   const startD=new Date(b.startTime),endD=new Date(b.endTime);
-   const startMins=(startD.getHours()-minH)*60+startD.getMinutes();
-   const dur=(endD-startD)/60000;
-   const top=startMins*(PX/60);
-   const height=Math.max(dur*(PX/60),22);
-   const color=getBookingColor(b);
-   html+=`<div class="booking-card" id="wt-${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">`;
-   html+=`<div class="booking-asset-code">${b.assetNumber}</div>
-      <span class="hire-type-pill ${b.hireType || 'dry'}">${(b.hireType || 'dry') === 'wet' ? 'WET' : 'DRY'}</span>
-      ${b.assetNumber.startsWith('CR') && b.requiredLiftCapacity > 0 ? `<span class="booking-capacity">${b.requiredLiftCapacity}T req</span>` : ''}`;
-   html+=`<div class="booking-client">${b.clientName}</div>`;
-   html+=`<div class="booking-operator">${b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0 ? b.wetHireResources[0].workerName : (b.operatorName || '')}</div>`;
-   html+=`<div class="booking-resize-handle" onmousedown="startResize(event,'${b.id}')"></div>`;
-   html+=`</div>`;
-  });
-
-  html+=`</div>`;
- });
-
- html+=`</div></div>`;
- body.innerHTML=html;
+function handleWorkerFilterChange(val) {
+  selectedWorkerFilter = val || 'All Workers';
+  renderDayViewScheduler();
 }
 
-function renderWeekView(body,days){
- const filtered=getFilteredBookings();
- const startOfWeek=new Date(currentDate);
- const dayOfWeek=startOfWeek.getDay();
- const monday=new Date(startOfWeek);monday.setDate(monday.getDate()-(dayOfWeek===0?6:dayOfWeek-1));
- const weekDays=[];for(let i=0;i<days;i++){const d=new Date(monday);d.setDate(d.getDate()+i);weekDays.push(d);}
- const weekBookings=filtered.filter(b=>{const d=new Date(b.startTime);return weekDays.some(wd=>wd.toDateString()===d.toDateString());});
- const{minH,maxH}=getHourRange(weekBookings.length?weekBookings:bookings.filter(b=>weekDays.some(wd=>wd.toDateString()===new Date(b.startTime).toDateString())));
- const totalHours=maxH-minH;
- const today=new Date();
- const now=new Date();
- const assetsToShow=activeAssetFilters.size>0?assetRegistry.filter(a=>activeAssetFilters.has(a.id)):assetRegistry;
- const CELL_H=52, BAR_H=34, BAR_TOP=(CELL_H-BAR_H)/2, LABEL_W=96;
+function resetSchedulerFilters() {
+  selectedAssetFilter = 'All Assets';
+  selectedWorkerFilter = 'All Workers';
+  renderDayViewScheduler();
+}
 
- // Format time as "7:30A" / "3:00P"
- function fmtT(d){const h=d.getHours(),m=d.getMinutes(),h12=h===0?12:h>12?h-12:h;return`${h12}:${String(m).padStart(2,'0')}${h<12?'A':'P'}`;}
+// Structured Mock Data: Including 'Inspection Only' job and crane jobs
+let mockDispatchData = [
+  {
+    id: 'INSP-101',
+    assetId: 'INSPECTIONS',
+    startTime: '09:30',
+    endTime: '12:00',
+    client: 'John Holland Group',
+    siteAddress: 'Sydney Metro West - Site Assessment & Access Audit',
+    statusColor: '#6366f1',
+    isInspection: true,
+    inspector: 'Dave Miller (Senior Rep)',
+    workerName: 'Dave Miller',
+    workerStatus: 'available'
+  },
+  {
+    id: 'JOB-001',
+    assetId: 'AT11',
+    startTime: '07:00',
+    endTime: '12:00',
+    client: 'Multiplex Constructions',
+    siteAddress: 'Quay Quarter Tower, 50 Bridge St, Sydney NSW',
+    statusColor: '#0284c7',
+    isInspection: false,
+    workerName: 'Luke Harris',
+    workerStatus: 'available'
+  },
+  {
+    id: 'JOB-002',
+    assetId: 'FC1',
+    startTime: '08:30',
+    endTime: '15:30',
+    client: 'Lendlease Building',
+    siteAddress: 'Barangaroo Metro Station, Hickson Rd, Barangaroo NSW',
+    statusColor: '#059669',
+    isInspection: false,
+    workerName: 'Chris Evans',
+    workerStatus: 'overtime',
+    overtimeWarning: true
+  },
+  {
+    id: 'JOB-003',
+    assetId: 'MC2',
+    startTime: '13:00',
+    endTime: '14:00',
+    client: 'CPB Contractors',
+    siteAddress: 'Western Sydney Airport Terminal 1, Badgerys Creek NSW',
+    statusColor: '#d97706',
+    isInspection: false,
+    workerName: 'Mark Johnson',
+    workerStatus: 'available'
+  }
+];
 
- let html=`<div style="display:flex;height:100%;overflow:hidden;flex-direction:column;">`;
+// All-Day / Maintenance Events Banner Data
+const mockAllDayEvents = [
+  {
+    assetId: 'AT10',
+    title: 'AT10 - OUT FOR SERVICE',
+    detail: 'Scheduled 250hr hydraulic inspection & boom recertification',
+    statusColor: '#dc2626'
+  }
+];
 
- // ── Day header row ──
- html+=`<div style="display:flex;flex-shrink:0;background:var(--bg-secondary);border-bottom:2px solid var(--border-light);"><div style="width:${LABEL_W}px;flex-shrink:0;border-right:1px solid var(--border-light);"></div>`;
- weekDays.forEach(wd=>{
-  const isToday=wd.toDateString()===today.toDateString();
-  const dayName=wd.toLocaleDateString('en-AU',{weekday:'short'}).toUpperCase();
-  html+=`<div style="flex:1;min-width:130px;padding:10px 8px;text-align:center;border-left:1px solid var(--border-light);"${isToday?' class="gantt-header-today"':''}><div style="font-size:20px;font-weight:700;${isToday?'color:var(--accent-primary);':''}">${wd.getDate()}</div><div style="font-size:11px;color:var(--text-muted);font-weight:600;">${dayName}</div></div>`;
- });
- html+=`</div>`;
+function timeStringToMinutes(timeStr) {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(':');
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  return h * 60 + m;
+}
 
- // ── Scrollable asset rows ──
- html+=`<div style="flex:1;overflow-y:auto;overflow-x:auto;">`;
+function minutesToTimeString(totalMinutes) {
+  const clamped = Math.max(0, Math.min(1410, totalMinutes));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
- assetsToShow.forEach(asset=>{
-  const hex=asset.hex;
-  html+=`<div style="display:flex;border-bottom:1px solid var(--border-light);height:${CELL_H}px;">`;
+function formatGutterHour(hour) {
+  if (hour === 0) return '12 AM';
+  if (hour < 12) return `${hour} AM`;
+  if (hour === 12) return '12 PM';
+  return `${hour - 12} PM`;
+}
 
-  // Asset label
-  html+=`<div class="gantt-asset-label" style="width:${LABEL_W}px;"><div class="gantt-asset-dot" style="background:${hex};box-shadow:0 0 0 3px ${hex}33;"></div><span>${asset.id}</span></div>`;
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
-  // Day cells
-  weekDays.forEach(wd=>{
-   const isToday=wd.toDateString()===today.toDateString();
-   const dayBk=weekBookings.filter(b=>b.assetNumber===asset.id&&new Date(b.startTime).toDateString()===wd.toDateString());
-   html+=`<div class="gantt-cell${isToday?' gantt-cell-today':''}" style="min-width:130px;"`+(isToday?` data-today="1"`:'')+`>`;
+// ── Drag and Drop State & Handlers ──
+let isDraggingJob = false;
+let justFinishedDragging = false;
+let activeDragJob = null;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragOrigStartMin = 0;
+let dragDurationMin = 0;
+let dragCardElement = null;
+let currentHoveredAssetId = null;
+let currentPreviewStartMin = 0;
 
-   // Hour grid lines — major only (every 3h)
-   for(let h=minH+1;h<maxH;h++){
-    if((h-minH)%3!==0)continue;
-    const pct=(h-minH)/totalHours*100;
-    html+=`<div style="position:absolute;top:0;bottom:0;left:${pct}%;width:1px;background:rgba(0,0,0,0.07);pointer-events:none;"></div>`;
-   }
+// Click-to-Edit Existing Job
+function handleJobClick(e, jobId) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  if (justFinishedDragging) return;
 
-   // Live time vertical line (today's column only)
-   if(isToday){
-    const nowFrac=(now.getHours()+now.getMinutes()/60-minH)/totalHours;
-    if(nowFrac>=0&&nowFrac<=1){
-     html+=`<div class="gantt-now-line" style="left:${nowFrac*100}%;"></div>`;
+  const job = mockDispatchData.find(j => j.id === jobId);
+  if (!job) return;
+
+  const clientName = job.client || 'Client';
+  const alertMsg = `EDIT BOOKING: ${clientName}`;
+
+  try {
+    alert(alertMsg);
+  } catch (err) {
+    console.warn('alert caught:', err);
+  }
+  if (typeof showToast === 'function') {
+    showToast(alertMsg, 'info');
+  }
+}
+
+// Drag start for job cards (HTML5 Drag & Drop)
+function handleJobDragStart(e, jobId) {
+  const job = mockDispatchData.find(j => j.id === jobId);
+  if (!job) return;
+
+  isDraggingJob = true;
+  activeDragJob = job;
+
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('text/plain', jobId);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  if (e.currentTarget) {
+    e.currentTarget.classList.add('is-dragging');
+  }
+}
+
+// Drag end for job cards (HTML5 Drag & Drop)
+function handleJobDragEnd(e) {
+  isDraggingJob = false;
+  activeDragJob = null;
+
+  justFinishedDragging = true;
+  setTimeout(() => { justFinishedDragging = false; }, 250);
+
+  document.querySelectorAll('.is-dragging').forEach(el => el.classList.remove('is-dragging'));
+  document.querySelectorAll('.drag-over-slot').forEach(el => el.classList.remove('drag-over-slot'));
+}
+
+// Slot drag events for Drag & Drop Snapping
+function handleSlotDragOver(e) {
+  e.preventDefault();
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'move';
+  }
+}
+
+function handleSlotDragEnter(e) {
+  e.preventDefault();
+  const slot = e.currentTarget || e.target.closest('[data-hour]');
+  if (slot) {
+    slot.classList.add('drag-over-slot');
+  }
+}
+
+function handleSlotDragLeave(e) {
+  const slot = e.currentTarget || e.target.closest('[data-hour]');
+  if (slot) {
+    slot.classList.remove('drag-over-slot');
+  }
+}
+
+// Drop handler on slots and grid
+function handleSlotDrop(e, fallbackAssetId, fallbackHour) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  justFinishedDragging = true;
+  setTimeout(() => { justFinishedDragging = false; }, 250);
+
+  document.querySelectorAll('.drag-over-slot').forEach(el => el.classList.remove('drag-over-slot'));
+  document.querySelectorAll('.is-dragging').forEach(el => el.classList.remove('is-dragging'));
+
+  let jobId = null;
+  if (e.dataTransfer) {
+    jobId = e.dataTransfer.getData('text/plain');
+  }
+  if (!jobId && activeDragJob) {
+    jobId = activeDragJob.id;
+  }
+  if (!jobId) return;
+
+  const job = mockDispatchData.find(j => j.id === jobId);
+  if (!job) return;
+
+  const dropTarget = e.currentTarget || e.target.closest('[data-hour]');
+  const targetAssetId = dropTarget?.dataset?.assetId || dropTarget?.dataset?.asset || fallbackAssetId;
+  const targetHour = dropTarget?.dataset?.hour != null ? parseInt(dropTarget.dataset.hour, 10) : fallbackHour;
+
+  if (!targetAssetId || targetHour == null || isNaN(targetHour)) return;
+
+  // Snapping: Calculate whether dropped in first 30 mins (:00) or second 30 mins (:30)
+  let isSecondHalf = false;
+  if (dropTarget) {
+    const rect = dropTarget.getBoundingClientRect();
+    if (dayTransposed) {
+      isSecondHalf = (e.clientX - rect.left) > (rect.width / 2);
+    } else {
+      isSecondHalf = (e.clientY - rect.top) > (rect.height / 2);
     }
-   }
+  }
+  const minute = isSecondHalf ? '30' : '00';
+  const newStartStr = `${String(targetHour).padStart(2, '0')}:${minute}`;
 
-   // Booking bars — label only, full detail in tooltip
-   dayBk.forEach(b=>{
-    const startD=new Date(b.startTime),endD=new Date(b.endTime);
-    const startFrac=Math.max(0,(startD.getHours()+startD.getMinutes()/60-minH)/totalHours);
-    const endFrac=Math.min(1,(endD.getHours()+endD.getMinutes()/60-minH)/totalHours);
-    const leftPct=startFrac*100;
-    const widthPct=Math.max(1.5,(endFrac-startFrac)*100);
-    const color=getBookingColor(b);
-    html+=`<div class="gantt-bar" id="${b.id}" style="left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);top:${BAR_TOP}px;height:${BAR_H}px;background:${color};" ondblclick="editBooking('${b.id}')" title="${b.assetNumber} | ${fmtT(startD)} – ${fmtT(endD)}&#10;${b.clientName}&#10;${isWorkerDoubleBooked(b) ? '<span style="color:#d97706;font-weight:bold;">⚠️ ' + (b.wetHireResources?.[0]?.workerName || b.operatorName || '') + '</span>' : (b.wetHireResources?.[0]?.workerName || b.operatorName || '')}&#10;${b.jobDescription||''}"><span class="gantt-bar-text">${b.clientName}</span></div>`;
-   });
+  // Preserve original job duration
+  const origStartMin = timeStringToMinutes(job.startTime);
+  const origEndMin = timeStringToMinutes(job.endTime);
+  const durationMin = Math.max(origEndMin - origStartMin, 30);
+  const newStartMin = timeStringToMinutes(newStartStr);
+  const newEndMin = Math.min(1440, newStartMin + durationMin);
+  const newEndStr = minutesToTimeString(newEndMin);
 
-   html+=`</div>`;
-  });
-  html+=`</div>`;
- });
+  // Update underlying mockDispatchData with new Asset ID and Time based on drop target's data attributes
+  job.assetId = targetAssetId;
+  job.startTime = newStartStr;
+  job.endTime = newEndStr;
 
+  if (targetAssetId === 'INSPECTIONS') {
+    job.isInspection = true;
+    job.statusColor = '#6366f1';
+  } else {
+    job.isInspection = false;
+    const targetAsset = mockFleetAssets.find(a => a.id === targetAssetId);
+    if (targetAsset) {
+      job.statusColor = targetAsset.color;
+    }
+  }
 
+  const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
+  const targetLane = allLanes.find(a => a.id === targetAssetId);
+  const laneLabel = targetLane ? targetLane.label : targetAssetId;
 
+  if (typeof showToast === 'function') {
+    showToast(`Job Rescheduled: ${job.client} to ${laneLabel} at ${newStartStr} – ${newEndStr}`, 'success');
+  }
 
- html+=`</div></div>`;
- body.innerHTML=html;
+  isDraggingJob = false;
+  activeDragJob = null;
+
+  // Re-render Day View
+  renderDayViewScheduler();
 }
 
-function renderMonthView(body){
- const y=currentDate.getFullYear(),m=currentDate.getMonth();
- const firstDay=new Date(y,m,1);
- const lastDay=new Date(y,m+1,0);
- const startDow=firstDay.getDay()===0?6:firstDay.getDay()-1;
- const today=new Date();
- const filtered=getFilteredBookings();
- let html=`<div class="month-grid">`;
- html+=`<div class="month-header-row">`;
- ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>html+=`<div class="month-day-name">${d}</div>`);
- html+=`</div><div class="month-body">`;
- for(let i=0;i<startDow;i++){
-  const d=new Date(y,m,1-startDow+i);
-  html+=`<div class="month-cell other-month"><div class="month-date-num">${d.getDate()}</div></div>`;
- }
- for(let day=1;day<=lastDay.getDate();day++){
-  const cellDate=new Date(y,m,day);
-  const isToday=cellDate.toDateString()===today.toDateString();
-  const dayBk=filtered.filter(b=>new Date(b.startTime).toDateString()===cellDate.toDateString());
-  html+=`<div class="month-cell${isToday?' today-cell':''}" onclick="goToDay('${cellDate.toISOString()}')">`;
-  html+=`<div class="month-date-num${isToday?' today-num':''}">${day}</div>`;
-  dayBk.slice(0,3).forEach(b=>{
-   html+=`<div class="month-booking-pill" style="background:${getBookingColor(b)};" onclick="event.stopPropagation();editBooking('${b.id}')">${b.assetNumber} – ${b.clientName}</div>`;
-  });
-  if(dayBk.length>3)html+=`<div style="font-size:10px;color:var(--text-muted);font-weight:600;">+${dayBk.length-3} more</div>`;
-  html+=`</div>`;
- }
- const remaining=(7-(startDow+lastDay.getDate())%7)%7;
- for(let i=1;i<=remaining;i++){
-  const d=new Date(y,m+1,i);
-  html+=`<div class="month-cell other-month"><div class="month-date-num">${d.getDate()}</div></div>`;
- }
- html+=`</div></div>`;
- body.innerHTML=html;
+// Mouse-based drag support for backwards compatibility and fallback
+function startJobDrag(e, jobId) {
+  if (e.button !== 0) return;
+  const job = mockDispatchData.find(j => j.id === jobId);
+  if (!job) return;
+
+  const cardEl = document.getElementById(`job-card-${jobId}`);
+  if (!cardEl) return;
+
+  isDraggingJob = true;
+  activeDragJob = job;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragOrigStartMin = timeStringToMinutes(job.startTime);
+  const endMin = timeStringToMinutes(job.endTime);
+  dragDurationMin = Math.max(endMin - dragOrigStartMin, 30);
+  dragCardElement = cardEl;
+  currentHoveredAssetId = job.assetId;
+  currentPreviewStartMin = dragOrigStartMin;
+
+  window.addEventListener('mousemove', onJobDragMove);
+  window.addEventListener('mouseup', onJobDragEnd);
 }
 
-function goToDay(iso){currentDate=new Date(iso);setCalendarView('Day');}
+function onJobDragMove(e) {
+  if (!isDraggingJob || !activeDragJob || !dragCardElement) return;
 
-function renderLiveTimeIndicator(){
- // Cancel any previously scheduled tick to prevent timer accumulation
- if(liveTimeTimer){clearTimeout(liveTimeTimer);liveTimeTimer=null;}
- if(currentView==='Month'||currentView==='Week'||currentView==='Work Week'){return;}
- const cols=document.querySelectorAll('[data-asset],[data-date]');
- if(!cols.length)return;
- // Remove any stale lines left from previous renders
- document.querySelectorAll('.live-time-line').forEach(l=>l.remove());
- const now=new Date();
- const minH=currentMinHour;
- const PX=60;
- const topPx=(now.getHours()-minH)*PX+(now.getMinutes()*(PX/60));
- // Only draw if the current time falls within the visible range
- const maxH=displayHoursEnd!==null?displayHoursEnd:(currentMinHour+24);
- if(now.getHours()<minH||now.getHours()>=maxH){
-  liveTimeTimer=setTimeout(renderLiveTimeIndicator,60000);
-  return;
- }
- cols.forEach(col=>{
-  const line=document.createElement('div');
-  line.className='live-time-line';
-  line.style.top=topPx+'px';
-  col.appendChild(line);
- });
- liveTimeTimer=setTimeout(renderLiveTimeIndicator,60000);
+  const dx = e.clientX - dragStartX;
+  const dy = e.clientY - dragStartY;
+
+  if (Math.hypot(dx, dy) > 6) {
+    dragCardElement.classList.add('is-dragging');
+  }
+
+  if (!dayTransposed) {
+    const rawNewStartMin = dragOrigStartMin + dy;
+    const snappedMinutes = Math.max(0, Math.min(1440 - dragDurationMin, Math.round(rawNewStartMin / 30) * 30));
+    currentPreviewStartMin = snappedMinutes;
+
+    const allCols = document.querySelectorAll('.dispatch-asset-col');
+    allCols.forEach(col => {
+      const rect = col.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right) {
+        const targetAssetId = col.getAttribute('data-asset-id');
+        if (targetAssetId && targetAssetId !== currentHoveredAssetId) {
+          currentHoveredAssetId = targetAssetId;
+          col.appendChild(dragCardElement);
+        }
+      }
+    });
+
+    dragCardElement.style.top = `${snappedMinutes}px`;
+    const timeEl = dragCardElement.querySelector('.dispatch-job-time span:last-child');
+    if (timeEl) {
+      const sStr = minutesToTimeString(snappedMinutes);
+      const eStr = minutesToTimeString(snappedMinutes + dragDurationMin);
+      timeEl.textContent = `${sStr} – ${eStr}`;
+    }
+  } else {
+    const rawNewStartMin = dragOrigStartMin + (dx * (60 / 80));
+    const snappedMinutes = Math.max(0, Math.min(1440 - dragDurationMin, Math.round(rawNewStartMin / 30) * 30));
+    currentPreviewStartMin = snappedMinutes;
+
+    const allRows = document.querySelectorAll('.transposed-asset-row');
+    allRows.forEach(row => {
+      const rect = row.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        const targetAssetId = row.getAttribute('data-asset-id');
+        if (targetAssetId && targetAssetId !== currentHoveredAssetId) {
+          currentHoveredAssetId = targetAssetId;
+          const slotsWrap = row.querySelector('.transposed-row-slots');
+          if (slotsWrap) slotsWrap.appendChild(dragCardElement);
+        }
+      }
+    });
+
+    const leftPx = snappedMinutes * (80 / 60);
+    dragCardElement.style.left = `${leftPx}px`;
+
+    const timeEl = dragCardElement.querySelector('.dispatch-job-time span:last-child');
+    if (timeEl) {
+      const sStr = minutesToTimeString(snappedMinutes);
+      const eStr = minutesToTimeString(snappedMinutes + dragDurationMin);
+      timeEl.textContent = `${sStr} – ${eStr}`;
+    }
+  }
+}
+
+function onJobDragEnd(e) {
+  window.removeEventListener('mousemove', onJobDragMove);
+  window.removeEventListener('mouseup', onJobDragEnd);
+
+  if (!isDraggingJob || !activeDragJob) return;
+
+  const movedDist = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+  if (movedDist > 10) {
+    justFinishedDragging = true;
+    setTimeout(() => { justFinishedDragging = false; }, 250);
+
+    const newStartStr = minutesToTimeString(currentPreviewStartMin);
+    const newEndStr = minutesToTimeString(currentPreviewStartMin + dragDurationMin);
+
+    activeDragJob.startTime = newStartStr;
+    activeDragJob.endTime = newEndStr;
+    activeDragJob.assetId = currentHoveredAssetId || activeDragJob.assetId;
+
+    if (activeDragJob.assetId === 'INSPECTIONS') {
+      activeDragJob.isInspection = true;
+      activeDragJob.statusColor = '#6366f1';
+    } else {
+      activeDragJob.isInspection = false;
+      const targetAsset = mockFleetAssets.find(a => a.id === activeDragJob.assetId);
+      if (targetAsset) {
+        activeDragJob.statusColor = targetAsset.color;
+      }
+    }
+
+    const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
+    const targetLane = allLanes.find(a => a.id === activeDragJob.assetId);
+    const laneLabel = targetLane ? targetLane.label : activeDragJob.assetId;
+    if (typeof showToast === 'function') {
+      showToast(`Job Rescheduled: ${activeDragJob.client} (${newStartStr} – ${newEndStr}) on ${laneLabel}`, 'success');
+    }
+    renderDayViewScheduler();
+  }
+
+  if (dragCardElement) {
+    dragCardElement.classList.remove('is-dragging');
+  }
+  isDraggingJob = false;
+  activeDragJob = null;
+  dragCardElement = null;
+}
+
+// ── Click-to-Book (Empty Slot Detection) ──
+function handleSlotClick(e, assetId, hour) {
+  if (justFinishedDragging) return;
+
+  let isSecondHalf = false;
+  if (e && e.currentTarget) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (dayTransposed) {
+      isSecondHalf = (e.clientX - rect.left) > (rect.width / 2);
+    } else {
+      isSecondHalf = (e.clientY - rect.top) > (rect.height / 2);
+    }
+  }
+  const minute = isSecondHalf ? '30' : '00';
+  const timeStr = `${String(hour).padStart(2, '0')}:${minute}`;
+
+  const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
+  const assetObj = allLanes.find(a => a.id === assetId);
+  const assetName = assetObj ? assetObj.label : assetId;
+
+  const alertMsg = `NEW BOOKING: ${assetName} at ${timeStr}`;
+  try {
+    alert(alertMsg);
+  } catch (err) {
+    console.warn('alert caught:', err);
+  }
+  if (typeof showToast === 'function') {
+    showToast(alertMsg, 'success');
+  }
+}
+
+// Attach single click listener to main grid container via Event Delegation
+function attachGridInteractivity() {
+  const viewport = document.getElementById('day-dispatch-viewport');
+  if (!viewport) return;
+
+  // Single click listener for Robust Click-to-Book (Empty Slot) via Event Delegation
+  viewport.addEventListener('click', (e) => {
+    if (justFinishedDragging) return;
+
+    // If click originated on or inside a job card, it's an existing job (Click-to-Edit)
+    // The job card's click handler calls event.stopPropagation(), but we check here too:
+    if (e.target.closest('.dispatch-job-card')) {
+      return;
+    }
+
+    // Ignore clicks on header rows, sticky headers, gutters, buttons, selects
+    if (
+      e.target.closest('.dispatch-assets-header-row') ||
+      e.target.closest('.transposed-header-row') ||
+      e.target.closest('.dispatch-time-gutter') ||
+      e.target.closest('.transposed-corner-header') ||
+      e.target.closest('.transposed-asset-header-cell') ||
+      e.target.closest('button') ||
+      e.target.closest('select') ||
+      e.target.closest('input')
+    ) {
+      return;
+    }
+
+    let assetId = null;
+    let timeStr = null;
+
+    if (!dayTransposed) {
+      // Standard View: Column = Asset, Row = Time
+      const slot = e.target.closest('.dispatch-hour-slot');
+      const col = e.target.closest('.dispatch-asset-col');
+      if (!slot && !col) return;
+
+      assetId = (slot && (slot.dataset.assetId || slot.dataset.asset)) || (col && col.dataset.assetId);
+
+      if (slot && slot.dataset.hour != null) {
+        const hour = parseInt(slot.dataset.hour, 10);
+        const rect = slot.getBoundingClientRect();
+        const isSecondHalf = (e.clientY - rect.top) > (rect.height / 2);
+        const minute = isSecondHalf ? '30' : '00';
+        timeStr = `${String(hour).padStart(2, '0')}:${minute}`;
+      } else if (col) {
+        const rect = col.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const totalMinutes = Math.max(0, Math.min(1410, Math.floor(y)));
+        const snappedMinutes = Math.floor(totalMinutes / 30) * 30;
+        timeStr = minutesToTimeString(snappedMinutes);
+      }
+    } else {
+      // Transposed View: Row = Asset, Column = Time
+      const slot = e.target.closest('.transposed-hour-slot');
+      const row = e.target.closest('.transposed-asset-row');
+      if (!slot && !row) return;
+
+      assetId = (slot && (slot.dataset.assetId || slot.dataset.asset)) || (row && row.dataset.assetId);
+
+      if (slot && slot.dataset.hour != null) {
+        const hour = parseInt(slot.dataset.hour, 10);
+        const rect = slot.getBoundingClientRect();
+        const isSecondHalf = (e.clientX - rect.left) > (rect.width / 2);
+        const minute = isSecondHalf ? '30' : '00';
+        timeStr = `${String(hour).padStart(2, '0')}:${minute}`;
+      } else if (row) {
+        const slotsWrap = row.querySelector('.transposed-row-slots') || row;
+        const rect = slotsWrap.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const totalMinutes = Math.max(0, Math.min(1410, Math.floor(x / (80 / 60))));
+        const snappedMinutes = Math.floor(totalMinutes / 30) * 30;
+        timeStr = minutesToTimeString(snappedMinutes);
+      }
+    }
+
+    if (!assetId || !timeStr) return;
+
+    const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
+    const assetObj = allLanes.find(a => a.id === assetId);
+    const assetName = assetObj ? assetObj.label : assetId;
+
+    const alertMsg = `NEW BOOKING: ${assetName} at ${timeStr}`;
+    try {
+      alert(alertMsg);
+    } catch (err) {
+      console.warn('alert caught:', err);
+    }
+    if (typeof showToast === 'function') {
+      showToast(alertMsg, 'success');
+    }
+  });
+
+  // Enable dragover and drop delegation on main viewport container
+  viewport.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  });
+
+  viewport.addEventListener('drop', (e) => {
+    const slot = e.target.closest('.dispatch-hour-slot, .transposed-hour-slot');
+    if (slot) {
+      const assetId = slot.dataset.assetId || slot.dataset.asset;
+      const hour = parseInt(slot.dataset.hour, 10);
+      handleSlotDrop(e, assetId, hour);
+    }
+  });
+}
+
+// ── Scaffolding Views for Week & Month ──
+function renderWeekViewScaffolding() {
+  const container = document.getElementById('calendar-body');
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- Top Toolbar -->
+    <div class="day-scheduler-toolbar">
+      <div class="day-scheduler-toolbar-left">
+        <div class="day-scheduler-icon-badge" style="background: var(--ion-cyan, #00adef);">
+          <span class="material-symbols-outlined" style="font-size: 20px;">view_week</span>
+        </div>
+        <div>
+          <h2 class="day-scheduler-title">Weekly Fleet Dispatch Timeline</h2>
+          <div class="day-scheduler-subtitle">Multi-Day Fleet Schedule &bull; Staged View</div>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-center">
+        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
+          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-right">
+        <div class="scaffolding-badge" style="margin-bottom:0;">7-Day Rolling Fleet Schedule</div>
+      </div>
+    </div>
+
+    <!-- Scaffolding Placeholder Content -->
+    <div class="scheduler-scaffolding-root">
+      <div class="scheduler-scaffolding-card">
+        <div class="scaffolding-icon-wrap">
+          <span class="material-symbols-outlined" style="font-size: 34px;">view_week</span>
+        </div>
+        <h3 class="scaffolding-title">Week View Scaffolding</h3>
+        <p class="scaffolding-desc">Multi-day fleet Gantt allocation and 7-day dispatch timeline is staged for implementation.</p>
+        <button class="day-view-transpose-btn" onclick="setCalendarView('Day')" style="margin-top: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
+          <span>Return to Day View</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMonthViewScaffolding() {
+  const container = document.getElementById('calendar-body');
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- Top Toolbar -->
+    <div class="day-scheduler-toolbar">
+      <div class="day-scheduler-toolbar-left">
+        <div class="day-scheduler-icon-badge" style="background: #7c3aed;">
+          <span class="material-symbols-outlined" style="font-size: 20px;">calendar_month</span>
+        </div>
+        <div>
+          <h2 class="day-scheduler-title">Monthly Asset Dispatch Outlook</h2>
+          <div class="day-scheduler-subtitle">Long-Term Fleet Allocations &bull; Staged View</div>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-center">
+        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
+          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-right">
+        <div class="scaffolding-badge" style="margin-bottom:0; background: rgba(124, 58, 237, 0.1); color: #7c3aed;">30-Day Fleet Outlook</div>
+      </div>
+    </div>
+
+    <!-- Scaffolding Placeholder Content -->
+    <div class="scheduler-scaffolding-root">
+      <div class="scheduler-scaffolding-card">
+        <div class="scaffolding-icon-wrap month">
+          <span class="material-symbols-outlined" style="font-size: 34px;">calendar_month</span>
+        </div>
+        <h3 class="scaffolding-title">Month View Scaffolding</h3>
+        <p class="scaffolding-desc">Monthly asset utilization heatmaps, project reservations, and recurring service windows staged for implementation.</p>
+        <button class="day-view-transpose-btn" onclick="setCalendarView('Day')" style="margin-top: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
+          <span>Return to Day View</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderDayViewScheduler() {
+  const container = document.getElementById('calendar-body');
+  if (!container) return;
+
+  const ROW_HEIGHT = 60; // 60px per hour in normal mode => 1px per minute
+  const HOUR_WIDTH = 80; // 80px per hour in transposed mode => 1.333px per minute
+
+  // Build All-Day Events Banner
+  const bannerHtml = `
+    <div class="day-all-day-banner-area" id="day-all-day-banner-area">
+      ${mockAllDayEvents.map(event => `
+        <div class="all-day-maintenance-card" style="border-left-color: ${event.statusColor};">
+          <div class="maintenance-card-left">
+            <span class="material-symbols-outlined maintenance-warning-icon">warning</span>
+            <div>
+              <span class="maintenance-card-title">${escapeHtml(event.title)}</span>
+              <span class="maintenance-card-detail">${escapeHtml(event.detail)}</span>
+            </div>
+          </div>
+          <div class="maintenance-status-badge">OUT FOR SERVICE</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Build Shared Contextual Toolbar HTML
+  const toolbarHtml = `
+    <div class="day-scheduler-toolbar">
+      <div class="day-scheduler-toolbar-left">
+        <div class="day-scheduler-icon-badge">
+          <span class="material-symbols-outlined" style="font-size: 20px;">calendar_view_day</span>
+        </div>
+        <div>
+          <h2 class="day-scheduler-title">Daily Fleet Dispatch</h2>
+          <div class="day-scheduler-subtitle">24-Hour Dispatch Grid &bull; Real-Time Asset Allocation</div>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-center">
+        <!-- View Toggle (Day / Week / Month) -->
+        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
+          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
+          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
+        </div>
+
+        <!-- Transpose View Toggle Button -->
+        <button class="day-view-transpose-btn ${dayTransposed ? 'active' : ''}" id="day-transpose-btn" onclick="toggleDayTranspose()" title="Transpose Grid Axes (Flip Time & Assets)">
+          <span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span>
+          <span id="transpose-btn-label">${dayTransposed ? 'Axis: Transposed (Y-Asset / X-Time)' : 'Transpose View'}</span>
+        </button>
+
+        <!-- Dropdown 1: Filter by Asset -->
+        <div class="scheduler-filter-wrapper" title="Filter by Asset">
+          <select id="day-filter-asset"
+                  name="Filter by Asset"
+                  class="scheduler-filter-select"
+                  aria-label="Filter by Asset"
+                  title="Filter by Asset"
+                  data-testid="filter-by-asset"
+                  onchange="handleAssetFilterChange(this.value)">
+            <option value="All Assets" ${selectedAssetFilter === 'All Assets' ? 'selected' : ''}>All Assets</option>
+            <option value="Frannas" ${selectedAssetFilter === 'Frannas' ? 'selected' : ''}>Frannas</option>
+            <option value="Crawlers" ${selectedAssetFilter === 'Crawlers' ? 'selected' : ''}>Crawlers</option>
+            <option value="All Terrains" ${selectedAssetFilter === 'All Terrains' ? 'selected' : ''}>All Terrains</option>
+          </select>
+        </div>
+
+        <!-- Dropdown 2: Filter by Worker -->
+        <div class="scheduler-filter-wrapper" title="Filter by Worker">
+          <select id="day-filter-worker"
+                  name="Filter by Worker"
+                  class="scheduler-filter-select"
+                  aria-label="Filter by Worker"
+                  title="Filter by Worker"
+                  data-testid="filter-by-worker"
+                  onchange="handleWorkerFilterChange(this.value)">
+            <option value="All Workers" ${selectedWorkerFilter === 'All Workers' ? 'selected' : ''}>All Workers</option>
+            <option value="Available" ${selectedWorkerFilter === 'Available' ? 'selected' : ''}>Available</option>
+            <option value="Overtime Warning" ${selectedWorkerFilter === 'Overtime Warning' ? 'selected' : ''}>Overtime Warning</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="day-scheduler-toolbar-right">
+        <div class="day-legend-item">
+          <span class="day-legend-dot working"></span>
+          <span>Working Hours (06:00 – 18:00)</span>
+        </div>
+        <div class="day-legend-item">
+          <span class="day-legend-dot shaded"></span>
+          <span>Shaded (24h Bookable)</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const visibleLanes = getFilteredSchedulerLanes();
+
+  if (dayTransposed) {
+    // =========================================================================
+    // TRANSPOSED VIEW: Assets on Y-axis (Rows), Time on X-axis (Columns)
+    // =========================================================================
+
+    // Top Header Row: Corner Cell + 24 Hour Columns
+    let hourHeadersHtml = '';
+    for (let h = 0; h < 24; h++) {
+      const isWorking = h >= 6 && h < 18;
+      hourHeadersHtml += `
+        <div class="transposed-hour-header ${isWorking ? 'working-header' : 'shaded-header'}">
+          ${formatGutterHour(h)}
+        </div>
+      `;
+    }
+
+    // Asset Rows: Site Inspections / Reps Lane (Top) + Fleet Assets
+    let assetRowsHtml = '';
+    if (visibleLanes.length === 0) {
+      assetRowsHtml = `
+        <div style="padding: 48px 24px; text-align: center; color: var(--text-secondary); width: 100%;">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">No assets match current filters (${escapeHtml(selectedAssetFilter)} / ${escapeHtml(selectedWorkerFilter)})</div>
+          <button class="day-view-transpose-btn" onclick="resetSchedulerFilters()" style="margin: 0 auto;">Reset Filters</button>
+        </div>
+      `;
+    } else {
+      assetRowsHtml = visibleLanes.map(asset => {
+        const isInspection = asset.isInspectionLane;
+
+        // 24 Hourly background slots
+        let slotsHtml = '';
+        for (let h = 0; h < 24; h++) {
+          const isWorking = h >= 6 && h < 18;
+          const slotClass = isWorking ? 'working-hour' : 'shaded-hour';
+          slotsHtml += `
+            <div class="transposed-hour-slot ${slotClass}"
+                 data-hour="${h}"
+                 data-asset="${asset.id}"
+                 data-asset-id="${asset.id}"
+                 data-time="${String(h).padStart(2, '0')}:00"
+                 ondragover="handleSlotDragOver(event)"
+                 ondragenter="handleSlotDragEnter(event)"
+                 ondragleave="handleSlotDragLeave(event)"
+                 ondrop="handleSlotDrop(event, '${asset.id}', ${h})"
+                 onclick="handleSlotClick(event, '${asset.id}', ${h})"
+                 title="Click to book ${escapeHtml(asset.label)} at ${formatGutterHour(h)}">
+            </div>
+          `;
+        }
+
+        // Filter jobs for this asset
+        const assetJobs = mockDispatchData.filter(j => j.assetId === asset.id);
+        const jobsHtml = assetJobs.map(job => {
+          const startMinutes = timeStringToMinutes(job.startTime);
+          const endMinutes = timeStringToMinutes(job.endTime);
+          const durationMinutes = Math.max(endMinutes - startMinutes, 30);
+
+          const leftPx = startMinutes * (HOUR_WIDTH / 60);
+          const widthPx = Math.max(durationMinutes * (HOUR_WIDTH / 60), 50);
+
+          return `
+            <div class="dispatch-job-card transposed-job-card ${job.isInspection ? 'inspection-job-card' : ''}"
+                 id="job-card-${job.id}"
+                 data-job-id="${job.id}"
+                 draggable="true"
+                 ondragstart="handleJobDragStart(event, '${job.id}')"
+                 ondragend="handleJobDragEnd(event)"
+                 onclick="handleJobClick(event, '${job.id}')"
+                 onmousedown="startJobDrag(event, '${job.id}')"
+                 style="left: ${leftPx}px; width: ${widthPx}px; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
+              <div class="dispatch-job-header">
+                <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
+                <span class="material-symbols-outlined dispatch-job-phone-icon" title="Call Contact">call</span>
+              </div>
+              <div class="dispatch-job-address">${escapeHtml(job.siteAddress)}</div>
+              ${job.isInspection ? `
+                <div class="inspection-tag-badge">
+                  <span class="material-symbols-outlined" style="font-size: 11px;">assignment</span>
+                  <span>Site Inspection / Rep</span>
+                </div>
+              ` : ''}
+              <div class="dispatch-job-time">
+                <span class="material-symbols-outlined" style="font-size: 12px;">schedule</span>
+                <span>${job.startTime} – ${job.endTime}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="transposed-asset-row ${isInspection ? 'inspection-row' : ''}" id="row-${asset.id}" data-asset-id="${asset.id}">
+            <div class="transposed-asset-header-cell ${isInspection ? 'inspection-lane-header' : ''}">
+              ${isInspection ? `
+                <span class="material-symbols-outlined" style="color: #6366f1; font-size: 20px; flex-shrink: 0;">assignment_ind</span>
+              ` : `
+                <span class="asset-col-header-dot" style="background: ${asset.color};"></span>
+              `}
+              <div style="min-width:0; overflow:hidden; flex:1;">
+                <div class="asset-col-header-title" ${isInspection ? 'style="color:#4338ca;"' : ''}>${escapeHtml(asset.label)}</div>
+                <div class="asset-col-header-subtitle" ${isInspection ? 'style="color:#6366f1;"' : ''}>${escapeHtml(asset.type)}</div>
+                ${asset.workerName ? `
+                  <div style="font-size:10px; font-weight:600; color:var(--text-secondary); margin-top:2px; display:flex; align-items:center; gap:4px;">
+                    <span class="material-symbols-outlined" style="font-size:12px;">person</span>
+                    <span>${escapeHtml(asset.workerName)}</span>
+                    ${asset.overtimeWarning ? '<span style="color:#dc2626; font-weight:700; font-size:9px; background:#fee2e2; padding:1px 4px; border-radius:3px;">OVERTIME</span>' : ''}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            <div class="transposed-row-slots">
+              ${slotsHtml}
+              ${jobsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    container.innerHTML = `
+      ${toolbarHtml}
+      ${bannerHtml}
+      <div class="dispatch-viewport transposed" id="day-dispatch-viewport">
+        <!-- Top Sticky Header Row -->
+        <div class="transposed-header-row">
+          <div class="transposed-corner-header">ASSET / LANE</div>
+          ${hourHeadersHtml}
+        </div>
+
+        <!-- Transposed Body Canvas -->
+        <div class="transposed-body-canvas">
+          ${assetRowsHtml}
+        </div>
+      </div>
+    `;
+
+    // Attach single click delegation and drop handling to the main grid container
+    attachGridInteractivity();
+
+    // Auto-scroll horizontally to 06:00 (start of working hours: 6 * 80px = 480px)
+    setTimeout(() => {
+      const viewport = document.getElementById('day-dispatch-viewport');
+      if (viewport) {
+        viewport.scrollLeft = 6 * HOUR_WIDTH;
+      }
+    }, 30);
+
+  } else {
+    // =========================================================================
+    // STANDARD VIEW: Assets on X-axis (Columns), Time on Y-axis (Rows)
+    // =========================================================================
+
+    // Sticky Asset Headers
+    const assetHeadersHtml = visibleLanes.map(asset => {
+      const isInspection = asset.isInspectionLane;
+      return `
+        <div class="dispatch-asset-col-header ${isInspection ? 'inspection-lane-header' : ''}">
+          ${isInspection ? `
+            <span class="material-symbols-outlined" style="color: #6366f1; font-size: 20px; flex-shrink: 0;">assignment_ind</span>
+          ` : `
+            <span class="asset-col-header-dot" style="background: ${asset.color};"></span>
+          `}
+          <div style="min-width:0; overflow:hidden; flex:1;">
+            <div class="asset-col-header-title" ${isInspection ? 'style="color:#4338ca;"' : ''}>${escapeHtml(asset.label)}</div>
+            <div class="asset-col-header-subtitle" ${isInspection ? 'style="color:#6366f1;"' : ''}>${escapeHtml(asset.type)}</div>
+            ${asset.workerName ? `
+              <div style="font-size:10px; font-weight:600; color:var(--text-secondary); margin-top:2px; display:flex; align-items:center; gap:4px;">
+                <span class="material-symbols-outlined" style="font-size:12px;">person</span>
+                <span>${escapeHtml(asset.workerName)}</span>
+                ${asset.overtimeWarning ? '<span style="color:#dc2626; font-weight:700; font-size:9px; background:#fee2e2; padding:1px 4px; border-radius:3px;">OVERTIME</span>' : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Time Gutter (24 Hours down Y-axis)
+    let timeGutterHtml = '';
+    for (let h = 0; h < 24; h++) {
+      timeGutterHtml += `
+        <div class="dispatch-hour-label">
+          ${formatGutterHour(h)}
+        </div>
+      `;
+    }
+
+    // Asset Columns and Jobs
+    let assetColumnsHtml = '';
+    if (visibleLanes.length === 0) {
+      assetColumnsHtml = `
+        <div style="padding: 60px 24px; text-align: center; color: var(--text-secondary); flex: 1;">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">No assets match current filters (${escapeHtml(selectedAssetFilter)} / ${escapeHtml(selectedWorkerFilter)})</div>
+          <button class="day-view-transpose-btn" onclick="resetSchedulerFilters()" style="margin: 0 auto;">Reset Filters</button>
+        </div>
+      `;
+    } else {
+      assetColumnsHtml = visibleLanes.map(asset => {
+        const isInspection = asset.isInspectionLane;
+
+        // 24 Hourly vertical rows
+        let hourSlotsHtml = '';
+        for (let h = 0; h < 24; h++) {
+          const isWorking = h >= 6 && h < 18;
+          const slotClass = isWorking ? 'working-hour' : 'shaded-hour';
+          hourSlotsHtml += `
+            <div class="dispatch-hour-slot ${slotClass}"
+                 data-hour="${h}"
+                 data-asset="${asset.id}"
+                 data-asset-id="${asset.id}"
+                 data-time="${String(h).padStart(2, '0')}:00"
+                 ondragover="handleSlotDragOver(event)"
+                 ondragenter="handleSlotDragEnter(event)"
+                 ondragleave="handleSlotDragLeave(event)"
+                 ondrop="handleSlotDrop(event, '${asset.id}', ${h})"
+                 onclick="handleSlotClick(event, '${asset.id}', ${h})"
+                 title="Click to book ${escapeHtml(asset.label)} at ${formatGutterHour(h)}">
+            </div>
+          `;
+        }
+
+        // Filter jobs allocated to this asset
+        const assetJobs = mockDispatchData.filter(j => j.assetId === asset.id);
+        const jobsHtml = assetJobs.map(job => {
+          const startMinutes = timeStringToMinutes(job.startTime);
+          const endMinutes = timeStringToMinutes(job.endTime);
+          const durationMinutes = Math.max(endMinutes - startMinutes, 30);
+
+          const topPx = startMinutes * (ROW_HEIGHT / 60);
+          const heightPx = durationMinutes * (ROW_HEIGHT / 60);
+          const isCompact = durationMinutes <= 60;
+
+          return `
+            <div class="dispatch-job-card ${job.isInspection ? 'inspection-job-card' : ''} ${isCompact ? 'compact-job' : ''}"
+                 id="job-card-${job.id}"
+                 data-job-id="${job.id}"
+                 draggable="true"
+                 ondragstart="handleJobDragStart(event, '${job.id}')"
+                 ondragend="handleJobDragEnd(event)"
+                 onclick="handleJobClick(event, '${job.id}')"
+                 onmousedown="startJobDrag(event, '${job.id}')"
+                 style="top: ${topPx}px; height: ${heightPx}px; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
+              <div class="dispatch-job-header">
+                <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
+                <span class="material-symbols-outlined dispatch-job-phone-icon" title="Call Contact">call</span>
+              </div>
+              <div class="dispatch-job-address">${escapeHtml(job.siteAddress)}</div>
+              ${job.isInspection ? `
+                <div class="inspection-tag-badge">
+                  <span class="material-symbols-outlined" style="font-size: 11px;">assignment</span>
+                  <span>Site Inspection / Rep</span>
+                </div>
+              ` : ''}
+              ${!isCompact ? `
+                <div class="dispatch-job-time">
+                  <span class="material-symbols-outlined" style="font-size: 13px;">schedule</span>
+                  <span>${job.startTime} – ${job.endTime}</span>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="dispatch-asset-col ${isInspection ? 'inspection-col' : ''}" id="col-${asset.id}" data-asset-id="${asset.id}">
+            ${hourSlotsHtml}
+            ${jobsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    container.innerHTML = `
+      ${toolbarHtml}
+      ${bannerHtml}
+      <div class="dispatch-viewport" id="day-dispatch-viewport">
+        <!-- Sticky Asset Column Headers -->
+        <div class="dispatch-assets-header-row">
+          <div class="dispatch-gutter-header">TIME</div>
+          ${assetHeadersHtml}
+        </div>
+
+        <!-- 24-Hour Grid Canvas -->
+        <div class="dispatch-grid-canvas">
+          <div class="dispatch-time-gutter">
+            ${timeGutterHtml}
+          </div>
+          ${assetColumnsHtml}
+        </div>
+      </div>
+    `;
+
+    // Attach single click delegation and drop handling to the main grid container
+    attachGridInteractivity();
+
+    // Auto-scroll to 06:00 (start of working hours: 6 * 60px = 360px)
+    setTimeout(() => {
+      const viewport = document.getElementById('day-dispatch-viewport');
+      if (viewport) {
+        viewport.scrollTop = 6 * ROW_HEIGHT;
+      }
+    }, 30);
+  }
+}
+
+// Function alias to ensure calls to renderCalendar() dispatch to appropriate view
+function renderCalendar() {
+  if (currentView === 'Week') {
+    renderWeekViewScaffolding();
+  } else if (currentView === 'Month') {
+    renderMonthViewScaffolding();
+  } else {
+    renderDayViewScheduler();
+  }
 }
 
 /* ── DRAG & DROP ── */
@@ -1496,7 +2421,7 @@ function executeDocuWareSign(){
   b.contractStatus=' Contract Signed & Archived';
  }
  closeDocuWareModal('docuware-signature-modal');
- showToast(`✅ DocuWare Sign Workflow Executed!\n\nHire Agreement #DW-AGR-${_activeDWBookingId?.toUpperCase()} sent to client. E-Signature verified & stored in DocuWare Vault.`);
+ showToast(`DocuWare Sign Workflow Executed!\n\nHire Agreement #DW-AGR-${_activeDWBookingId?.toUpperCase()} sent to client. E-Signature verified & stored in DocuWare Vault.`);
  renderJobBoard();
  renderCalendar();
 }
@@ -1543,7 +2468,7 @@ function executeDocketUpload(){
   b.status='Completed';
  }
  closeDocuWareModal('docuware-docket-modal');
- showToast(`⚡ DocuWare Intelligent Indexing Completed!\n\nField Wet-Hire Docket indexed successfully. Machine hours extracted, billable total verified, and job advanced to Completed!`);
+ showToast(`DocuWare Intelligent Indexing Completed!\n\nField Wet-Hire Docket indexed successfully. Machine hours extracted, billable total verified, and job advanced to Completed!`);
  renderJobBoard();
  renderCalendar();
  renderClientsView();
@@ -1618,7 +2543,7 @@ function indexDocuWareCert(assetId){
   complianceRegistry[assetId].status='valid';
   complianceRegistry[assetId].certDate='2027-07-30';
  }
- showToast(`✅ DocuWare Webhook Received!\n\nNew Safety & Inspection Certificate for ${assetId} verified and indexed in DocuWare Vault.\nHard Dispatch Interlock RELEASED! ${assetId} is now available for booking.`);
+ showToast(`DocuWare Webhook Received!\n\nNew Safety & Inspection Certificate for ${assetId} verified and indexed in DocuWare Vault.\nHard Dispatch Interlock RELEASED! ${assetId} is now available for booking.`);
  renderComplianceView();
  renderCalendar();
  renderJobBoard();
@@ -1641,13 +2566,15 @@ function renderJobBoard(){
   {id:'Invoiced',title:'Invoiced',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',color:'#334155'}
  ];
 
- let filteredBookings=bookings;
+ let filteredBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
  if(searchQuery){
   filteredBookings=filteredBookings.filter(b=>
-   b.clientName.toLowerCase().includes(searchQuery)||
-   b.assetNumber.toLowerCase().includes(searchQuery)||
-   (b.operatorName||'').toLowerCase().includes(searchQuery)||
-   (b.jobDescription||'').toLowerCase().includes(searchQuery)
+   b && (
+     (b.clientName||'').toLowerCase().includes(searchQuery)||
+     (b.assetNumber||'').toLowerCase().includes(searchQuery)||
+     (b.operatorName||'').toLowerCase().includes(searchQuery)||
+     (b.jobDescription||'').toLowerCase().includes(searchQuery)
+   )
   );
  }
 
@@ -1656,7 +2583,7 @@ function renderJobBoard(){
  columns.forEach(col=>{
   if(stageFilter!=='ALL'&&stageFilter!==col.id) return;
 
-  const colB=filteredBookings.filter(b=>(b.status||'Scheduled')===col.id);
+  const colB=filteredBookings.filter(b=>b && (b.status||'Scheduled')===col.id);
   
   html+=`<div class="kanban-col" style="flex: 0 0 320px; display:flex; flex-direction:column; background:var(--bg-primary); border-radius:8px; border:1px solid var(--border-light); box-shadow:0 1px 2px rgba(0,0,0,0.05);" ondragover="event.preventDefault()" ondrop="moveBookingStatus(event, '${col.id}')">`;
   
@@ -1699,11 +2626,11 @@ function renderJobBoard(){
    
    // Action button based on column
    if(col.id==='Scheduled') {
-      const isSigned = pipeline.hireAgreement.status === 'signed';
+      const isSigned = pipeline?.hireAgreement?.status === 'signed' || Boolean(b.contractSigned);
       html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:${isSigned?'var(--bg-secondary)':'var(--brand-primary)'}; color:${isSigned?'var(--text-primary)':'#fff'}; border:1px solid ${isSigned?'var(--border-light)':'transparent'};" onclick="openDocuWareContractModal('${b.id}')">${isSigned?'Contract Signed':'Generate Agreement'}</button>`;
    }
    if(col.id==='Docket Verification') {
-      const isUploaded = pipeline.fieldDocket.status === 'pushed';
+      const isUploaded = pipeline?.fieldDocket?.status === 'pushed' || Boolean(b.docketUploaded);
       html+=`<div style="display:flex; gap:8px;">
         <button style="width:32px; height:32px; flex-shrink:0; border:1px solid var(--border-light); background:var(--bg-secondary); border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="openDocuWareDocketModal('${b.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
         <button class="btn-primary" style="flex:1; padding:6px; font-size:11px; background:${isUploaded?'var(--bg-secondary)':'var(--accent-copper)'}; color:${isUploaded?'var(--text-primary)':'#fff'}; border:1px solid ${isUploaded?'var(--border-light)':'transparent'};" onclick="openDocuWareDocketModal('${b.id}')">${isUploaded?'Docket Verified':'Upload Field Docket'}</button>
@@ -1937,7 +2864,7 @@ function renderOperatorPortal() {
             <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
               ${!isPrestartDone ? `
                 <div style="background:rgba(234, 179, 8, 0.1);border:1px solid rgba(234, 179, 8, 0.3);padding:12px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px;">
-                  <span style="font-size:20px;">⚠️</span>
+                  <span class="material-symbols-outlined" style="font-size: 20px; color: #d97706; vertical-align: middle;">warning</span>
                   <div style="flex:1;">
                     <div style="font-size:12px;font-weight:700;color:var(--color-warning);">Compliance Lock Active</div>
                     <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">You must complete the Asset Pre-Start Checklist before accessing the Digital Docket.</div>
@@ -1946,8 +2873,8 @@ function renderOperatorPortal() {
                 </div>
               ` : `
                 <div style="display:flex;gap:12px;">
-                  <button class="kb-primary-btn" style="flex:1;background:var(--color-compliant) !important;" disabled>✅ Pre-Start Passed</button>
-                  <button class="kb-primary-btn" style="flex:1;" onclick="openDocuWareDocketModal('${b.id}')">📝 Digital Docket</button>
+                  <button class="kb-primary-btn" style="flex:1;background:var(--color-compliant) !important;" disabled><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">check_circle</span>Pre-Start Passed</button>
+                  <button class="kb-primary-btn" style="flex:1;" onclick="openDocuWareDocketModal('${b.id}')"><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">description</span>Digital Docket</button>
                 </div>
               `}
             </div>
@@ -2259,7 +3186,7 @@ function closeClientLedger(){
 
 function exportClientLedgerPDF(){
  const name=document.getElementById('ledger-client-name').textContent;
- showToast(`⚡ Exporting Comprehensive Commercial Account Ledger PDF for ${name}...\nIncludes all deployment history, hourly rate breakdowns, and verified invoice records.`);
+ showToast(`Exporting Comprehensive Commercial Account Ledger PDF for ${name}...\nIncludes all deployment history, hourly rate breakdowns, and verified invoice records.`);
 }
 
 /* ── PHASE 5: COMPLIANCE & CERTS ENFORCEMENT ── */
@@ -2321,7 +3248,7 @@ function saveCertUpdate(){
  closeDocuWareModal('docuware-cert-view-modal');
  renderComplianceView();
  renderCalendar();
- showToast(`✅ DocuWare Webhook: Compliance record updated for ${currentCertAssetId}. Registry synchronized!`);
+ showToast(`DocuWare Webhook: Compliance record updated for ${currentCertAssetId}. Registry synchronized!`);
 }
 
 function openCertUploadModal(assetId){
@@ -2374,7 +3301,7 @@ function executeCertLockRelease(){
  closeDocuWareModal('docuware-cert-upload-modal');
  renderComplianceView();
  renderCalendar();
- showToast(`✅ DocuWare Webhook Event Triggered!\n\nSafety compliance lock successfully RELEASED for ${currentCertAssetId}.\nAsset column is now UNLOCKED for dispatch in the Command Center.`);
+ showToast(`DocuWare Webhook Event Triggered!\n\nSafety compliance lock successfully RELEASED for ${currentCertAssetId}.\nAsset column is now UNLOCKED for dispatch in the Command Center.`);
 }
 
 /* ── COMPLIANCE & CERTS WITH SEARCH & FILTER ── */
@@ -2425,7 +3352,421 @@ function renderComplianceView(){
  });
  html+=`</tbody></table>`;
  container.innerHTML=html;
+}
+
+/* ── NOTIFICATIONS DRAWER & LEGEND POPOVER ── */
+function toggleLegendPopover() {
+  const menu = document.getElementById('legend-popover-menu');
+  if (menu) menu.classList.toggle('open');
+}
+
+function toggleNotifications() {
+  const overlay = document.getElementById('notifications-overlay');
+  if (!overlay) {
+    showToast('Notifications: No pending critical safety or compliance alerts.', 'info');
+    return;
+  }
+  overlay.classList.toggle('open');
+  if (overlay.classList.contains('open')) {
+    renderNotifications();
+  }
+}
+
+function renderNotifications() {
+  const body = document.getElementById('notifications-body');
+  if (!body) return;
+
+  const items = [
+    { type: 'urgent', title: 'High Risk Compliance Flag', msg: 'CR09 Crawler Crane service certificate expired on 30/07/2026. Future bookings flagged for risk review.', time: '10 mins ago' },
+    { type: 'dw', title: 'Automated Document Event', msg: 'Hire Agreement #HA-9942 signed & archived for Fulton Hogan (Job b23).', time: '1 hour ago' },
+    { type: 'normal', title: 'Maintenance Scheduled', msg: 'EX02 Excavator 35T service due in 12 days (16/08/2026).', time: '3 hours ago' },
+    { type: 'dw', title: 'Billing Record Archived', msg: 'Automated billing engine filed invoice for Metro Rail Authority ($2,400 AUD).', time: 'Yesterday' }
+  ];
+
+  body.innerHTML = items.map(item => `
+    <div class="notif-item ${item.type}">
+      <div class="notif-title">${item.title}</div>
+      <div class="notif-msg">${item.msg}</div>
+      <div class="notif-time">${item.time}</div>
+    </div>
+  `).join('');
+}
+
+function updateWorker(workerId, field, value) {
+  const worker = workerRegistry.find(w => w.id === workerId);
+  if (worker) {
+    worker[field] = value;
+    if (field === 'induction_complete') {
+      showToast(`Worker ${worker.name} site induction status updated to ${value ? 'Verified' : 'Unverified'}.`, 'success');
+    }
+  }
+}
+
+function onHireTypeChange() {
+  const capGroup = document.getElementById('capacity-field-group');
+  if (capGroup) {
+    const assetId = document.getElementById('booking-asset')?.value;
+    const isCrane = assetId && (assetId.startsWith('CR') || assetId.startsWith('BM') || assetId.startsWith('SK'));
+    capGroup.style.display = isCrane ? 'block' : 'none';
+  }
+}
+
+function toggleSidebar() {
+  const sb = document.querySelector('.gcal-sidebar');
+  if (sb) {
+    sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
+  }
+}
+
+function toggleSidebarRail() {
+  const sb = document.getElementById('app-sidebar') || document.querySelector('.gcal-sidebar');
+  if (sb) {
+    sb.classList.toggle('collapsed');
+  }
+}
+
+/* ── ENTERPRISE GLOBAL SEARCH ENGINE ── */
+function handleGlobalSearch(query) {
+  const dropdown = document.getElementById('global-search-dropdown');
+  if (!dropdown) return;
+  
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    dropdown.innerHTML = '';
+    dropdown.classList.remove('open');
+    return;
+  }
+  
+  const matchedBookings = bookings.filter(b => 
+    (b.clientName && b.clientName.toLowerCase().includes(q)) ||
+    (b.assetNumber && b.assetNumber.toLowerCase().includes(q)) ||
+    (b.jobDescription && b.jobDescription.toLowerCase().includes(q)) ||
+    (b.operatorName && b.operatorName.toLowerCase().includes(q)) ||
+    (b.id && b.id.toLowerCase().includes(q))
+  ).slice(0, 5);
+
+  const matchedAssets = assetRegistry.filter(a =>
+    a.id.toLowerCase().includes(q) ||
+    a.description.toLowerCase().includes(q) ||
+    a.category.toLowerCase().includes(q)
+  ).slice(0, 3);
+
+  const matchedWorkers = (typeof workerRegistry !== 'undefined' ? workerRegistry : []).filter(w =>
+    w.name.toLowerCase().includes(q) ||
+    w.role.toLowerCase().includes(q) ||
+    (w.id && w.id.toLowerCase().includes(q))
+  ).slice(0, 3);
+
+  if (matchedBookings.length === 0 && matchedAssets.length === 0 && matchedWorkers.length === 0) {
+    dropdown.innerHTML = `<div style="padding:14px; text-align:center; color:var(--text-muted); font-size:12px;">No matching records found for "<strong>${q}</strong>"</div>`;
+    dropdown.classList.add('open');
+    return;
+  }
+
+  let html = '';
+  
+  if (matchedBookings.length > 0) {
+    html += `<div style="padding:6px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; background:var(--bg-secondary); color:var(--text-secondary);">Bookings & Dispatch</div>`;
+    matchedBookings.forEach(b => {
+      const start = new Date(b.startTime);
+      html += `
+        <div class="global-search-result-item" onclick="selectSearchResultBooking('${b.id}')">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:var(--text-main);">${b.clientName}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${b.assetNumber} &bull; ${b.jobDescription || 'Dispatch'} &bull; ${start.toLocaleDateString()}</div>
+          </div>
+          <span style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:rgba(0,173,239,0.12); color:var(--ion-cyan,#00ADEF);">${b.status || 'Scheduled'}</span>
+        </div>
+      `;
+    });
+  }
+
+  if (matchedAssets.length > 0) {
+    html += `<div style="padding:6px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; background:var(--bg-secondary); color:var(--text-secondary);">Fleet Assets</div>`;
+    matchedAssets.forEach(a => {
+      html += `
+        <div class="global-search-result-item" onclick="selectSearchResultAsset('${a.id}')">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:10px; height:10px; border-radius:50%; background:${a.hex};"></span>
+            <div>
+              <span style="font-weight:700; font-size:12.5px; color:var(--text-main);">${a.id}</span>
+              <span style="font-size:11.5px; color:var(--text-secondary); margin-left:6px;">${a.description}</span>
+            </div>
+          </div>
+          <span style="font-size:10.5px; font-weight:600; color:var(--text-muted);">${a.category}</span>
+        </div>
+      `;
+    });
+  }
+
+  if (matchedWorkers.length > 0) {
+    html += `<div style="padding:6px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; background:var(--bg-secondary); color:var(--text-secondary);">Personnel & Operators</div>`;
+    matchedWorkers.forEach(w => {
+      html += `
+        <div class="global-search-result-item" onclick="switchTab('administration'); closeGlobalSearch();">
+          <div>
+            <span style="font-weight:700; font-size:12.5px; color:var(--text-main);">${w.name}</span>
+            <span style="font-size:11.5px; color:var(--text-secondary); margin-left:6px;">${w.role}</span>
+          </div>
+          <span style="font-size:10.5px; font-weight:700; color:${w.status==='Active'?'#10B981':'#EF4444'};">${w.status}</span>
+        </div>
+      `;
+    });
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.classList.add('open');
+}
+
+function closeGlobalSearch() {
+  const dropdown = document.getElementById('global-search-dropdown');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+function selectSearchResultBooking(id) {
+  closeGlobalSearch();
+  switchTab('scheduler');
+  openBookingDrawer(id);
+}
+
+function selectSearchResultAsset(assetId) {
+  closeGlobalSearch();
+  switchTab('scheduler');
+  activeAssetFilters.clear();
+  activeAssetFilters.add(assetId);
+  renderFilterBar();
+  renderCalendar();
+  showToast(`Filtered scheduler for asset ${assetId}`, 'info');
+}
+
+// Global click handler to dismiss search dropdown
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.gcal-global-search-wrap')) {
+    closeGlobalSearch();
+  }
 });
+
+// Keyboard shortcut CMD+K / CTRL+K
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    const input = document.getElementById('global-search-input');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  } else if (e.key === 'Escape') {
+    closeGlobalSearch();
+    closeBookingDrawer();
+  }
+});
+
+/* ── ENTERPRISE BOOKING DETAIL DRAWER ── */
+function openBookingDrawer(id) {
+  const b = bookings.find(x => x.id === id);
+  if (!b) return;
+
+  const overlay = document.getElementById('detail-drawer-overlay');
+  const panel = document.getElementById('detail-drawer-panel');
+  const title = document.getElementById('drawer-job-title');
+  const eyebrow = document.getElementById('drawer-eyebrow');
+  const body = document.getElementById('drawer-scroll-body');
+  const footer = document.getElementById('drawer-footer-actions');
+
+  if (!panel || !body) return;
+
+  const asset = assetRegistry.find(a => a.id === b.assetNumber) || { id: b.assetNumber, description: 'Asset', category: 'General', hex: '#6366f1' };
+  const s = new Date(b.startTime);
+  const e = new Date(b.endTime);
+  const durationHours = ((e - s) / (1000 * 60 * 60)).toFixed(1);
+
+  if (eyebrow) eyebrow.textContent = `Job ID // ${b.id.toUpperCase()} • ${b.hireType ? b.hireType.toUpperCase() + ' HIRE' : 'DISPATCH'}`;
+  if (title) title.textContent = b.clientName;
+
+  body.innerHTML = `
+    <!-- Status & Overview Banner -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-light);">
+      <div>
+        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Dispatch Status</div>
+        <div style="font-size:14px; font-weight:800; color:var(--text-main);">${b.status || 'Scheduled'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Allocation</div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:3px; background:${asset.hex};"></span>
+          <span style="font-size:13px; font-weight:800; color:var(--text-main);">${b.assetNumber}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Overview Card -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>Timeline & Scope</span>
+        <span style="font-size:11px; font-weight:700; color:var(--ion-cyan,#00ADEF);">${durationHours} hrs total</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Scheduled Date</span>
+        <span class="drawer-row-val">${s.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Shift Hours</span>
+        <span class="drawer-row-val">${s.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} &ndash; ${e.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Job Scope</span>
+        <span class="drawer-row-val" style="max-width:230px;">${b.jobDescription || 'Standard plant dispatch'}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Site Address</span>
+        <span class="drawer-row-val" style="max-width:230px; font-size:11.5px;">${b.siteAddress || 'Yard Depot'}</span>
+      </div>
+    </div>
+
+    <!-- Asset & Crew Allocation Card -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>Plant & Crew Assignment</span>
+        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">${asset.category}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Plant Unit</span>
+        <span class="drawer-row-val">${asset.id} &ndash; ${asset.description}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Allocated Crew</span>
+        <span class="drawer-row-val">${b.wetHireResources?.[0]?.workerName || b.operatorName || 'Unassigned / Dry Hire'}</span>
+      </div>
+      ${b.requiredLiftCapacity ? `
+      <div class="drawer-row">
+        <span class="drawer-row-label">Lift Capacity</span>
+        <span class="drawer-row-val" style="color:var(--accent-color); font-weight:700;">${b.requiredLiftCapacity} Tonnes</span>
+      </div>` : ''}
+    </div>
+
+    <!-- DocuWare & Compliance Audit Card -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>DocuWare Compliance Trail</span>
+        <span style="font-size:10px; color:#10B981; font-weight:800;">● Live Cloud Sync</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Contract / Agreement</span>
+        <span class="drawer-row-val">
+          ${b.contractSigned ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Executed</span>' : '<span style="color:#F59E0B; font-weight:700;">Pending Signature</span>'}
+        </span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Safety Pre-Start</span>
+        <span class="drawer-row-val">
+          ${b.preStartStatus === 'pushed' || b.preStartStatus === 'completed' ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Completed</span>' : '<span style="color:#6B7280; font-weight:600;">Pending</span>'}
+        </span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Digital Shift Docket</span>
+        <span class="drawer-row-val">
+          ${b.docketUploaded ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Verified & Invoiced</span>' : '<span style="color:#6B7280; font-weight:600;">Pending Upload</span>'}
+        </span>
+      </div>
+    </div>
+  `;
+
+  if (footer) {
+    footer.innerHTML = `
+      <button class="btn-primary" onclick="closeBookingDrawer(); editBooking('${b.id}');" style="flex:1; height:36px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Edit Full Record</span>
+      </button>
+      <button class="btn-secondary" onclick="openDocuWareSmartConnect('${b.id}')" style="height:36px; padding:0 12px; font-size:12px; font-weight:600;">
+        <span>DocuWare</span>
+      </button>
+      <button class="btn-secondary" onclick="closeBookingDrawer()" style="height:36px; padding:0 12px; font-size:12px; font-weight:600;">
+        <span>Close</span>
+      </button>
+    `;
+  }
+
+  if (overlay) overlay.classList.add('open');
+  panel.classList.add('open');
+}
+
+function closeBookingDrawer() {
+  const overlay = document.getElementById('detail-drawer-overlay');
+  const panel = document.getElementById('detail-drawer-panel');
+  if (overlay) overlay.classList.remove('open');
+  if (panel) panel.classList.remove('open');
+}
+
+function triggerDocuWareDoc(id, client) {
+  showToast(`Invoice for ${client} generated via DocuWare`, 'success');
+}
+
+function renderWorkersView() {
+  const container = document.getElementById('workers-container');
+  if (!container) return;
+  
+  const q = (document.getElementById('workers-search')?.value || '').toLowerCase();
+  const rFilter = (document.getElementById('workers-role-filter')?.value || 'ALL');
+  
+  let filtered = workerRegistry;
+  if (rFilter !== 'ALL') filtered = filtered.filter(w => w.role.toLowerCase().includes(rFilter.toLowerCase()));
+  if (q) filtered = filtered.filter(w => w.name.toLowerCase().includes(q) || (w.licence && w.licence.toLowerCase().includes(q)));
+
+  let html = `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">`;
+  
+  filtered.forEach(w => {
+    const isExpiring = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date(new Date().setMonth(new Date().getMonth()+3));
+    const isExpired = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date();
+    
+    let statusBadge = '';
+    let borderCol = 'var(--border-light)';
+    if (isExpired) {
+      statusBadge = `<span style="background:var(--color-danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">LOCKED (EXPIRED)</span>`;
+      borderCol = 'var(--color-danger)';
+    } else if (isExpiring) {
+      statusBadge = `<span style="color:#d97706;font-size:10px;font-weight:700;">Licence Expiring</span>`;
+      borderCol = '#d97706';
+    } else {
+      statusBadge = `<span style="color:var(--text-muted);font-size:10px;font-weight:600;">Licence Active</span>`;
+    }
+
+    const inits = w.name.split(' ').map(n=>n[0]).join('');
+
+    html += `<div style="background:#fff; border:1px solid ${borderCol}; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border-light); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-secondary); font-size:13px;">${inits}</div>
+          <div>
+            <div style="font-weight:700; font-size:14px; color:var(--text-primary); line-height:1.2;">${w.name}</div>
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary);">${w.role}</div>
+          </div>
+        </div>
+        ${statusBadge}
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-secondary); background:var(--bg-secondary); padding:8px 12px; border-radius:6px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span>Licence #:</span>
+          <span style="font-weight:600; font-family:monospace; color:var(--text-primary);">${w.licence||'N/A'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Expiry:</span>
+          <span style="font-weight:600; color:${isExpired?'var(--color-danger)':isExpiring?'#d97706':'var(--text-primary)'};">${w.licenceExpiry||'N/A'}</span>
+        </div>
+      </div>
+      
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); font-weight:500;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          ${w.phone||'N/A'}
+        </div>
+        <div style="font-size:11px; font-weight:700; color:var(--brand-primary); cursor:pointer;">Update Record &rarr;</div>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
 
 // Expose all functions called from inline HTML event handlers to global scope
 Object.assign(window, {
@@ -2436,7 +3777,9 @@ Object.assign(window, {
   
   changeDate, goToToday, goToDay, setCalendarView, toggleDayTranspose, 
   toggleAssetFilter, clearAssetFilter,
-  toggleNotifications, toggleLegendPopover,
+  toggleNotifications, renderNotifications, toggleLegendPopover, toggleSidebar, toggleSidebarRail,
+  toggleAssetTray, handleGlobalSearch, closeGlobalSearch, selectSearchResultBooking, selectSearchResultAsset,
+  openBookingDrawer, closeBookingDrawer,
   renderAssetManager, updateAssetDesc, updateAssetHex, updateAssetHexText,
   addAsset: window._addNewAssetFromForm, promptDeleteAsset, cancelDeleteAsset, confirmDeleteAsset,
   renderAnalytics, exportReport, applyDatePreset, saveDocuWare, saveWorkHours, renderOperatorPortal,
@@ -2445,90 +3788,70 @@ Object.assign(window, {
   openDocuWareSmartConnect, closeDocuWareModal, indexDocuWareCert,
   openCertViewModal, saveCertUpdate, openCertUploadModal, executeCertLockRelease,
   openClientLedger, closeClientLedger, exportClientLedgerPDF, openClientStatementPDF,
-  moveBookingStatus,  startPaint, startPaintWeek,
-  renderWorkersView,
+  moveBookingStatus, startPaint, startPaintWeek,
+  renderWorkersView, renderComplianceView, renderJobBoard, showToast,
+  updateWorker, onHireTypeChange, triggerDocuWareDoc,
+  onAssetSelectChange: window.onAssetSelectChange,
+  onClientSelectChange: window.onClientSelectChange,
+  onProjectSelectChange: window.onProjectSelectChange,
+  toggleClientType: window.toggleClientType,
+  toggleCrewSelection: window.toggleCrewSelection,
+  toggleInspection: window.toggleInspection,
+  quickCallContact: window.quickCallContact,
+  renderCalendar,
+  renderDayViewScheduler,
+  renderWeekViewScaffolding,
+  renderMonthViewScaffolding,
+  toggleDayTranspose,
+  setCalendarView,
+  startJobDrag,
+  handleSlotClick,
+  handleJobClick,
+  handleAssetFilterChange,
+  handleWorkerFilterChange,
+  resetSchedulerFilters,
+  handleJobDragStart,
+  handleJobDragEnd,
+  handleSlotDragOver,
+  handleSlotDragEnter,
+  handleSlotDragLeave,
+  handleSlotDrop,
+  attachGridInteractivity,
 });
 
-// Missing stub restored
-function triggerDocuWareDoc(id, client) {
-    showToast(`Invoice for ${client} generated via DocuWare`, 'success');
-}
-window.triggerDocuWareDoc = triggerDocuWareDoc;
-
-
-
-
-window.toggleSidebar = function() {
-    const sb = document.querySelector('.gcal-sidebar');
-    if(sb) {
-        sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
-    }
-};
-
-
-window.renderWorkersView = function() {
- const container=document.getElementById('workers-container');
- if(!container) return;
- 
- const q=(document.getElementById('workers-search')?.value||'').toLowerCase();
- const rFilter=(document.getElementById('workers-role-filter')?.value||'ALL');
- 
- let filtered = workerRegistry;
- if(rFilter!=='ALL') filtered = filtered.filter(w => w.role.toLowerCase().includes(rFilter.toLowerCase()));
- if(q) filtered = filtered.filter(w => w.name.toLowerCase().includes(q) || (w.licence&&w.licence.toLowerCase().includes(q)));
-
- let html=`<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">`;
- 
- filtered.forEach(w => {
-  const isExpiring = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date(new Date().setMonth(new Date().getMonth()+3));
-  const isExpired = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date();
-  
-  let statusBadge = '';
-  let borderCol = 'var(--border-light)';
-  if (isExpired) {
-    statusBadge = `<span style="background:var(--color-danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">LOCKED (EXPIRED)</span>`;
-    borderCol = 'var(--color-danger)';
-  } else if (isExpiring) {
-    statusBadge = `<span style="color:#d97706;font-size:10px;font-weight:700;">Licence Expiring</span>`;
-    borderCol = '#d97706';
-  } else {
-    statusBadge = `<span style="color:var(--text-muted);font-size:10px;font-weight:600;">Licence Active</span>`;
+function initApp() {
+  if (!document.getElementById('toast-container')) {
+    const tc = document.createElement('div');
+    tc.id = 'toast-container';
+    tc.className = 'toast-container';
+    document.body.appendChild(tc);
   }
 
-  const inits = w.name.split(' ').map(n=>n[0]).join('');
+  if (Array.isArray(bookings)) {
+    bookings.forEach(sanitizeBookingChronology);
+  }
 
-  html += `<div style="background:#fff; border:1px solid ${borderCol}; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-    <div style="display:flex; align-items:center; justify-content:space-between;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:36px; height:36px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border-light); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-secondary); font-size:13px;">${inits}</div>
-        <div>
-          <div style="font-weight:700; font-size:14px; color:var(--text-primary); line-height:1.2;">${w.name}</div>
-          <div style="font-size:11px; font-weight:600; color:var(--text-secondary);">${w.role}</div>
-        </div>
-      </div>
-      ${statusBadge}
-    </div>
-    
-    <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-secondary); background:var(--bg-secondary); padding:8px 12px; border-radius:6px;">
-      <div style="display:flex; justify-content:space-between;">
-        <span>Licence #:</span>
-        <span style="font-weight:600; font-family:monospace; color:var(--text-primary);">${w.licence||'N/A'}</span>
-      </div>
-      <div style="display:flex; justify-content:space-between;">
-        <span>Expiry:</span>
-        <span style="font-weight:600; color:${isExpired?'var(--color-danger)':isExpiring?'#d97706':'var(--text-primary)'};">${w.licenceExpiry||'N/A'}</span>
-      </div>
-    </div>
-    
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
-      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); font-weight:500;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        ${w.phone||'N/A'}
-      </div>
-      <div style="font-size:11px; font-weight:700; color:var(--brand-primary); cursor:pointer;">Update Record &rarr;</div>
-    </div>
-  </div>`;
- });
- html += `</div>`;
- container.innerHTML = html;
-};
+  const startHourEl = document.getElementById('display-start-hour');
+  if (startHourEl && typeof populateHourSelect === 'function') {
+    populateHourSelect(startHourEl, displayHoursStart, true);
+    populateHourSelect(document.getElementById('display-end-hour'), displayHoursEnd, false);
+    populateHourSelect(document.getElementById('settings-work-start'), displayHoursStart, true);
+    populateHourSelect(document.getElementById('settings-work-end'), displayHoursEnd, false);
+  }
+
+  if (typeof syncAssets === 'function') syncAssets();
+  if (typeof renderFilterBar === 'function') renderFilterBar();
+  if (typeof renderAssetManager === 'function') renderAssetManager();
+
+  // Always render the scheduler immediately on startup
+  renderCalendar();
+  if (typeof applyDatePreset === 'function') applyDatePreset();
+  if (typeof renderWorkersView === 'function') renderWorkersView();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+

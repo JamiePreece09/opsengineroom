@@ -71,13 +71,23 @@ export const DOC_STATUSES = {
 export let clientsRegistry = [
   { id: 'C100', name: 'ADCO Constructions', phone: '1300 000 001', email: 'admin@adco.com.au' },
   { id: 'C101', name: 'Downer Group', phone: '1300 000 002', email: 'dispatch@downer.com.au' },
-  { id: 'C102', name: 'Fulton Hogan', phone: '1300 000 003', email: 'ops@fultonhogan.com.au' }
+  { id: 'C102', name: 'Fulton Hogan', phone: '1300 000 003', email: 'ops@fultonhogan.com.au' },
+  { id: 'C103', name: 'Lendlease Group', phone: '1300 000 004', email: 'dispatch@lendlease.com' },
+  { id: 'C104', name: 'Multiplex Constructions', phone: '1300 000 005', email: 'site@multiplex.biz' },
+  { id: 'C105', name: 'CPB Contractors', phone: '1300 000 006', email: 'plant@cpbcon.com.au' },
+  { id: 'C106', name: 'Hutchinson Builders', phone: '1300 000 007', email: 'ops@hutchies.com.au' }
 ];
 
 export let projectsRegistry = [
-  { id: 'P200', clientId: 'C100', name: 'Coronation Dr Basement', address: 'Coronation Dr, Milton QLD 4064', contact: 'Site Mgr Bill' },
-  { id: 'P201', clientId: 'C101', name: 'Springfield Subdivision', address: 'Springfield Central QLD 4300', contact: 'Dave (Foreman)' },
-  { id: 'P202', clientId: 'C102', name: 'Gateway Overpass', address: 'Gateway Motorway, Nudgee QLD', contact: 'Structural Eng.' }
+  { id: 'P200', clientId: 'C100', name: 'Coronation Dr Basement', address: '12 Coronation Dr, Milton QLD 4064', contact: 'Site Mgr Bill (0411 223 344)' },
+  { id: 'P201', clientId: 'C100', name: 'Chermside Health Hub', address: '395 Hamilton Rd, Chermside QLD 4032', contact: 'Mark Davies (0412 889 900)' },
+  { id: 'P202', clientId: 'C101', name: 'Springfield Subdivision', address: 'Lot 42 Springfield Central QLD 4300', contact: 'Dave Foreman (0418 556 677)' },
+  { id: 'P203', clientId: 'C101', name: 'Centenary Highway Upgrade', address: 'Centenary Hwy, Darra QLD 4076', contact: 'Gareth Evans (0419 223 311)' },
+  { id: 'P204', clientId: 'C102', name: 'Gateway Overpass', address: 'Gateway Motorway, Nudgee QLD 4014', contact: 'Structural Eng. Tim (0420 112 233)' },
+  { id: 'P205', clientId: 'C103', name: 'Queens Wharf Integrated Resort', address: 'Queens Wharf, Brisbane CBD QLD 4000', contact: 'Rob Superintendent (0421 998 877)' },
+  { id: 'P206', clientId: 'C104', name: '55 Eagle St Commercial Tower', address: '55 Eagle St, Brisbane CBD QLD 4000', contact: 'Paul Crane Co-ord (0422 445 566)' },
+  { id: 'P207', clientId: 'C105', name: 'Cross River Rail Roma St', address: 'Roma St Station Precinct, Brisbane QLD 4000', contact: 'Sarah Works Mgr (0423 778 899)' },
+  { id: 'P208', clientId: 'C106', name: 'South Bank Cultural Precinct', address: 'Grey St, South Brisbane QLD 4101', contact: 'Jack Project Dir (0424 334 455)' },
 ];
 
 export function addClient(c) { clientsRegistry.push(c); }
@@ -383,6 +393,12 @@ export let bookings = [
   { id:'b30', assetNumber:'EX01', hireType:'wet',  clientName:'McConnell Dowell',           jobDescription:'Pipeline trench — DN600',                     operatorName:'John Smith',   wetHireResources:[{role:'Operator',workerId:'W002',workerName:'John Smith',licenseType:'C6'}],                                                           requiredLiftCapacity:0, siteAddress:'Toowong QLD 4066',                        startTime:dOffset(4,7,0),  endTime:dOffset(4,16,0),  status:'Scheduled',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
   { id:'b31', assetNumber:'SK03', hireType:'dry',  clientName:'John Holland Group',         jobDescription:'Backfill operations — platform',               operatorName:'Sam Davies',   wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Central Station Precinct QLD 4000',       startTime:dOffset(4,8,0),  endTime:dOffset(4,15,0),  status:'Invoiced',   swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
   { id:'b32', assetNumber:'BM08', hireType:'dry',  clientName:'Probuild',                   jobDescription:'HVAC installation — rooftop',                 operatorName:'Ryan Nash',    wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Spring Hill QLD 4004',                    startTime:dOffset(5,7,30), endTime:dOffset(5,14,0),  status:'Scheduled',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  // Distinct Multi-Day Jobs for Calendar Grid
+  { id:'b-multi-1', assetNumber:'EX02', hireType:'wet',  clientName:'Civil Works Pty Ltd', clientPhone:'1300 000 003', jobDescription:'Bulk Earthworks Package — 5-Day Continuous Cut & Fill', operatorName:'Mark Johnson', isMultiDay:true, wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}], requiredLiftCapacity:0, siteAddress:'88 Pacific Hwy, Helensvale QLD 4212', startTime:dOffset(-1,6,0), endTime:dOffset(4,18,0), status:'Scheduled', swmsStatus:'completed', preStartStatus:'completed', docketStatus:'pending', contractSigned:true, docketUploaded:false },
+  { id:'b-multi-2', assetNumber:'CR09', hireType:'wet',  clientName:'Queensland Rail', clientPhone:'1300 000 001', jobDescription:'Rail Bridge Span Installation — 4-Day Continuous Lift', operatorName:'Luke Harris', isMultiDay:true, wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W012',workerName:'Brad Nguyen',licenseType:'DG'}], requiredLiftCapacity:45, siteAddress:'Ipswich Motorway Rail Bridge, Gailes QLD 4300', startTime:dOffset(7,6,0), endTime:dOffset(10,18,0), status:'Scheduled', swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false },
+  // Red 'Out of Service' blocks
+  { id:'b-oos-1', assetNumber:'DZ04', hireType:'dry', clientName:'Fleet Workshop', clientPhone:'0400 999 111', jobDescription:'Out of Service: 500-Hour Hydraulic Transmission Overhaul', operatorName:'Maintenance Depot', isOutOfService:true, status:'Out of Service', requiredLiftCapacity:0, siteAddress:'Depot Central Workshop, Pinkenba QLD', startTime:dOffset(0,0,0), endTime:dOffset(3,23,59), swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false },
+  { id:'b-oos-2', assetNumber:'FL05', hireType:'dry', clientName:'Fleet Workshop', clientPhone:'0400 999 222', jobDescription:'Out of Service: Annual Mast Non-Destructive Testing (NDT)', operatorName:'Maintenance Depot', isOutOfService:true, status:'Out of Service', requiredLiftCapacity:0, siteAddress:'Depot Central Workshop, Pinkenba QLD', startTime:dOffset(12,0,0), endTime:dOffset(15,23,59), swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false }
 ];
 
 // Booking mutation functions

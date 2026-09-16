@@ -1,0 +1,8 @@
+{
+  "name": "ionSite",
+  "description": "Enterprise plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

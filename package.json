@@ -1,0 +1,15 @@
+{
+  "name": "hireengine-dispatch",
+  "version": "1.0.0",
+  "description": "HireEngine Dispatch & Fleet Operations Management",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "lint": "node --check app.js dataModels.js dispatchEngine.js complianceEngine.js dndEngine.js documentAutomation.js server.js",
+    "build": "node -e 'console.log(\"Build successful\")'"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
