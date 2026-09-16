@@ -3,13 +3,11 @@
  * Orchestrates all UI rendering, calendar views, modal workflows, and navigation.
  * Imports core business logic from dedicated modules.
  */
-import {
- assetRegistry, addAsset, removeAssetById, updateAssetById,
+import { assetRegistry, addAsset, removeAssetById, updateAssetById,
  complianceRegistry, updateComplianceRecord,
  workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById,
  bookings, addBooking, updateBooking, removeBooking, getBookingById, getAssetHex,
- HOURLY_RATES, HIRE_TYPES,
-} from './dataModels.js';
+ HOURLY_RATES, HIRE_TYPES } from './dataModels.js';
 import { ComplianceEngine } from './complianceEngine.js';
 import { DispatchEngine } from './dispatchEngine.js';
 import { initDragAndDrop } from './dndEngine.js';
@@ -66,14 +64,7 @@ let _activeDWBookingId = null;
 let currentCertAssetId = null;
 let _pendingDeleteAssetId = null;
 
-function syncAssets() {
-  ASSET_HEX = { Urgent: '#dc2626', Invoiced: '#10b981', Scheduled: '#3b82f6', Other: '#64748b' };
-  validAssets = [];
-  assetRegistry.forEach(a => {
-    ASSET_HEX[a.id] = a.hex;
-    validAssets.push(a.id);
-  });
-}
+
 
 function isComplianceLocked(assetId) {
   return ComplianceEngine.isAssetLocked(assetId);
@@ -95,12 +86,7 @@ function formatAUDCurrency(amount) {
   return `$${Math.round(amount).toLocaleString('en-AU')} AUD`;
 }
 
-function formatAUDate(dateInput) {
-  const d = new Date(dateInput);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}/${d.getFullYear()}`;
-}
+
 
 const fmtTime = totalMins => {
   const h = Math.floor(totalMins / 60);
@@ -1391,67 +1377,9 @@ function formatAUDate(dateInput){
 }
 
 /* ── TAB SWITCHING & PHASE 2 MODULES ── */
-function switchTab(tab) {
-  const viewMap = {
-    'calendar': 'calendar-view',
-    'job-board': 'job-board-view',
-    'analytics': 'analytics-view',
-    'clients': 'clients-view',
-    'compliance': 'compliance-view',
-    'settings': 'settings-view'
-  };
-  const navMap = {
-     'calendar': 'nav-calendar',
-    'job-board': 'nav-job-board',
-    'analytics': 'nav-analytics',
-    'clients': 'nav-clients',
-    'compliance': 'nav-compliance',
-    'settings': 'nav-settings'
-  };
-  document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const viewId = viewMap[tab] || 'calendar-view';
-  const navId = navMap[tab] || 'nav-calendar';
-  const viewEl = document.getElementById(viewId);
-  const navEl = document.getElementById(navId);
-  if (viewEl) viewEl.classList.add('active');
-  if (navEl) navEl.classList.add('active');
-  if (tab === 'job-board') renderJobBoard();
-  else if (tab === 'analytics') renderAnalytics();
-  else if (tab === 'clients') renderClientsView();
-  else if (tab === 'compliance') renderComplianceView();
-  else if (tab === 'calendar') renderCalendar();
-};
- const navMap={
-  'calendar':'nav-calendar',
-  'job-board':'nav-job-board',
-  'analytics':'nav-analytics',
-  'clients':'nav-clients',
-  'compliance':'nav-compliance',
-  'settings':'nav-settings'
- };
 
- document.querySelectorAll('.view-container').forEach(el=>el.classList.remove('active'));
- document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-
- const viewId=viewMap[tab]||'calendar-view';
- const navId=navMap[tab]||'nav-calendar';
-
- const viewEl=document.getElementById(viewId);
- const navEl=document.getElementById(navId);
-
- if(viewEl) viewEl.classList.add('active');
- if(navEl) navEl.classList.add('active');
-
- if(tab==='job-board') renderJobBoard();
- else if(tab==='analytics') renderAnalytics();
- else if(tab==='clients') renderClientsView();
- else if(tab==='compliance') renderComplianceView();
- else if(tab==='calendar') renderCalendar();
-}
 
 /* ── DOCUWARE CONTRACT E-SIGNATURE & FIELD DOCKET WORKFLOWS ── */
-let _activeDWBookingId = null;
 
 function openDocuWareContractModal(id){
  const b=bookings.find(x=>x.id===id);
@@ -2171,7 +2099,6 @@ function exportClientLedgerPDF(){
 }
 
 /* ── PHASE 5: COMPLIANCE & CERTS ENFORCEMENT ── */
-let currentCertAssetId = null;
 
 function openCertViewModal(assetId){
  currentCertAssetId = assetId;
@@ -2497,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateHourSelect(document.getElementById('settings-work-end'), displayHoursEnd, false);
 
   syncAssets();
-  renderAssetFilterBar();
+  renderFilterBar();
   renderAssetManager();
 
   const transposeBtn = document.getElementById('day-transpose-btn');
