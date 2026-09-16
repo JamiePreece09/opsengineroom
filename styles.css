@@ -1,32 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* High-Trust Industrial Palette (Premium & Professional) */
-  --bg-primary: #0F1115;      /* Deep Industrial Slate */
-  --bg-secondary: #191C20;    /* Card/Module Background */
-  --bg-tertiary: #23272D;     /* Hover states */
-  --brand-primary: #0F1115;
-  --brand-secondary: #191C20;
-  --brand-bg: #0F1115;
+  /* Blueprint Specification Palette */
+  --bg-primary: #0c1f3d;      /* Deep Navy */
+  --bg-secondary: #1e293b;    /* Charcoal Grey */
+  --bg-tertiary: #334155;     /* Slightly lighter grey for borders/hover */
+  --brand-primary: #0c1f3d;
+  --brand-secondary: #1e293b;
+  --brand-bg: #0c1f3d;
   
-  --text-primary: #E2E8F0;    /* Crisp off-white */
-  --text-secondary: #94A3B8;  /* Professional grey */
-  --text-muted: #64748B;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   
-  --accent-primary: #EAB308;  /* CAT/Industrial Amber */
-  --accent-hover: #FACC15;
-  --accent-blue: #3B82F6;     /* Action Blue */
+  --accent-primary: #b45309;  /* Metallic Copper */
+  --accent-hover: #92400e;
+  --accent-blue: #475569;     /* Polished Slate */
   
-  --border-light: #2A2F37;
-  --border-strong: #374151;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
   
   /* Semantic */
-  --color-compliant: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-info: #3B82F6;
+  --color-compliant: #10b981; /* Muted Teal */
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
   
-  /* Radius & Shadows - Tighter, more structured */
+  /* Radius & Shadows */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
@@ -34,17 +34,17 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
   
-  /* Asset Colors - Professional, Muted Operational Tones */
-  --color-ex01: #3B82F6; /* Blue */
-  --color-ex02: #0EA5E9; /* Light Blue */
-  --color-sk03: #8B5CF6; /* Purple */
-  --color-dz04: #F43F5E; /* Rose */
-  --color-fl05: #10B981; /* Emerald */
-  --color-fl06: #14B8A6; /* Teal */
-  --color-sc07: #EAB308; /* Amber */
-  --color-bm08: #F97316; /* Orange */
-  --color-cr09: #64748B; /* Slate */
-  --color-dt10: #475569; /* Dark Slate */
+  /* Asset Colors - Visible against Navy/Charcoal */
+  --color-ex01: #3B82F6; 
+  --color-ex02: #0EA5E9; 
+  --color-sk03: #8B5CF6; 
+  --color-dz04: #F43F5E; 
+  --color-fl05: #10B981; 
+  --color-fl06: #14B8A6; 
+  --color-sc07: #EAB308; 
+  --color-bm08: #F97316; 
+  --color-cr09: #94A3B8; 
+  --color-dt10: #475569; 
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

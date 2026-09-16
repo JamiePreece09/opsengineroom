@@ -290,25 +290,7 @@
 
     <!-- Operator Portal View -->
     <div id="operator-view" class="view-container">
-      <div class="page-header">
-        <div>
-          <div class="header-breadcrumb">COMMERCIAL ACCOUNTS // DIRECTORY</div>
-          <h1>Client Accounts Directory</h1>
-          <div class="subtitle">Commercial Account Profiles &amp; Billing History</div>
-        </div>
-      </div>
-      <div class="module-filter-bar">
-        <div class="search-input-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="client-search" placeholder="Search client name or deployed asset..." oninput="renderClientsView()">
-        </div>
-        <select id="client-sort-filter" class="module-filter-select" onchange="renderClientsView()">
-          <option value="revenue_desc">Sort: Highest Revenue</option>
-          <option value="jobs_desc">Sort: Most Deployments</option>
-          <option value="name_asc">Sort: Client Name A-Z</option>
-        </select>
-      </div>
-      <div id="clients-container" style="flex:1;overflow-y:auto;"></div>
+      <div id="operator-portal-container" style="padding:24px;overflow-y:auto;height:100%;display:flex;flex-direction:column;"></div>
     </div>
 
     <!-- Compliance & Certs View — now includes Worker HRWL Registry sub-section -->
