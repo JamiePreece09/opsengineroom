@@ -2086,7 +2086,7 @@ function renderClientsView(){
     <td style="font-size:12px;color:var(--text-secondary);">${assetsList}</td>
     <td style="font-weight:600;font-size:12px;">${lastDate}</td>
     <td style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation();">
-     <button class="dw-action-btn" style="background:#0f172a;height:32px;padding:0 12px;font-size:11px;" onclick="openDocuWareSmartConnect('${c.name.replace(/'/g,"\\'")}')">
+     <button class="dw-action-btn" style="background:var(--accent-primary);height:32px;padding:0 12px;font-size:11px;" onclick="openDocuWareSmartConnect('${c.name.replace(/'/g,"\\'")}')">
       View Ledger &amp; Jobs
      </button>
      <button class="dw-action-btn secondary" style="height:32px;padding:0 10px;font-size:11px;" onclick="openClientStatementPDF('${c.name.replace(/'/g,"\\'")}')">
@@ -2578,3 +2578,27 @@ function triggerDocuWareDoc(id, client) {
     showToast(`Invoice for ${client} generated via DocuWare`, 'success');
 }
 window.triggerDocuWareDoc = triggerDocuWareDoc;
+
+
+window.goToToday = function() {
+    currentDate = new Date();
+    renderAllViews();
+};
+
+window.setCalendarView = function(view) {
+    if (view === 'Day') {
+        currentTransposed = false;
+        document.getElementById('calendar-view-select').value = 'Day';
+    } else if (view === 'Week') {
+        currentTransposed = true; // Or we can route this to week view
+        document.getElementById('calendar-view-select').value = 'Week';
+    }
+    renderAllViews();
+};
+
+window.toggleSidebar = function() {
+    const sb = document.querySelector('.gcal-sidebar');
+    if(sb) {
+        sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
+    }
+};
