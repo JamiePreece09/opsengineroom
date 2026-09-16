@@ -3,17 +3,15 @@
  * Orchestrates all UI rendering, calendar views, modal workflows, and navigation.
  * Imports core business logic from dedicated modules.
  */
-import {
- assetRegistry, addAsset, removeAssetById, updateAssetById,
+import { assetRegistry, addAsset, removeAssetById, updateAssetById,
  complianceRegistry, updateComplianceRecord,
  workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById,
  bookings, addBooking, updateBooking, removeBooking, getBookingById, getAssetHex,
- HOURLY_RATES, HIRE_TYPES,
-} from './dataModels.js';
-import { ComplianceEngine } from './complianceEngine.js';
-import { DispatchEngine } from './dispatchEngine.js';
-import { initDragAndDrop } from './dndEngine.js';
-import { pushToDocuWare, generateSWMSPayload, generatePreStartPayload, generateFieldDocketPayload, getDocPipelineStatus } from './documentAutomation.js';
+ HOURLY_RATES, HIRE_TYPES } from './dataModels2.js';
+import { ComplianceEngine } from './complianceEngine2.js';
+import { DispatchEngine } from './dispatchEngine2.js';
+import { initDragAndDrop } from './dndEngine2.js';
+import { pushToDocuWare, generateSWMSPayload, generatePreStartPayload, generateFieldDocketPayload, getDocPipelineStatus } from './documentAutomation2.js';
 
 let ASSET_HEX = { Urgent: '#dc2626', Invoiced: '#10b981', Scheduled: '#3b82f6', Other: '#64748b' };
 let validAssets = [];
