@@ -67,6 +67,22 @@ export const DOC_STATUSES = {
    Source of truth for all fleet assets. Mutable via helper functions.
 ───────────────────────────────────────────────────────────────────────────── */
 
+
+export let clientsRegistry = [
+  { id: 'C100', name: 'ADCO Constructions', phone: '1300 000 001', email: 'admin@adco.com.au' },
+  { id: 'C101', name: 'Downer Group', phone: '1300 000 002', email: 'dispatch@downer.com.au' },
+  { id: 'C102', name: 'Fulton Hogan', phone: '1300 000 003', email: 'ops@fultonhogan.com.au' }
+];
+
+export let projectsRegistry = [
+  { id: 'P200', clientId: 'C100', name: 'Coronation Dr Basement', address: 'Coronation Dr, Milton QLD 4064', contact: 'Site Mgr Bill' },
+  { id: 'P201', clientId: 'C101', name: 'Springfield Subdivision', address: 'Springfield Central QLD 4300', contact: 'Dave (Foreman)' },
+  { id: 'P202', clientId: 'C102', name: 'Gateway Overpass', address: 'Gateway Motorway, Nudgee QLD', contact: 'Structural Eng.' }
+];
+
+export function addClient(c) { clientsRegistry.push(c); }
+export function addProject(p) { projectsRegistry.push(p); }
+
 export let assetRegistry = [
   { id: 'EX01', description: 'Excavator 20T',        hex: '#0ea5e9', assetType: 'excavator' },
   { id: 'EX02', description: 'Excavator 35T',        hex: '#06b6d4', assetType: 'excavator' },
@@ -146,7 +162,7 @@ export function updateComplianceRecord(assetId, fields) {
 
 export let workerRegistry = [
   {
-    id: 'W001', name: 'Luke Harris', role: 'Crane Operator',
+    id: 'W001', name: 'Luke Harris', role: 'Crane Operator', status: 'available',
     phone: '0412 001 001', email: 'l.harris@hireengine.com.au',
     licenses: [
       { type: 'C1', licenseNumber: 'QLD-HRW-C1-28491', expiry: '2027-03-15', state: 'QLD' },
@@ -154,7 +170,7 @@ export let workerRegistry = [
     ],
   },
   {
-    id: 'W002', name: 'John Smith', role: 'Crane Operator',
+    id: 'W002', name: 'John Smith', role: 'Crane Operator', status: 'available',
     phone: '0412 001 002', email: 'j.smith@hireengine.com.au',
     licenses: [
       { type: 'C6', licenseNumber: 'QLD-HRW-C6-19234', expiry: '2026-10-30', state: 'QLD' },
@@ -189,7 +205,7 @@ export let workerRegistry = [
     ],
   },
   {
-    id: 'W007', name: 'Chris Evans', role: 'Crane Operator',
+    id: 'W007', name: 'Chris Evans', role: 'Crane Operator', status: 'available',
     phone: '0412 001 007', email: 'c.evans@hireengine.com.au',
     licenses: [
       { type: 'C6', licenseNumber: 'QLD-HRW-C6-77321', expiry: '2027-02-11', state: 'QLD' },
@@ -217,7 +233,7 @@ export let workerRegistry = [
     ],
   },
   {
-    id: 'W011', name: 'Sam Chen', role: 'Crane Operator',
+    id: 'W011', name: 'Sam Chen', role: 'Crane Operator', status: 'available',
     phone: '0412 001 011', email: 's.chen@hireengine.com.au',
     licenses: [
       // EXPIRED — flagged as compliance block on dispatch
@@ -225,7 +241,7 @@ export let workerRegistry = [
     ],
   },
   {
-    id: 'W012', name: 'Brad Nguyen', role: 'Dogman',
+    id: 'W012', name: 'Brad Nguyen', role: 'Dogman', status: 'available',
     phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au',
     licenses: [
       { type: 'DG', licenseNumber: 'QLD-HRW-DG-55123', expiry: '2027-06-20', state: 'QLD' },
@@ -233,7 +249,7 @@ export let workerRegistry = [
     ],
   },
   {
-    id: 'W013', name: "Kerry O'Brien", role: 'Dogman',
+    id: 'W013', name: "Kerry O'Brien", role: 'Dogman', status: 'available',
     phone: '0412 001 013', email: 'k.obrien@hireengine.com.au',
     licenses: [
       { type: 'DG', licenseNumber: 'QLD-HRW-DG-67441', expiry: '2026-11-30', state: 'QLD' },

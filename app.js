@@ -3,7 +3,7 @@
  * Orchestrates all UI rendering, calendar views, modal workflows, and navigation.
  * Imports core business logic from dedicated modules.
  */
-import { assetRegistry, addAsset, removeAssetById, updateAssetById,
+import { clientsRegistry, projectsRegistry, addClient, addProject, assetRegistry, addAsset, removeAssetById, updateAssetById,
  complianceRegistry, updateComplianceRecord,
  workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById,
  bookings, addBooking, updateBooking, removeBooking, getBookingById, getAssetHex,
@@ -306,9 +306,12 @@ function changeDate(dir){
 
 function setCalendarView(view){
  currentView=view;
+ const selectBox = document.getElementById('calendar-view-select');
+ if(selectBox && selectBox.value !== view) selectBox.value = view;
+ 
  document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===view));
  const filterBar=document.getElementById('asset-filter-bar');
- filterBar.style.display=(view==='Day')?'none':'flex';
+ if(filterBar) filterBar.style.display=(view==='Day')?'none':'flex';
  const hoursCtrl=document.getElementById('display-hours-control');
  if(hoursCtrl)hoursCtrl.style.display=(view==='Month')?'none':'flex';
  // Show toggle for Day, Week, Work Week — hide for Month
@@ -455,31 +458,96 @@ function getFilteredBookings(){
 }
 
 /* MODAL */
-function openModal(asset,startH,endH,dateStr){
- document.getElementById('booking-id').value='';
- document.getElementById('modal-title').textContent='New Quick Book';
- document.getElementById('booking-asset').value=asset||'EX01';
- document.getElementById('booking-status').value='Scheduled';
- document.getElementById('booking-client').value='';
- document.getElementById('booking-operator').value='';
- document.getElementById('booking-desc').value='';
- // Resolve date: explicit dateStr > currentDate
- const refDate=dateStr?new Date(dateStr):new Date(currentDate);
- document.getElementById('booking-date').value=refDate.toISOString().slice(0,10);
- document.getElementById('booking-start').value=startH||'08:00';
- document.getElementById('booking-end').value=endH||'09:00';
- document.getElementById('delete-btn').style.display='none';
- 
-  // Populate worker selects
+
+window.toggleClientType = function() {
+  const isNew = document.querySelector('input[name="client_type"]:checked').value === 'new';
+  document.getElementById('existing-client-section').style.display = isNew ? 'none' : 'block';
+  document.getElementById('new-client-section').style.display = isNew ? 'block' : 'none';
+};
+
+window.loadClientProjects = function(clientId) {
+  const projSelect = document.getElementById('booking-project-select');
+  projSelect.innerHTML = '<option value="">-- Select Project / Site --</option><option value="NEW">+ Create New Project</option>';
+  if(!clientId) return;
+  const projects = projectsRegistry.filter(p => p.clientId === clientId);
+  projects.forEach(p => {
+    projSelect.innerHTML += `<option value="${p.id}">${p.name} - ${p.address}</option>`;
+  });
+};
+
+window.populateProjectDefaults = function() {
+  const projId = document.getElementById('booking-project-select').value;
+  if(projId && projId !== 'NEW') {
+    const p = projectsRegistry.find(x => x.id === projId);
+    if(p) {
+      document.getElementById('booking-address').value = p.address || '';
+      document.getElementById('booking-site-contact').value = p.contact || '';
+    }
+  } else {
+    document.getElementById('booking-address').value = '';
+    document.getElementById('booking-site-contact').value = '';
+  }
+};
+
+window.toggleInspection = function() {
+  const isReq = document.getElementById('inspection-required').checked;
+  document.getElementById('inspection-date-group').style.display = isReq ? 'block' : 'none';
+};
+
+function openModal(asset, startH, endH, dateStr) {
+  document.getElementById('booking-id').value = '';
+  document.getElementById('modal-title').textContent = 'New Booking / Enquiry';
+  
+  // Hydrate client dropdown
+  const cSelect = document.getElementById('booking-client-select');
+  cSelect.innerHTML = '<option value="">-- Search or Select Client --</option>' + 
+    clientsRegistry.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  
+  // Reset radios
+  document.querySelector('input[name="client_type"][value="existing"]').checked = true;
+  toggleClientType();
+  loadClientProjects('');
+  
+  document.getElementById('new-client-name').value = '';
+  document.getElementById('new-client-phone').value = '';
+  document.getElementById('new-client-email').value = '';
+  document.getElementById('booking-address').value = '';
+  document.getElementById('booking-site-contact').value = '';
+  document.getElementById('booking-desc').value = '';
+  
+  document.getElementById('inspection-required').checked = false;
+  toggleInspection();
+  document.getElementById('inspection-date').value = '';
+
+  const refDate = dateStr ? new Date(dateStr) : new Date(currentDate);
+  document.getElementById('booking-date').value = refDate.toISOString().slice(0,10);
+  document.getElementById('booking-start').value = startH || '08:00';
+  document.getElementById('booking-end').value = endH || '09:00';
+  
+  // Rate Review default (+6 months)
+  const rrDate = new Date();
+  rrDate.setMonth(rrDate.getMonth() + 6);
+  document.getElementById('rate-review-date').value = rrDate.toISOString().slice(0,10);
+
+  // Asset hydration
+  const assetSelect = document.getElementById('booking-asset');
+  assetSelect.innerHTML = assetRegistry.map(a => `<option value="${a.id}">${a.id} - ${a.type}</option>`).join('');
+  document.getElementById('booking-asset').value = asset || 'EX01';
+
+  document.getElementById('booking-status').value = 'Scheduled';
+
+  // Workers
   const opSelect = document.getElementById('booking-wet-operator');
   const dgSelect = document.getElementById('booking-wet-dogman');
   if(opSelect && dgSelect) {
-    opSelect.innerHTML = '<option value="">-- Select Operator --</option>' + workerRegistry.filter(w => w.role === 'Crane Operator' || w.role === 'Plant Operator').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
-    dgSelect.innerHTML = '<option value="">-- Select Dogman/Rigger --</option>' + workerRegistry.filter(w => w.role === 'Dogman' || w.role === 'Rigger').map(w => `<option value="${w.id}">${w.name} (${w.licenses.map(l=>l.type).join(',')})</option>`).join('');
+    opSelect.innerHTML = '<option value="">-- Auto-Allocate or Select --</option>' + workerRegistry.filter(w => w.role.includes('Operator')).map(w => `<option value="${w.id}">${w.name} (${w.status})</option>`).join('');
+    dgSelect.innerHTML = '<option value="">-- Auto-Allocate or Select --</option>' + workerRegistry.filter(w => w.role.includes('Dogman') || w.role.includes('Rigger')).map(w => `<option value="${w.id}">${w.name} (${w.status})</option>`).join('');
   }
-
-  document.getElementById('booking-modal').classList.add('open');
+  
+  document.getElementById('delete-btn').style.display = 'none';
+  document.getElementById('booking-modal').style.display = 'flex';
 }
+
 
 function editBooking(id){
  const b=bookings.find(x=>x.id===id);if(!b)return;
@@ -507,7 +575,7 @@ function editBooking(id){
   document.getElementById('booking-modal').classList.add('open');
 }
 
-function closeModal(){document.getElementById('booking-modal').classList.remove('open');}
+function closeModal(){document.getElementById('booking-modal').style.display='none';}
 
 function saveBooking(){
  const id=document.getElementById('booking-id').value;
@@ -2580,21 +2648,7 @@ function triggerDocuWareDoc(id, client) {
 window.triggerDocuWareDoc = triggerDocuWareDoc;
 
 
-window.goToToday = function() {
-    currentDate = new Date();
-    renderAllViews();
-};
 
-window.setCalendarView = function(view) {
-    if (view === 'Day') {
-        currentTransposed = false;
-        document.getElementById('calendar-view-select').value = 'Day';
-    } else if (view === 'Week') {
-        currentTransposed = true; // Or we can route this to week view
-        document.getElementById('calendar-view-select').value = 'Week';
-    }
-    renderAllViews();
-};
 
 window.toggleSidebar = function() {
     const sb = document.querySelector('.gcal-sidebar');
