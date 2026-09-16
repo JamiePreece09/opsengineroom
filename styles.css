@@ -1,46 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Global Brand Tokens (Dark Corporate) */
-  --brand-primary: #0c1f3d;       /* Deep Navy */
-  --brand-secondary: #1e293b;     /* Charcoal Grey */
-  --brand-bg: #0c1f3d;            
-  --bg-primary: #1e293b;
-  --bg-secondary: #334155;
-  --bg-tertiary: #475569;
+  /* Ultra-Premium Glass/Dark Palette (Vercel / Linear inspired) */
+  --bg-primary: #000000;
+  --bg-secondary: #0A0A0A;
+  --bg-tertiary: #161618;
+  --brand-primary: #000000;
+  --brand-secondary: #0A0A0A;
+  --brand-bg: #000000;
   
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --accent-primary: #b45309;      /* Metallic Copper */
-  --accent-hover: #92400e;
-  --border-light: rgba(255,255,255,0.1);
-  --border-strong: rgba(255,255,255,0.2);
+  --text-primary: #F3F4F6;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
   
-  /* Strict Operational Semantic Palette */
-  --color-compliant: #10b981;     /* Muted Teal */
-  --color-warning: #d97706;       
-  --color-danger: #ef4444;        
-  --color-info: #3b82f6;          
+  --accent-primary: #3B82F6; /* Vibrant Azure */
+  --accent-hover: #60A5FA;
   
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
-  --shadow-md: 0 4px 18px rgba(0,0,0,0.6);
-  --shadow-lg: 0 12px 36px rgba(0,0,0,0.8);
-
-  /* Asset Identifier Palette */
-  --color-ex01: #0ea5e9;
-  --color-ex02: #06b6d4;
-  --color-sk03: #8b5cf6;
-  --color-dz04: #475569;
-  --color-fl05: #6366f1;
-  --color-fl06: #2563eb;
-  --color-sc07: #10b981;
-  --color-bm08: #b45309;
-  --color-cr09: #334155;
-  --color-dt10: #9333ea;
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  /* Semantic */
+  --color-compliant: #10B981;
+  --color-warning: #F5A623;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+  
+  /* Radius & Shadows */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.9);
+  
+  /* Asset Colors - Jewel Tones for contrast */
+  --color-ex01: #0EA5E9;
+  --color-ex02: #2DD4BF;
+  --color-sk03: #A855F7;
+  --color-dz04: #F43F5E;
+  --color-fl05: #3B82F6;
+  --color-fl06: #14B8A6;
+  --color-sc07: #10B981;
+  --color-bm08: #F5A623;
+  --color-cr09: #6366F1;
+  --color-dt10: #EC4899;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1335,4 +1338,109 @@ tr.expired-row td {
   opacity: 0.8;
   box-shadow: var(--shadow-lg);
   cursor: grabbing !important;
+}
+
+.drag-over-active { background: rgba(59, 130, 246, 0.2) !important; border: 2px dashed #3b82f6 !important; }
+
+
+/* UI Enhancements for Phase 3 */
+.booking-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid rgba(255,255,255,0.4);
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    cursor: grab;
+}
+.booking-card:active {
+    cursor: grabbing;
+}
+.booking-card:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+.gantt-bar {
+    transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+    cursor: grab;
+}
+.gantt-bar:active {
+    cursor: grabbing;
+}
+.gantt-bar:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+    z-index: 10;
+}
+.view-container {
+    animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ultra-Premium Glassmorphism & UI Enhancements */
+body {
+    background-color: var(--bg-primary);
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.04), transparent 25%);
+    background-attachment: fixed;
+}
+
+.view-container, .top-nav, .sidebar {
+    background: rgba(10, 10, 10, 0.6) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-light);
+}
+
+.sidebar { border-right: 1px solid var(--border-light); }
+.top-nav { border-bottom: 1px solid var(--border-light); }
+
+.booking-card, .gantt-bar {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+    border-radius: var(--radius-sm);
+    color: #fff !important;
+}
+
+.btn-primary, .kb-primary-btn {
+    background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent-primary) 100%) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+    border: none !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    font-weight: 600 !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover, .kb-primary-btn:hover {
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.6), inset 0 1px 0 rgba(255,255,255,0.4) !important;
+    transform: translateY(-1px);
+}
+
+.dw-status-pill, .status-pill, .hire-type-pill {
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.compliance-table th {
+    background: rgba(255,255,255,0.03) !important;
+}
+.compliance-table tr:hover {
+    background: rgba(255,255,255,0.02) !important;
+}
+
+.modal-box {
+    background: rgba(16, 16, 20, 0.85) !important;
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05) !important;
 }

@@ -936,7 +936,7 @@ function renderDayView(body){
   // Tint overlay
   html+=`<div style="position:absolute;top:0;left:0;right:0;height:${totalH}px;background:${hex};opacity:0.07;pointer-events:none;z-index:0;"></div>`;
   hours.forEach(h=>{
-   html+=`<div style="height:${PX}px;border-bottom:1px solid color-mix(in srgb, ${hex} 15%, transparent);" class="paint-slot" data-hour="${h}" data-asset="${asset}" onmousedown="${isExpired ? `showToast(' Safety Interlock: Asset ${asset} is locked due to expired DocuWare cert.')` : `startPaint(event,${h},'${asset}')`}"></div>`;
+   html+=`<div style="height:${PX}px;border-bottom:1px solid color-mix(in srgb, ${hex} 15%, transparent);" class="paint-slot" data-hour="${h}" data-asset="${asset}" onmousedown="${isExpired ? `showToast(' Safety Interlock: Asset ${asset} is locked due to expired DocuWare cert.')` : `startPaint(event,${h},'${asset}')`}" ondragover="window._dragOver(event)" ondragleave="window._dragLeave(event)" ondrop="window._dropBooking(event, ${h}, '${asset}', '${currentDate.toISOString()}')"></div>`;
   });
 
   const aBookings=dayBookings.filter(b=>b.assetNumber===asset);
@@ -952,7 +952,7 @@ function renderDayView(body){
    // Layer 2: Embedded DocuWare Status Pill
    const statusPillHtml=renderDocuWarePill(b);
 
-   html+=`<div class="booking-card" id="${b.id}" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">
+   html+=`<div class="booking-card" id="${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
      <span class="booking-asset-code">${b.assetNumber}</span>
           <span class="hire-type-pill ${b.hireType || 'dry'}">${(b.hireType || 'dry') === 'wet' ? 'WET' : 'DRY'}</span>
@@ -1014,7 +1014,7 @@ function renderDayTransposedView(body){
   html+=`<div style="width:8px;height:8px;border-radius:50%;background:${hex};box-shadow:0 0 0 3px ${hex}33;flex-shrink:0;"></div>${asset}</div>`;
 
   // Single full-width cell spanning all hours
-  html+=`<div style="flex:1;position:relative;overflow:hidden;min-width:${60*totalHours}px;">`;
+  html+=`<div style="flex:1;position:relative;overflow:hidden;min-width:${60*totalHours}px;" ondragover="window._dragOver(event)" ondragleave="window._dragLeave(event)" ondrop="window._dropGantt(event, '${asset}', '${currentDate.toISOString()}', ${minH}, ${totalHours})">`;
   // Tint
   html+=`<div style="position:absolute;inset:0;background:${hex};opacity:0.07;pointer-events:none;"></div>`;
 
@@ -1040,7 +1040,7 @@ function renderDayTransposedView(body){
    const leftPct=startFrac*100;
    const widthPct=Math.max(1,(endFrac-startFrac)*100);
    const color=getBookingColor(b);
-   html+=`<div class="gantt-bar" id="dt-${b.id}" style="left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);top:${BAR_TOP}px;height:${BAR_H}px;background:${color};" ondblclick="editBooking('${b.id}')" title="${b.assetNumber} | ${fmtT(startD)} – ${fmtT(endD)}&#10;${b.clientName}&#10;${isWorkerDoubleBooked(b) ? '<span style="color:#d97706;font-weight:bold;">⚠️ ' + (b.wetHireResources?.[0]?.workerName || b.operatorName || '') + '</span>' : (b.wetHireResources?.[0]?.workerName || b.operatorName || '')}&#10;${b.jobDescription||''}">`;
+   html+=`<div class="gantt-bar" id="dt-${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);top:${BAR_TOP}px;height:${BAR_H}px;background:${color};" ondblclick="editBooking('${b.id}')" title="${b.assetNumber} | ${fmtT(startD)} – ${fmtT(endD)}&#10;${b.clientName}&#10;${isWorkerDoubleBooked(b) ? '<span style="color:#d97706;font-weight:bold;">⚠️ ' + (b.wetHireResources?.[0]?.workerName || b.operatorName || '') + '</span>' : (b.wetHireResources?.[0]?.workerName || b.operatorName || '')}&#10;${b.jobDescription||''}">`;
    html+=`<span class="gantt-bar-text" style="font-size:11px;">${b.clientName} <span style="opacity:0.7">${fmtT(startD)}–${fmtT(endD)}</span></span>`;
    html+=`</div>`;
   });
@@ -1127,7 +1127,7 @@ function renderWeekTimeView(body,days){
    const top=startMins*(PX/60);
    const height=Math.max(dur*(PX/60),22);
    const color=getBookingColor(b);
-   html+=`<div class="booking-card" id="wt-${b.id}" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">`;
+   html+=`<div class="booking-card" id="wt-${b.id}" draggable="true" ondragstart="window._dragBooking(event, '${b.id}')" ondragend="window._dragEnd(event)" style="top:${top}px;height:${height}px;background:${color};"  ondblclick="editBooking('${b.id}')">`;
    html+=`<div class="booking-asset-code">${b.assetNumber}</div>
       <span class="hire-type-pill ${b.hireType || 'dry'}">${(b.hireType || 'dry') === 'wet' ? 'WET' : 'DRY'}</span>
       ${b.assetNumber.startsWith('CR') && b.requiredLiftCapacity > 0 ? `<span class="booking-capacity">${b.requiredLiftCapacity}T req</span>` : ''}`;

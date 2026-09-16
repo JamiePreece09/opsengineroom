@@ -2,119 +2,99 @@ import { bookings, updateBooking } from './dataModels.js';
 import { ComplianceEngine } from './complianceEngine.js';
 
 export function initDragAndDrop(renderCallback, showToastCallback) {
-  // Wait for interact to be globally available
-  if (!window.interact) {
-    console.warn('interact.js not loaded yet');
-    return;
-  }
+    window._dragBooking = (e, id) => {
+        e.dataTransfer.setData('text/plain', id);
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => e.target.style.opacity = '0.5', 0);
+    };
 
-  // Common snapping
-  const PX_PER_MIN = 60 / 60; // 1px per min
-  const SNAP_MIN = 15;
-  const SNAP_PX = SNAP_MIN * PX_PER_MIN;
+    window._dragEnd = (e) => {
+        e.target.style.opacity = '1';
+    };
 
-  window.interact('.booking-card, .gantt-bar')
-    .draggable({
-      inertia: true,
-      autoScroll: true,
-      modifiers: [
-        window.interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: false
-        })
-      ],
-      listeners: {
-        start(event) {
-          event.target.classList.add('is-dragging');
-          event.target.style.zIndex = '999';
-          event.target.setAttribute('data-x', 0);
-          event.target.setAttribute('data-y', 0);
-          
-          // Determine axis lock based on class
-          if (event.target.classList.contains('gantt-bar')) {
-            event.target.setAttribute('data-axis', 'x');
-          } else {
-            event.target.setAttribute('data-axis', 'y');
-          }
-        },
-        move(event) {
-          const target = event.target;
-          const axis = target.getAttribute('data-axis');
-          
-          let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-          let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-          
-          if (axis === 'x') {
-            y = 0; // Lock Y
-            // Snap to 15 min grid (assuming PX_PER_MIN is scaled, need to adjust based on week view sizing)
-            // For simplicity, we just use raw translation for visual feedback
-          } else {
-            x = 0; // Lock X
-          }
+    window._dragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.classList.add('drag-over-active'); // we will add this class to CSS
+    };
 
-          target.style.transform = `translate(${x}px, ${y}px)`;
-          target.setAttribute('data-x', x);
-          target.setAttribute('data-y', y);
-        },
-        end(event) {
-          const target = event.target;
-          target.classList.remove('is-dragging');
-          target.style.zIndex = '';
-          
-          const bId = target.id || target.id.replace('dt-', '').replace('wt-', '');
-          const originalBooking = bookings.find(b => b.id === bId);
-          if (!originalBooking) return;
-          
-          const axis = target.getAttribute('data-axis');
-          
-          // Calculate new time based on dragged distance
-          let offsetMins = 0;
-          if (axis === 'y') {
-             const y = parseFloat(target.getAttribute('data-y')) || 0;
-             offsetMins = Math.round(y / SNAP_PX);
-          } else {
-             // For X axis in gantt, calculate based on width (simplification for POC)
-             const x = parseFloat(target.getAttribute('data-x')) || 0;
-             // We need week column width. Approximate it based on standard screen
-             const colWidth = 200; // rough guess for week view day width
-             offsetMins = Math.round(x / colWidth * 24 * 60);
-          }
-          
-          // Snap offset to 15 min increments
-          offsetMins = Math.round(offsetMins / SNAP_MIN) * SNAP_MIN;
-          
-          if (offsetMins !== 0) {
-            // Apply new time
-            const oldStart = new Date(originalBooking.startTime);
-            const oldEnd = new Date(originalBooking.endTime);
-            const newStart = new Date(oldStart.getTime() + offsetMins * 60000);
-            const newEnd = new Date(oldEnd.getTime() + offsetMins * 60000);
-            
-            const tempBooking = { ...originalBooking, startTime: newStart.toISOString(), endTime: newEnd.toISOString() };
-            
-            // Validate!
-            const validation = ComplianceEngine.validateDispatch(tempBooking, bId);
-            if (validation.hardBlocks.length > 0) {
-                // HARD BLOCK!
-                target.classList.add('shake');
-                target.style.transform = `translate(0px, 0px)`;
-                target.setAttribute('data-x', 0);
-                target.setAttribute('data-y', 0);
-                showToastCallback('COMPLIANCE BLOCK: ' + validation.hardBlocks[0].msg, 'error');
-                
-                setTimeout(() => {
-                   target.classList.remove('shake');
-                }, 500);
-                return;
-            } else {
-                updateBooking(tempBooking);
-                showToastCallback('Booking moved successfully.', 'success');
-            }
-          }
-          
-          // Re-render
-          renderCallback();
+    window._dragLeave = (e) => {
+        e.currentTarget.classList.remove('drag-over-active');
+    };
+
+    const processDrop = (e, id, newStartISO) => {
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+
+        const oldStart = new Date(b.startTime);
+        const oldEnd = new Date(b.endTime);
+        const duration = oldEnd.getTime() - oldStart.getTime();
+
+        const tempBooking = { 
+            ...b, 
+            startTime: newStartISO, 
+            endTime: new Date(new Date(newStartISO).getTime() + duration).toISOString() 
+        };
+
+        const validation = ComplianceEngine.validateDispatch(tempBooking, id);
+        if (validation.hardBlocks.length > 0) {
+            showToastCallback('⛔ COMPLIANCE BLOCK: ' + validation.hardBlocks[0].msg, 'error');
+            return;
         }
-      }
-    });
+
+        updateBooking(tempBooking);
+        showToastCallback('Booking rescheduled successfully.', 'success');
+        renderCallback();
+    };
+
+    window._dropBooking = (e, newHour, newAsset, dateIso) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over-active');
+        const id = e.dataTransfer.getData('text/plain');
+        if(!id) return;
+        
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+        
+        // If week view (newAsset is null), preserve original asset
+        const assetToUse = newAsset || b.assetNumber;
+        
+        const baseDate = new Date(dateIso);
+        baseDate.setHours(newHour, 0, 0, 0);
+
+        // Update the asset before processing drop time
+        b.assetNumber = assetToUse; 
+        
+        processDrop(e, id, baseDate.toISOString());
+    };
+
+    window._dropGantt = (e, newAsset, dateIso, minH, totalHours) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over-active');
+        const id = e.dataTransfer.getData('text/plain');
+        if(!id) return;
+        
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+
+        // Calculate hour based on drop position X relative to the container width
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const pct = Math.max(0, Math.min(1, offsetX / rect.width));
+        
+        const droppedHourFloat = minH + (pct * totalHours);
+        
+        // Snap to nearest 15 mins (0.25)
+        const snappedHour = Math.round(droppedHourFloat * 4) / 4;
+        
+        const h = Math.floor(snappedHour);
+        const m = Math.round((snappedHour - h) * 60);
+
+        const baseDate = new Date(dateIso);
+        baseDate.setHours(h, m, 0, 0);
+        
+        b.assetNumber = newAsset || b.assetNumber;
+        
+        processDrop(e, id, baseDate.toISOString());
+    };
 }
