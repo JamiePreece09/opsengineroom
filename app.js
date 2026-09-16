@@ -134,7 +134,7 @@ function switchTab(tab) {
     'settings': 'nav-settings'
   };
   document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.gcal-nav-item').forEach(el => el.classList.remove('active'));
   const viewId = viewMap[tab] || 'calendar-view';
   const navId = navMap[tab] || 'nav-calendar';
   const viewEl = document.getElementById(viewId);
@@ -143,7 +143,7 @@ function switchTab(tab) {
   if (navEl) navEl.classList.add('active');
   if (tab === 'job-board') renderJobBoard();
   else if (tab === 'analytics') renderAnalytics();
-  else if (tab === 'operator') renderOperatorPortal();
+  else if (tab === 'operator') { renderOperatorPortal(); renderWorkersView(); }
   else if (tab === 'compliance') renderComplianceView();
   else if (tab === 'calendar') renderCalendar();
 }
@@ -1651,93 +1651,73 @@ function renderJobBoard(){
   );
  }
 
- let html=`<div class="kanban-board">`;
+ let html=`<div class="kanban-board" style="display:flex; gap:16px; padding:16px; height:100%; overflow-x:auto; background:var(--bg-secondary);">`;
 
  columns.forEach(col=>{
   if(stageFilter!=='ALL'&&stageFilter!==col.id) return;
 
-  // Map Completed & Docket Verification column filter
-  const colBookings=filteredBookings.filter(b=>{
-   const status=b.status||'Scheduled';
-   if(col.id==='Docket Verification') return status==='Docket Verification'||(status==='Completed'&&!b.docketUploaded);
-   if(col.id==='Completed') return status==='Completed'&&b.docketUploaded;
-   return status===col.id;
-  });
-
-  html+=`<div class="kanban-col">
-   <div class="kanban-header">
-    <div class="kanban-title"><span style="color:${col.color}">${col.svg}</span> ${col.title}</div>
-    <span class="kanban-count">${colBookings.length}</span>
-   </div>
-   <div class="kanban-cards">`;
-
-  if(colBookings.length===0){
-   html+=`<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;font-style:italic;">No jobs in this pipeline stage</div>`;
-  } else {
-   colBookings.forEach(b=>{
-    const assetColor=ASSET_HEX[b.assetNumber]||'#475569';
-    const startD=new Date(b.startTime);
-    const timeStr=startD.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
-    const dateStr=formatAUDate(b.startTime);
-    
-    let docActionHtml='';
-    let dwStatusPillHtml=renderDocuWarePill(b);
-
-    // Column 1: Scheduled Contract Workflow
-    if(col.id==='Scheduled'){
-     if(b.contractSigned){
-      docActionHtml=`<button class="kb-primary-btn success" disabled> Contract Signed</button>`;
-     } else {
-      docActionHtml=`<button class="kb-primary-btn" onclick="event.stopPropagation();openDocuWareContractModal('${b.id}')">Generate Agreement</button>`;
-     }
-    }
-    // Column 2: Dispatched
-    else if(col.id==='Dispatched'){
-     docActionHtml=`<button class="kb-primary-btn" style="background:#b45309;" onclick="event.stopPropagation();openSwmsModal('${b.id}')">Generate SWMS</button>`;
-    }
-    // Column 3: On-Site
-    else if(col.id==='On-Site'){
-     docActionHtml=`<button class="kb-primary-btn" style="background:#d97706;" onclick="event.stopPropagation();openPrestartModal('${b.id}')">Run Pre-Start</button>`;
-    }
-    // Column 4: Docket Verification
-    else if(col.id==='Docket Verification'){
-     if(b.docketUploaded){
-      docActionHtml=`<button class="kb-primary-btn success" disabled> Hours Verified</button>`;
-     } else {
-      docActionHtml=`<button class="kb-primary-btn" style="background:#06b6d4;" onclick="event.stopPropagation();openDocuWareDocketModal('${b.id}')">Upload Field Docket</button>`;
-     }
-    }
-    // Column 5: Complete & Ready to Bill (Billing Lockout Safeguard!)
-    else if(col.id==='Completed'){
-     if(b.docketUploaded){
-      docActionHtml=`<button class="kb-primary-btn success" onclick="event.stopPropagation();triggerDocuWareDoc('${b.id}','${b.clientName}')">Issue Invoice</button>`;
-     } else {
-      docActionHtml=`<button class="kb-primary-btn disabled" disabled title="Upload Field Docket in Docket Verification stage to unlock billing">Issue Invoice </button>`;
-     }
-    }
-    // Column 6: Invoiced
-    else if(col.id==='Invoiced'){
-     docActionHtml=`<button class="kb-primary-btn" style="background:#334155;" onclick="event.stopPropagation();openDocuWareSmartConnect('${b.clientName.replace(/'/g,"\\'")}')">View Billing Record</button>`;
-    }
-
-    html+=`<div class="kanban-card" onclick="editBooking('${b.id}')">
-     <div class="kb-card-header">
-      <span class="kb-asset-tag" style="background:${assetColor};">${b.assetNumber}</span>
-      ${dwStatusPillHtml}
-     </div>
-     <div class="kb-client-name">${b.clientName}</div>
-     <div class="kb-meta-row">
-      <span> ${dateStr}</span>
-      <span> ${b.operatorName ? b.operatorName.split(' ')[0] : 'Unassigned'}</span>
-     </div>
-     <div class="kb-footer-actions">
-      ${col.id!=='Scheduled'?`<button class="kb-nav-arrow" title="Previous Stage" onclick="event.stopPropagation();moveBookingStatus('${b.id}','prev')">←</button>`:''}
-      ${docActionHtml}
-      ${col.id!=='Invoiced'?`<button class="kb-nav-arrow" title="Next Stage" onclick="event.stopPropagation();moveBookingStatus('${b.id}','next')">→</button>`:''}
-     </div>
-    </div>`;
-   });
+  const colB=filteredBookings.filter(b=>(b.status||'Scheduled')===col.id);
+  
+  html+=`<div class="kanban-col" style="flex: 0 0 320px; display:flex; flex-direction:column; background:var(--bg-primary); border-radius:8px; border:1px solid var(--border-light); box-shadow:0 1px 2px rgba(0,0,0,0.05);" ondragover="event.preventDefault()" ondrop="moveBookingStatus(event, '${col.id}')">`;
+  
+  // Column Header
+  html+=`<div class="kanban-col-header" style="padding:16px; border-bottom:2px solid ${col.color}; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:12px; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.5px;">
+      <span style="color:${col.color};">${col.svg}</span>
+      ${col.title}
+    </div>
+    <div style="background:var(--bg-secondary); padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; color:var(--text-secondary);">${colB.length}</div>
+  </div>`;
+  
+  // Column Body
+  html+=`<div class="kanban-col-body" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px;">`;
+  
+  if(colB.length===0){
+    html+=`<div style="text-align:center; padding:24px 0; color:var(--text-muted); font-size:12px; font-weight:500;">No jobs in this stage</div>`;
   }
+
+  colB.forEach(b=>{
+   const startD=new Date(b.startTime);
+   const hex=ASSET_HEX[b.assetNumber]||'#888';
+   const pipeline=getDocPipelineStatus(b);
+   
+   html+=`<div class="kanban-card" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${b.id}')" style="background:#fff; border:1px solid var(--border-light); border-radius:6px; padding:16px; cursor:grab; box-shadow:0 1px 3px rgba(0,0,0,0.08); transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)'">`;
+   
+   html+=`<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+    <div style="background:${hex}15; color:${hex}; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">${b.assetNumber}</div>
+    <div style="font-size:11px; font-weight:600; color:var(--text-muted);">${startD.toLocaleDateString('en-AU')}</div>
+   </div>`;
+   
+   html+=`<div style="font-weight:700; font-size:14px; margin-bottom:4px; color:var(--text-primary); line-height:1.2;">${b.clientName}</div>`;
+   
+   const opName = b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0 ? b.wetHireResources[0].workerName : (b.operatorName || '');
+   if(opName) html+=`<div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:4px;">
+     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+     ${opName}
+   </div>`;
+   else html+=`<div style="height:28px;"></div>`;
+   
+   // Action button based on column
+   if(col.id==='Scheduled') {
+      const isSigned = pipeline.hireAgreement.status === 'signed';
+      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:${isSigned?'var(--bg-secondary)':'var(--brand-primary)'}; color:${isSigned?'var(--text-primary)':'#fff'}; border:1px solid ${isSigned?'var(--border-light)':'transparent'};" onclick="openDocuWareContractModal('${b.id}')">${isSigned?'Contract Signed':'Generate Agreement'}</button>`;
+   }
+   if(col.id==='Docket Verification') {
+      const isUploaded = pipeline.fieldDocket.status === 'pushed';
+      html+=`<div style="display:flex; gap:8px;">
+        <button style="width:32px; height:32px; flex-shrink:0; border:1px solid var(--border-light); background:var(--bg-secondary); border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="openDocuWareDocketModal('${b.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+        <button class="btn-primary" style="flex:1; padding:6px; font-size:11px; background:${isUploaded?'var(--bg-secondary)':'var(--accent-copper)'}; color:${isUploaded?'var(--text-primary)':'#fff'}; border:1px solid ${isUploaded?'var(--border-light)':'transparent'};" onclick="openDocuWareDocketModal('${b.id}')">${isUploaded?'Docket Verified':'Upload Field Docket'}</button>
+      </div>`;
+   }
+   if(col.id==='Completed') {
+      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:var(--brand-primary); color:#fff; border:none;" onclick="triggerDocuWareDoc('${b.id}', '${b.clientName}')">Issue Invoice</button>`;
+   }
+   if(col.id==='Invoiced') {
+      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-light);" onclick="alert('Viewing invoice for ${b.clientName}...')">View Billing Record</button>`;
+   }
+
+   html+=`</div>`;
+  });
 
   html+=`</div></div>`;
  });
@@ -2401,222 +2381,50 @@ function executeCertLockRelease(){
 function renderComplianceView(){
  const container=document.getElementById('compliance-container');
  if(!container)return;
-
- const searchQuery=(document.getElementById('compliance-search')?.value||'').toLowerCase().trim();
- const statusFilter=document.getElementById('compliance-status-filter')?.value||'ALL';
-
- let list=assetRegistry.map(a=>{
-  const comp=complianceRegistry[a.id]||{rego:'REG-8800',certDate:'2026-12-31',status:'valid',risk:'Low'};
-  return {
-   id:a.id,
-   type:a.description,
-   rego:comp.rego,
-   certDate:comp.certDate,
-   status:comp.status,
-   risk:comp.risk||'Low'
-  };
+ 
+ const q=(document.getElementById('compliance-search')?.value||'').toLowerCase();
+ const s=(document.getElementById('compliance-status-filter')?.value||'ALL');
+ 
+ let html=`<table style="width:100%; border-collapse:collapse; text-align:left; background:var(--bg-primary); box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+  <thead>
+   <tr style="border-bottom:2px solid var(--border-light); background:var(--bg-secondary);">
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Asset Code</th>
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Description</th>
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Registration #</th>
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Cert Expiry</th>
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Compliance Status</th>
+    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; text-align:right;">Action</th>
+   </tr>
+  </thead>
+  <tbody>`;
+  
+ validAssets.forEach(a=>{
+  const c=complianceRegistry[a];
+  if(!c)return;
+  if(s!=='ALL'&&c.status!==s)return;
+  if(q&&!(a.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)||c.rego.toLowerCase().includes(q)))return;
+  
+  let sc='#10b981',st='Valid Record';
+  if(c.status==='warning'){sc='#d97706';st='Service Due (30d)';}
+  else if(c.status==='expired'){sc='#dc2626';st='Cert Expired (LOCKED)';}
+  
+  html+=`<tr style="border-bottom:1px solid var(--border-light); transition:background 0.2s;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
+   <td style="padding:16px; font-weight:700; color:var(--text-primary);">${a}</td>
+   <td style="padding:16px; font-size:13px; color:var(--text-secondary);">${c.desc}</td>
+   <td style="padding:16px; font-size:13px; font-family:monospace; color:var(--text-secondary);">${c.rego}</td>
+   <td style="padding:16px; font-size:13px; color:var(--text-primary); font-weight:500;">${c.expiry}</td>
+   <td style="padding:16px; font-size:12px; font-weight:600; color:${sc};">${st}</td>
+   <td style="padding:16px; text-align:right;">`;
+  
+  if(c.status==='expired'){
+   html+=`<button class="btn-primary" style="background:var(--color-danger); color:#fff; border:none; padding:6px 12px; font-size:11px; border-radius:4px; cursor:pointer;" onclick="openCertUploadModal('${a}')">Upload Cert</button>`;
+  } else {
+   html+=`<button class="btn-primary" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-light); padding:6px 12px; font-size:11px; border-radius:4px; cursor:pointer;" onclick="openCertViewModal('${a}')">View Record</button>`;
+  }
+  html+=`</td></tr>`;
  });
-
- if(searchQuery){
-  list=list.filter(item=>
-   item.id.toLowerCase().includes(searchQuery)||
-   item.type.toLowerCase().includes(searchQuery)||
-   item.rego.toLowerCase().includes(searchQuery)
-  );
- }
-
- if(statusFilter!=='ALL'){
-  list=list.filter(item=>item.status===statusFilter);
- }
-
- let html=`<div class="compliance-table-wrap">
-  <table class="compliance-table">
-   <thead>
-    <tr>
-     <th>Asset Code</th>
-     <th>Description</th>
-     <th>Registration #</th>
-     <th>Service / Risk Cert Expiry (DD/MM/YYYY)</th>
-     <th>Compliance Status</th>
-     <th>Document Repository &amp; Webhook Trigger</th>
-    </tr>
-   </thead>
-   <tbody>`;
-
- if(list.length===0){
-  html+=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No compliance records match criteria.</td></tr>`;
- } else {
-  list.forEach(item=>{
-   let pillCls='valid';let pillText=' Valid Record';
-   let rowStyle='';
-   if(item.status==='warning'){
-    pillCls='warning';
-    pillText=' Service Due (30d)';
-   }
-   else if(item.status==='expired'){
-    pillCls='expired';
-    pillText=' Cert Expired (LOCKED)';
-    rowStyle='class="expired-row"';
-   }
-
-   const formattedCertDate=formatAUDate(item.certDate);
-
-   html+=`<tr ${rowStyle}>
-    <td style="font-weight:800;font-size:13px;color:var(--text-primary);">${item.id}</td>
-    <td style="font-weight:600;">${item.type}</td>
-    <td style="font-family:'Inter',monospace;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">${item.rego}</td>
-    <td style="font-family:'Inter',monospace;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;">${formattedCertDate}</td>
-    <td><span class="status-pill ${pillCls}">${pillText}</span></td>
-    <td style="display:flex;gap:6px;align-items:center;">
-     ${item.status==='expired' ? `
-      <button class="dw-action-btn" style="height:32px;padding:0 12px;font-size:11px;background:#dc2626;" onclick="openCertUploadModal('${item.id}')">
-       📄 Upload New Cert to DocuWare (Release Lock)
-      </button>
-     ` : `
-      <button class="dw-action-btn secondary" style="height:32px;padding:0 12px;font-size:11px;" onclick="openCertViewModal('${item.id}')">
-       Fetch Cert Record
-      </button>
-     `}
-    </td>
-   </tr>`;
-  });
- }
-
- html+=`</tbody></table></div>`;
+ html+=`</tbody></table>`;
  container.innerHTML=html;
-}
-
-/* ── NOTIFICATIONS DRAWER ── */
-function toggleNotifications(){
- const overlay=document.getElementById('notifications-overlay');
- if(!overlay)return;
- overlay.classList.toggle('open');
- if(overlay.classList.contains('open')) renderNotifications();
-}
-
-function renderNotifications(){
- const body=document.getElementById('notifications-body');
- if(!body)return;
-
- const items=[
-  {type:'urgent',title:'High Risk Compliance Flag',msg:'CR09 Crawler Crane service certificate expired on 30/07/2026. Future bookings flagged for risk review.',time:'10 mins ago'},
-  {type:'dw',title:'Automated Document Event',msg:'Hire Agreement #HA-9942 signed & archived for Fulton Hogan (Job b23).',time:'1 hour ago'},
-  {type:'normal',title:'Maintenance Scheduled',msg:'EX02 Excavator 35T service due in 12 days (16/08/2026).',time:'3 hours ago'},
-  {type:'dw',title:'Billing Record Archived',msg:'Automated billing engine filed invoice for Metro Rail Authority ($2,400 AUD).',time:'Yesterday'}
- ];
-
- body.innerHTML=items.map(item=>`
-  <div class="notif-item ${item.type}">
-   <div class="notif-title">${item.title}</div>
-   <div class="notif-msg">${item.msg}</div>
-   <div class="notif-time">${item.time}</div>
-  </div>
- `).join('');
-}
-
-
-function renderWorkersView() {
-  const container = document.getElementById('workers-container');
-  if (!container) return;
-
-  const searchQuery = (document.getElementById('workers-search')?.value || '').toLowerCase().trim();
-  const roleFilter = document.getElementById('workers-role-filter')?.value || 'ALL';
-
-  let list = [...workerRegistry];
-  if (searchQuery) {
-    list = list.filter(w =>
-      w.name.toLowerCase().includes(searchQuery) ||
-      w.role.toLowerCase().includes(searchQuery) ||
-      w.licenses.some(l => l.licenseNumber.toLowerCase().includes(searchQuery) || l.type.toLowerCase().includes(searchQuery))
-    );
-  }
-  if (roleFilter !== 'ALL') {
-    list = list.filter(w => w.role.toLowerCase().includes(roleFilter.toLowerCase()));
-  }
-
-  if (list.length === 0) {
-    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);">No workers match this filter.</div>';
-    return;
-  }
-
-  const cardsHtml = list.map(w => {
-    const initials = w.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    
-    // Determine overall worker compliance status
-    const allLicenseStatuses = w.licenses.map(l => getLicenseStatus(l.expiry));
-    let workerBadgeClass = 'valid';
-    if (allLicenseStatuses.some(s => s === 'expired')) workerBadgeClass = 'expired';
-    else if (allLicenseStatuses.some(s => s === 'warning')) workerBadgeClass = 'warning';
-
-    const licensesHtml = w.licenses.map(lic => {
-      const status = getLicenseStatus(lic.expiry);
-      const days = daysUntilExpiry(lic.expiry);
-      const expiryClass = status === 'expired' ? 'expired' : status === 'warning' ? 'expiring' : '';
-      const daysText = status === 'expired' ? `Expired ${lic.expiry}` : `Expires ${lic.expiry} (${days}d)`;
-      return `
-        <div class="license-row">
-          <span class="license-type-badge ${status}">${lic.type}</span>
-          <div class="license-details">
-            <div class="license-number">${lic.licenseNumber} &bull; ${lic.state}</div>
-            <div class="license-expiry ${expiryClass}">${daysText}</div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="worker-card">
-        <div class="worker-card-header">
-          <div class="worker-avatar">${initials}</div>
-          <div class="worker-info">
-            <div class="worker-name">${w.name}</div>
-            <div class="worker-role">${w.role} &bull; <span class="status-pill ${workerBadgeClass}" style="display:inline-flex;padding:1px 7px;font-size:10px;">${workerBadgeClass === 'valid' ? 'Licences Current' : workerBadgeClass === 'warning' ? 'Licence Expiring' : 'Licence Expired'}</span></div>
-          </div>
-        </div>
-        <div class="worker-contact">
-          <span>${w.phone}</span>
-          <span>${w.email}</span>
-        </div>
-        <div class="license-list">
-          ${licensesHtml}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = `<div class="worker-registry-grid">${cardsHtml}</div>`;
-}
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Add toast container to body
-  if (!document.getElementById('toast-container')) {
-    const tc = document.createElement('div');
-    tc.id = 'toast-container';
-    tc.className = 'toast-container';
-    document.body.appendChild(tc);
-  }
-
-  // Sanitize chronological integrity
-  bookings.forEach(sanitizeBookingChronology);
-
-  // Populate hour selects
-  populateHourSelect(document.getElementById('display-start-hour'), displayHoursStart, true);
-  populateHourSelect(document.getElementById('display-end-hour'), displayHoursEnd, false);
-  populateHourSelect(document.getElementById('settings-work-start'), displayHoursStart, true);
-  populateHourSelect(document.getElementById('settings-work-end'), displayHoursEnd, false);
-
-  syncAssets();
-  renderFilterBar();
-  renderAssetManager();
-
-  const transposeBtn = document.getElementById('day-transpose-btn');
-  if (transposeBtn) { transposeBtn.style.display = 'flex'; updateTransposeLabel(); }
-
-  renderCalendar();
-  applyDatePreset();
-  renderWorkersView();
 });
 
 // Expose all functions called from inline HTML event handlers to global scope
@@ -2655,4 +2463,72 @@ window.toggleSidebar = function() {
     if(sb) {
         sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
     }
+};
+
+
+window.renderWorkersView = function() {
+ const container=document.getElementById('workers-container');
+ if(!container) return;
+ 
+ const q=(document.getElementById('workers-search')?.value||'').toLowerCase();
+ const rFilter=(document.getElementById('workers-role-filter')?.value||'ALL');
+ 
+ let filtered = workerRegistry;
+ if(rFilter!=='ALL') filtered = filtered.filter(w => w.role.toLowerCase().includes(rFilter.toLowerCase()));
+ if(q) filtered = filtered.filter(w => w.name.toLowerCase().includes(q) || (w.licence&&w.licence.toLowerCase().includes(q)));
+
+ let html=`<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">`;
+ 
+ filtered.forEach(w => {
+  const isExpiring = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date(new Date().setMonth(new Date().getMonth()+3));
+  const isExpired = w.licence && w.licenceExpiry && new Date(w.licenceExpiry) < new Date();
+  
+  let statusBadge = '';
+  let borderCol = 'var(--border-light)';
+  if (isExpired) {
+    statusBadge = `<span style="background:var(--color-danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">LOCKED (EXPIRED)</span>`;
+    borderCol = 'var(--color-danger)';
+  } else if (isExpiring) {
+    statusBadge = `<span style="color:#d97706;font-size:10px;font-weight:700;">Licence Expiring</span>`;
+    borderCol = '#d97706';
+  } else {
+    statusBadge = `<span style="color:var(--text-muted);font-size:10px;font-weight:600;">Licence Active</span>`;
+  }
+
+  const inits = w.name.split(' ').map(n=>n[0]).join('');
+
+  html += `<div style="background:#fff; border:1px solid ${borderCol}; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; border-radius:50%; background:var(--bg-secondary); border:1px solid var(--border-light); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-secondary); font-size:13px;">${inits}</div>
+        <div>
+          <div style="font-weight:700; font-size:14px; color:var(--text-primary); line-height:1.2;">${w.name}</div>
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary);">${w.role}</div>
+        </div>
+      </div>
+      ${statusBadge}
+    </div>
+    
+    <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-secondary); background:var(--bg-secondary); padding:8px 12px; border-radius:6px;">
+      <div style="display:flex; justify-content:space-between;">
+        <span>Licence #:</span>
+        <span style="font-weight:600; font-family:monospace; color:var(--text-primary);">${w.licence||'N/A'}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>Expiry:</span>
+        <span style="font-weight:600; color:${isExpired?'var(--color-danger)':isExpiring?'#d97706':'var(--text-primary)'};">${w.licenceExpiry||'N/A'}</span>
+      </div>
+    </div>
+    
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); font-weight:500;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        ${w.phone||'N/A'}
+      </div>
+      <div style="font-size:11px; font-weight:700; color:var(--brand-primary); cursor:pointer;">Update Record &rarr;</div>
+    </div>
+  </div>`;
+ });
+ html += `</div>`;
+ container.innerHTML = html;
 };

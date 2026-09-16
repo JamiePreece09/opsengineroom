@@ -12,7 +12,7 @@
   <!-- TOP NAV -->
   <header class="gcal-top-nav">
     <div class="gcal-nav-left">
-      <button class="gcal-icon-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <button class="gcal-icon-btn" onclick="toggleSidebar()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
       <div class="gcal-brand">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="3" x2="4" y2="21"/>
@@ -93,12 +93,11 @@
 <!-- Calendar Toolbar -->
 
 <!-- Asset Filter Bar -->
-<div class="asset-filter-bar" id="asset-filter-bar" style="display:none;"></div>
 <!-- Calendar Body -->
 <div class="calendar-body glass-panel" id="calendar-body">
 <!-- Rendered via JS -->
 </div>
-</div><div class="view-container" id="job-board-view">
+</div><div class="view-container" id="job-board-view" style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
 <div class="page-header">
 <div>
 <div class="header-breadcrumb">OPERATIONS DISPATCH // JOB PIPELINE</div>
@@ -125,9 +124,29 @@
 </select>
 </div>
 <div id="job-board-container" style="flex:1;overflow-x:auto;"></div>
-</div><div class="view-container" id="operator-view">
-<div id="operator-portal-container" style="padding:24px;overflow-y:auto;height:100%;display:flex;flex-direction:column;"></div>
-</div><div class="view-container" id="compliance-view">
+</div><div class="view-container" id="operator-view" style="display:flex; flex-direction:row; height:100%; overflow:hidden;">
+  <div style="flex:1; border-right:1px solid var(--border-light); display:flex; flex-direction:column;">
+    <div id="operator-portal-container" style="padding:24px; overflow-y:auto; flex:1;"></div>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; padding:24px; background:var(--bg-primary); overflow-y:auto;">
+    <!-- Worker HRWL Registry section -->
+<div style="font-size:11px;font-weight:800;color:var(--accent-copper);text-transform:uppercase;letter-spacing:1px;margin-top:0;margin-bottom:16px;">Worker High Risk Work Licence (HRWL) Registry</div>
+<div class="module-filter-bar">
+<div class="search-input-wrap">
+<svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+<input id="workers-search" oninput="renderWorkersView()" placeholder="Search worker name, licence number, or class..." type="text"/>
+</div>
+<select class="module-filter-select" id="workers-role-filter" onchange="renderWorkersView()">
+<option value="ALL">All Roles</option>
+<option value="operator">Crane Operators</option>
+<option value="plant">Plant Operators</option>
+<option value="dogman">Dogmen</option>
+<option value="rigger">Riggers</option>
+</select>
+</div>
+<div id="workers-container" style="flex:1;overflow-y:auto;padding-bottom:20px;"></div>
+  </div>
+</div><div class="view-container" id="compliance-view" style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
 <div class="page-header">
 <div>
 <div class="header-breadcrumb">SAFETY &amp; ASSET AUDIT // COMPLIANCE</div>
@@ -149,24 +168,9 @@
 <option value="expired">Expired — Locked</option>
 </select>
 </div>
-<div id="compliance-container" style="flex-shrink:0;"></div>
-<!-- Worker HRWL Registry section -->
-<div style="font-size:11px;font-weight:800;color:var(--accent-copper);text-transform:uppercase;letter-spacing:1px;margin-top:20px;margin-bottom:8px;">Worker High Risk Work Licence (HRWL) Registry</div>
-<div class="module-filter-bar">
-<div class="search-input-wrap">
-<svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-<input id="workers-search" oninput="renderWorkersView()" placeholder="Search worker name, licence number, or class..." type="text"/>
-</div>
-<select class="module-filter-select" id="workers-role-filter" onchange="renderWorkersView()">
-<option value="ALL">All Roles</option>
-<option value="operator">Crane Operators</option>
-<option value="plant">Plant Operators</option>
-<option value="dogman">Dogmen</option>
-<option value="rigger">Riggers</option>
-</select>
-</div>
-<div id="workers-container" style="flex:1;overflow-y:auto;padding-bottom:20px;"></div>
-</div><div class="view-container" id="analytics-view">
+<div id="compliance-container" style="flex:1; overflow-y:auto; padding-bottom:30px;"></div>
+
+</div><div class="view-container" id="analytics-view" style="display:flex; flex-direction:column; height:100%; overflow-y:auto; overflow-x:hidden;">
 <div class="page-header">
 <div>
 <div class="header-breadcrumb">HIREENGINE CONTROL TOWER // EXECUTIVE TELEMETRY</div>
