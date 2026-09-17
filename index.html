@@ -24,8 +24,9 @@
         'job-board': 'job-board-view',
         'reports': 'analytics-view',
         'analytics': 'analytics-view',
-        'administration': 'operator-view',
-        'operator': 'operator-view',
+        'administration': 'admin-view',
+        'admin': 'admin-view',
+        'operator': 'admin-view',
         'settings': 'settings-view',
         'system-settings': 'settings-view'
       };
@@ -37,11 +38,16 @@
         'reports': 'nav-reports',
         'analytics': 'nav-reports',
         'administration': 'nav-administration',
+        'admin': 'nav-administration',
         'operator': 'nav-administration',
         'settings': 'nav-settings',
         'system-settings': 'nav-settings'
       };
-      const viewEl = document.getElementById(viewMap[tab] || 'calendar-view');
+      const targetViewId = viewMap[tab] || 'calendar-view';
+      let viewEl = document.getElementById(targetViewId);
+      if (!viewEl && targetViewId === 'admin-view') {
+        viewEl = document.getElementById('operator-view');
+      }
       const navEl = document.getElementById(navMap[tab] || 'nav-scheduler');
       if (viewEl) viewEl.classList.add('active');
       if (navEl) navEl.classList.add('active');
@@ -84,11 +90,50 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span>Quick Book</span>
       </button>
-      <button class="gcal-icon-btn" onclick="toggleNotifications()" title="Notifications & DocuWare Queue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+
+      <!-- Theme Quick Toggle -->
+      <button class="gcal-icon-btn" id="header-theme-toggle" onclick="toggleDarkMode()" title="Toggle High-Contrast Dark Mode" aria-label="Toggle Dark Mode">
+        <span class="material-symbols-outlined" id="header-theme-icon" style="font-size:20px;">dark_mode</span>
+      </button>
+
+      <button class="gcal-icon-btn" onclick="toggleNotifications()" title="Notifications & Document Queue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
       
-      <div class="user-profile-btn" onclick="switchTab('settings')" title="Operator Profile & System Settings">
-        <div class="user-avatar-badge">JP</div>
-        <div class="user-profile-name">Dispatcher</div>
+      <!-- User Profile Button & Popover -->
+      <div class="user-profile-wrapper" style="position:relative; z-index:2010;">
+        <div class="user-profile-btn" id="user-profile-btn" onclick="openUserProfileDrawer()" title="Jamie P. — Dispatcher (Click to open User Profile)">
+          <div class="user-avatar-badge">JP</div>
+          <div class="user-profile-name">Dispatcher</div>
+          <span class="material-symbols-outlined" id="user-profile-caret" style="font-size:16px;color:var(--text-muted);margin-left:2px;transition:transform 0.15s ease;">tune</span>
+        </div>
+
+        <div class="user-profile-dropdown" id="user-profile-dropdown" style="display:none;" onclick="event.stopPropagation()">
+          <div class="profile-popover-header">
+            <div class="user-avatar-badge" style="width:36px;height:36px;font-size:14px;border-radius:8px;">JP</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Jamie P.</div>
+              <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">jamiep@ionsolutions.com.au</div>
+            </div>
+            <span class="status-badge connected" style="font-size:10px;padding:2px 6px;">Online</span>
+          </div>
+
+          <div class="profile-popover-section">
+            <button class="profile-menu-item" onclick="openUserProfileDrawer(); closeUserProfileDropdown();" style="width:100%;text-align:left;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent-primary);">person</span>
+              <span style="font-weight:600;">View Profile &amp; Preferences</span>
+            </button>
+          </div>
+
+          <div class="profile-popover-footer">
+            <button class="profile-menu-item" onclick="switchTab('settings'); closeUserProfileDropdown();">
+              <span class="material-symbols-outlined" style="font-size:16px;">settings</span>
+              <span>System Settings</span>
+            </button>
+            <button class="profile-menu-item" onclick="switchTab('administration'); closeUserProfileDropdown();">
+              <span class="material-symbols-outlined" style="font-size:16px;">admin_panel_settings</span>
+              <span>Administration</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -119,7 +164,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span class="sidebar-label">Administration</span>
         </div>
-        <div class="gcal-nav-item" id="nav-settings" onclick="switchTab('settings')" title="DocuWare & System Settings">
+        <div class="gcal-nav-item" id="nav-settings" onclick="switchTab('settings')" title="System Settings & Integrations">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span class="sidebar-label">System Settings</span>
         </div>
@@ -129,41 +174,58 @@
     <!-- MAIN CONTENT -->
     <main class="gcal-main-content">
       <div class="view-container active" id="calendar-view">
+        <div class="module-header" id="scheduler-module-header">
+          <div class="module-header-content">
+            <div class="module-breadcrumb">OPERATIONS // DISPATCH</div>
+            <h1 class="module-title">Scheduler</h1>
+            <div class="module-subtitle">Manage fleet availability and dispatch operations</div>
+          </div>
+        </div>
         <!-- Rebuilt Scheduler Module Root (Clean Slate Container) -->
         <div id="calendar-body" class="day-scheduler-root"></div>
       </div><div class="view-container" id="job-board-view">
-<div class="page-header">
-<div>
-<div class="header-breadcrumb">OPERATIONS DISPATCH // JOB PIPELINE</div>
-<h1>Job Board &amp; Dispatch Pipeline</h1>
-<div class="subtitle">Live Job Lifecycle Management &amp; Contract Automation</div>
-</div>
-<div class="header-actions">
-<button class="btn-primary" onclick="openModal()">+ Quick Book</button>
-</div>
-</div>
-<div class="module-filter-bar">
-<div class="search-input-wrap">
-<svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-<input id="jb-search" oninput="renderJobBoard()" placeholder="Search client, asset code, or operator..." type="text"/>
-</div>
-<select class="module-filter-select" id="jb-stage-filter" onchange="renderJobBoard()">
-<option value="ALL">All Lifecycle Stages</option>
-<option value="Scheduled">Scheduled</option>
-<option value="Dispatched">Dispatched</option>
-<option value="On-Site">On-Site</option>
-<option value="Docket Verification">Docket Verification</option>
-<option value="Completed">Complete &amp; Ready to Bill</option>
-<option value="Invoiced">Invoiced</option>
-</select>
-</div>
-<div id="job-board-container" style="flex:1;overflow-x:auto;"></div>
-</div><div class="view-container" id="operator-view">
-  <div class="page-header" style="margin-bottom:16px;">
-    <div>
-      <div class="header-breadcrumb">OPERATIONS MANAGEMENT // ENTERPRISE ADMINISTRATION</div>
-      <h1 style="margin:0 0 4px 0;font-size:20px;font-weight:800;color:var(--text-primary);">Administration</h1>
-      <div class="subtitle" style="font-size:13px;color:var(--text-muted);">Fleet Registry, Workforce Licensing &amp; Operational Scheduling Rules</div>
+        <div class="module-header" id="jobboard-module-header">
+          <div class="module-header-content">
+            <div class="module-breadcrumb">OPERATIONS // DISPATCH PIPELINE</div>
+            <h1 class="module-title">Job Board</h1>
+            <div class="module-subtitle">Track job lifecycles and move bookings through dispatch stages</div>
+          </div>
+        </div>
+        <div class="jb-toolbar-container">
+          <div class="module-filter-bar jb-filter-bar">
+            <div class="search-input-wrap" style="flex:1;min-width:240px;max-width:380px;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
+              <input id="jb-search" oninput="renderJobBoard()" placeholder="Search by Job ID, client, asset, operator..." type="text"/>
+            </div>
+            <select class="module-filter-select" id="jb-stage-filter" onchange="renderJobBoard()">
+              <option value="ALL">All Lifecycle Stages (5 Lanes)</option>
+              <option value="EOI / Pending">EOI / Pending</option>
+              <option value="Scheduled / Dispatched">Scheduled / Dispatched</option>
+              <option value="Active On-Site">Active On-Site</option>
+              <option value="Pending Docket">Pending Docket</option>
+              <option value="Ready for Invoicing">Ready for Invoicing</option>
+            </select>
+            <div class="jb-sort-wrap">
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);">sort</span>
+              <select class="module-filter-select" id="jb-sort-by" onchange="window.sortJobBoardCards()">
+                <option value="date-asc">Date Ascending</option>
+                <option value="date-desc">Date Descending</option>
+                <option value="priority-first">Priority First</option>
+              </select>
+            </div>
+            <button class="btn-secondary" onclick="document.getElementById('jb-search').value='';document.getElementById('jb-stage-filter').value='ALL';document.getElementById('jb-sort-by').value='date-asc';renderJobBoard();" style="display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 14px;" title="Reset Filters">
+              <span class="material-symbols-outlined" style="font-size:16px;">filter_alt_off</span>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+        <div id="job-board-container" class="job-board-container" ondragover="window.handleJobBoardContainerDragOver(event)" style="flex:1;overflow-x:auto;"></div>
+      </div><div class="view-container" id="operator-view">
+  <div class="module-header" id="admin-module-header">
+    <div class="module-header-content">
+      <div class="module-breadcrumb">OPERATIONS MANAGEMENT // ADMINISTRATION</div>
+      <h1 class="module-title">Administration</h1>
+      <div class="module-subtitle">Manage fleet assets, workforce licensing, and operational scheduling rules</div>
     </div>
   </div>
 
@@ -177,6 +239,10 @@
       <span class="material-symbols-outlined">badge</span>
       <span>Personnel</span>
     </button>
+    <button class="admin-subnav-btn" id="admin-subtab-roles" onclick="switchAdminSubTab('roles')">
+      <span class="material-symbols-outlined">admin_panel_settings</span>
+      <span>Manage Roles</span>
+    </button>
     <button class="admin-subnav-btn" id="admin-subtab-scheduling" onclick="switchAdminSubTab('scheduling')">
       <span class="material-symbols-outlined">schedule</span>
       <span>Scheduling Rules</span>
@@ -186,20 +252,35 @@
   <!-- Subview 1: Fleet View -->
   <div class="admin-subview" id="admin-view-fleet" style="display:flex;flex-direction:column;gap:16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:520px;">
-        <div class="search-input-wrap" style="flex:1;">
+      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:720px;flex-wrap:wrap;">
+        <div class="search-input-wrap" style="flex:1;min-width:240px;">
           <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
-          <input id="admin-fleet-search" oninput="renderAdminFleetTable()" placeholder="Search fleet by ID, class, or description..." type="text" style="width:100%;"/>
+          <input id="admin-fleet-search" oninput="renderAdminFleetTable()" placeholder="Search fleet by ID, name, role, status..." type="text" style="width:100%;"/>
         </div>
         <select class="module-filter-select" id="admin-fleet-class-filter" onchange="renderAdminFleetTable()">
           <option value="ALL">All Fleet Classes</option>
         </select>
+        <select class="module-filter-select" id="admin-fleet-status-filter" onchange="renderAdminFleetTable()">
+          <option value="ALL">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Expired">Expired</option>
+        </select>
         <span class="badge" id="admin-fleet-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
       </div>
-      <button class="btn-primary" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-        <span>Add Asset</span>
-      </button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-secondary" id="admin-export-fleet-csv-btn" onclick="exportAdminFleetCSV()" title="Export Fleet Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:17px;">download</span>
+          <span>Export to CSV</span>
+        </button>
+        <button class="btn-secondary" id="admin-bulk-import-fleet-btn" onclick="openBulkImportAdminModal('fleet')" title="Bulk Import Fleet Assets from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:17px;">upload_file</span>
+          <span>Bulk Import</span>
+        </button>
+        <button class="btn-primary" id="admin-add-asset-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+          <span>Add Asset</span>
+        </button>
+      </div>
     </div>
 
     <!-- Clean, scalable HTML Data Table pulling from window.ionConfig.fleetRegistry -->
@@ -207,13 +288,25 @@
       <table class="admin-data-table" id="admin-fleet-table">
         <thead>
           <tr>
-            <th style="width:60px;">Color</th>
-            <th>Asset ID</th>
-            <th>Class / Category</th>
-            <th>Description</th>
-            <th>Default Operator</th>
-            <th>Operating Status</th>
-            <th style="width:100px;text-align:right;">Actions</th>
+            <th class="sortable" id="sort-th-fleet-color" onclick="sortAdminFleetTable('color')" style="width:70px;" title="Sort by Color">
+              <div class="th-wrap"><span>Color</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-color">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-fleet-id" onclick="sortAdminFleetTable('id')" title="Sort by Asset ID">
+              <div class="th-wrap"><span>Asset ID</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-id">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-fleet-class" onclick="sortAdminFleetTable('class')" title="Sort by Class / Category">
+              <div class="th-wrap"><span>Class / Category</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-class">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-fleet-description" onclick="sortAdminFleetTable('description')" title="Sort by Description">
+              <div class="th-wrap"><span>Description</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-description">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-fleet-workerName" onclick="sortAdminFleetTable('workerName')" title="Sort by Default Operator">
+              <div class="th-wrap"><span>Default Operator</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-workerName">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-fleet-status" onclick="sortAdminFleetTable('status')" title="Sort by Operating Status">
+              <div class="th-wrap"><span>Operating Status</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-fleet-status">unfold_more</span></div>
+            </th>
+            <th style="width:160px;text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody id="admin-fleet-table-body">
@@ -226,24 +319,38 @@
   <!-- Subview 2: Personnel View -->
   <div class="admin-subview" id="admin-view-personnel" style="display:none;flex-direction:column;gap:16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:560px;">
-        <div class="search-input-wrap" style="flex:1;">
+      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:720px;flex-wrap:wrap;">
+        <div class="search-input-wrap" style="flex:1;min-width:240px;">
           <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
-          <input id="admin-workers-search" oninput="renderAdminPersonnelTable()" placeholder="Search personnel by name, role, or licence..." type="text" style="width:100%;"/>
+          <input id="admin-workers-search" oninput="renderAdminPersonnelTable()" placeholder="Search personnel by name, role, status..." type="text" style="width:100%;"/>
         </div>
         <select class="module-filter-select" id="admin-workers-role-filter" onchange="renderAdminPersonnelTable()">
-          <option value="ALL">All Roles</option>
-          <option value="Crane Operator">Crane Operators</option>
-          <option value="Plant Operator">Plant Operators</option>
-          <option value="Dogman">Dogmen</option>
-          <option value="Rigger">Riggers</option>
+          <option value="ALL">All Roles &amp; Depts</option>
         </select>
         <select class="module-filter-select" id="admin-workers-status-filter" onchange="renderAdminPersonnelTable()">
-          <option value="ALL">All HRWL Statuses</option>
-          <option value="Active">Active Only</option>
-          <option value="Expired">Expired (Locked)</option>
+          <option value="ALL">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Expired">Expired</option>
         </select>
         <span class="badge" id="admin-workers-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-secondary" id="admin-export-personnel-csv-btn" onclick="exportAdminPersonnelCSV()" title="Export Personnel Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:17px;">download</span>
+          <span>Export to CSV</span>
+        </button>
+        <button class="btn-secondary" id="admin-bulk-import-personnel-btn" onclick="openBulkImportAdminModal('personnel')" title="Bulk Import Personnel from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:17px;">upload_file</span>
+          <span>Bulk Import</span>
+        </button>
+        <button class="btn-secondary" id="admin-goto-roles-btn" onclick="switchAdminSubTab('roles')" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">admin_panel_settings</span>
+          <span>Manage Roles</span>
+        </button>
+        <button class="btn-primary" id="admin-add-worker-btn" onclick="openAddPersonnelAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
+          <span>Add Personnel</span>
+        </button>
       </div>
     </div>
 
@@ -252,12 +359,28 @@
       <table class="admin-data-table" id="admin-personnel-table">
         <thead>
           <tr>
-            <th>Worker Name</th>
-            <th>Role</th>
-            <th>HRWL Licence Class</th>
-            <th>Licence Number</th>
-            <th>HRWL Expiry</th>
-            <th>HRWL Status</th>
+            <th class="sortable" id="sort-th-personnel-name" onclick="sortAdminPersonnelTable('name')" title="Sort by Worker Name">
+              <div class="th-wrap"><span>Worker Name</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-name">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-role" onclick="sortAdminPersonnelTable('role')" title="Sort by Role & Department">
+              <div class="th-wrap"><span>Role &amp; Department</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-role">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-contact" onclick="sortAdminPersonnelTable('contact')" title="Sort by Contact Info">
+              <div class="th-wrap"><span>Contact</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-contact">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-licenseClass" onclick="sortAdminPersonnelTable('licenseClass')" title="Sort by Licence Class">
+              <div class="th-wrap"><span>Licence / Cert Class</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-licenseClass">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-licenseNumber" onclick="sortAdminPersonnelTable('licenseNumber')" title="Sort by Licence Number">
+              <div class="th-wrap"><span>Licence Number</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-licenseNumber">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-hrwlExpiry" onclick="sortAdminPersonnelTable('hrwlExpiry')" title="Sort by Licence Expiry">
+              <div class="th-wrap"><span>Licence Expiry</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-hrwlExpiry">unfold_more</span></div>
+            </th>
+            <th class="sortable" id="sort-th-personnel-status" onclick="sortAdminPersonnelTable('status')" title="Sort by Status">
+              <div class="th-wrap"><span>Status</span><span class="material-symbols-outlined sort-indicator" id="sort-icon-personnel-status">unfold_more</span></div>
+            </th>
+            <th style="width:160px;text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody id="admin-personnel-table-body">
@@ -267,14 +390,105 @@
     </div>
   </div>
 
+  <!-- Subview 3: Dedicated Manage Roles View -->
+  <div class="admin-subview" id="admin-view-roles" style="display:none;flex-direction:column;gap:16px;">
+    <!-- Top Configuration Card: Add New Predefined Role -->
+    <div class="settings-card glass-panel" style="max-width:100%;background:var(--bg-primary);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--accent-copper);letter-spacing:1px;text-transform:uppercase;">ENTERPRISE ADMINISTRATION // ROLE REGISTRY</div>
+          <h3 style="margin:2px 0 4px 0;font-size:18px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+            <span class="material-symbols-outlined" style="color:var(--accent-primary);font-size:22px;">admin_panel_settings</span>
+            <span>Predefined Organization Roles</span>
+          </h3>
+          <p style="margin:0;font-size:13px;color:var(--text-secondary);max-width:700px;">
+            Add or remove predefined organizational roles across Office, Sales, Administration, Operations, and Safety. Updating roles here ensures consistent, synchronized dropdown options across all personnel creation and filter workflows.
+          </p>
+        </div>
+      </div>
+
+      <!-- Add Role Input Form -->
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="settings-field" style="margin:0;min-width:160px;flex:1;">
+          <label style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:4px;display:block;">Department *</label>
+          <select id="admin-new-role-dept" class="dropdown-btn" style="appearance:auto;width:100%;height:38px;font-size:13px;">
+            <option value="Administration">Administration</option>
+            <option value="Office">Office &amp; Management</option>
+            <option value="Sales">Sales &amp; Estimating</option>
+            <option value="Operations">Operations &amp; Field</option>
+            <option value="Safety">Safety &amp; Compliance</option>
+          </select>
+        </div>
+        <div class="settings-field" style="margin:0;min-width:220px;flex:2;">
+          <label style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:4px;display:block;">Role Title *</label>
+          <input id="admin-new-role-title" placeholder="e.g. Senior Estimator / Technical Hire Lead" type="text" style="height:38px;font-size:13px;width:100%;"/>
+        </div>
+        <div class="settings-field" style="margin:0;min-width:170px;flex:1;">
+          <label style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:4px;display:block;">Compliance Standard</label>
+          <select id="admin-new-role-type" class="dropdown-btn" style="appearance:auto;width:100%;height:38px;font-size:13px;">
+            <option value="Exempt">Exempt (Office / Sales)</option>
+            <option value="HRWL">HRWL Licenced (Operations)</option>
+            <option value="Safety">Safety / WHS Certified</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="submitAddRoleAdmin()" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 18px;white-space:nowrap;">
+          <span class="material-symbols-outlined" style="font-size:18px;">add_circle</span>
+          <span>Add Role</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Filter & Table -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:640px;flex-wrap:wrap;">
+        <div class="search-input-wrap" style="flex:1;min-width:240px;">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
+          <input id="admin-roles-search" oninput="renderAdminRolesTable()" placeholder="Search roles by title, department, or standard..." type="text" style="width:100%;"/>
+        </div>
+        <select class="module-filter-select" id="admin-roles-dept-filter" onchange="renderAdminRolesTable()">
+          <option value="ALL">All Departments</option>
+          <option value="Administration">Administration</option>
+          <option value="Office">Office &amp; Management</option>
+          <option value="Sales">Sales &amp; Estimating</option>
+          <option value="Operations">Operations &amp; Field</option>
+          <option value="Safety">Safety &amp; Compliance</option>
+        </select>
+        <span class="badge" id="admin-roles-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+      </div>
+    </div>
+
+    <div class="admin-table-card">
+      <table class="admin-data-table" id="admin-roles-table">
+        <thead>
+          <tr>
+            <th style="width:180px;">Department</th>
+            <th>Role Title</th>
+            <th style="width:180px;">Compliance Standard</th>
+            <th style="width:160px;">Active Assigned</th>
+            <th style="width:120px;text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-roles-table-body">
+          <!-- Populated dynamically from window.ionConfig.roleRegistry -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Subview 3: Scheduling Rules View -->
   <div class="admin-subview" id="admin-view-scheduling" style="display:none;flex-direction:column;gap:16px;">
     <div class="settings-card glass-panel" style="max-width:720px;">
-      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
-        <span class="material-symbols-outlined" style="color:var(--accent-copper);">schedule</span>
-        <span>Operational Scheduling Rules &amp; Overtime Multipliers</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+        <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;margin:0;">
+          <span class="material-symbols-outlined" style="color:var(--accent-copper);">schedule</span>
+          <span>Operational Scheduling Rules &amp; Overtime Multipliers</span>
+        </div>
+        <div id="admin-sched-autosave-badge" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(5,150,105,0.1);color:#059669;border:1px solid rgba(5,150,105,0.25);">
+          <span class="material-symbols-outlined" style="font-size:15px;">cloud_done</span>
+          <span id="admin-sched-autosave-text">Auto-saved to Local Storage</span>
+        </div>
       </div>
-      <div class="settings-section-subtitle">Define daily operational shift boundaries, standard work hours, and enterprise overtime calculation thresholds</div>
+      <div class="settings-section-subtitle">Define daily operational shift boundaries, standard work hours, and enterprise overtime calculation thresholds (changes auto-persist in real time)</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="settings-field">
@@ -429,41 +643,41 @@
 </div>
 </div>
 </div><div class="view-container" id="settings-view">
-  <div class="page-header" style="margin-bottom:16px;">
-    <div>
-      <div class="header-breadcrumb">SYSTEM CONFIGURATION // IT INFRASTRUCTURE &amp; INTEGRATIONS</div>
-      <h1 style="margin:0 0 4px 0;font-size:20px;font-weight:800;color:var(--text-primary);">System Settings</h1>
-      <div class="subtitle" style="font-size:13px;color:var(--text-muted);">Enterprise Integrations, Inbound Webhooks &amp; Regional IT Configuration</div>
+  <div class="module-header" id="settings-module-header">
+    <div class="module-header-content">
+      <div class="module-breadcrumb">SYSTEM CONFIGURATION // IT &amp; INTEGRATIONS</div>
+      <h1 class="module-title">System Settings</h1>
+      <div class="module-subtitle">Configure enterprise integrations, document management, and API connections</div>
     </div>
   </div>
 
-  <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:20px;">
-    <!-- Card 1: Document Management Sync (DocuWare API) -->
+  <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:20px;padding:20px 24px;">
+    <!-- Card 1: Enterprise Document Management (EDMS) Sync -->
     <div class="settings-card glass-panel">
       <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:var(--accent-copper);">description</span>
-        <span>Document Management Sync (DocuWare API)</span>
+        <span>Enterprise Document Management (EDMS) Sync</span>
       </div>
-      <div class="settings-section-subtitle">Automate hire agreements, compliance certificates, and billing sync via DocuWare Platform API</div>
+      <div class="settings-section-subtitle">Automate hire agreements, compliance certificates, and billing sync via REST API</div>
       
       <div class="settings-field">
-        <label>DocuWare Platform API Endpoint</label>
-        <input id="it-dw-endpoint" type="url" placeholder="https://your-instance.docuware.cloud/DocuWare/Platform" value="https://your-instance.docuware.cloud/DocuWare/Platform"/>
+        <label>EDMS Platform API Endpoint</label>
+        <input id="it-dw-endpoint" type="url" placeholder="https://api.edms-provider.com/v1/documents" value="https://api.edms-provider.com/v1/documents"/>
       </div>
       <div class="settings-field">
-        <label>DocuWare Vault / Organisation ID</label>
-        <input id="it-dw-org" type="text" placeholder="DW-VAULT-8802" value="DW-VAULT-8802"/>
+        <label>EDMS Repository / Organisation ID</label>
+        <input id="it-dw-org" type="text" placeholder="ORG-VAULT-8802" value="ORG-VAULT-8802"/>
       </div>
       <div class="settings-field">
         <label>Secure API Bearer Token</label>
-        <input id="it-dw-token" type="password" placeholder="••••••••••••••••" value="dwtok_live_992147318820"/>
+        <input id="it-dw-token" type="password" placeholder="••••••••••••••••" value="edms_tok_live_992147318820"/>
       </div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
-        <button class="btn-primary" onclick="saveDocuWareITSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-primary settings-save-btn" id="btn-save-edms" onclick="saveEdmsSettings()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">cloud_sync</span>
           <span>Save &amp; Connect API</span>
         </button>
-        <button class="btn-secondary" onclick="testDocuWareHandshake()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" id="btn-test-edms" onclick="testEdmsHandshake()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">network_check</span>
           <span>Test Handshake</span>
         </button>
@@ -474,32 +688,32 @@
       </div>
     </div>
 
-    <!-- Card 2: Financial Sync (Xero Webhooks) -->
+    <!-- Card 2: ERP & General Ledger Webhooks -->
     <div class="settings-card glass-panel">
       <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:#0284c7;">payments</span>
-        <span>Financial Sync (Xero Webhooks)</span>
+        <span>ERP &amp; General Ledger Webhooks</span>
       </div>
-      <div class="settings-section-subtitle">Inbound webhook listener and automated ledger reconciliation with Xero Accounting</div>
+      <div class="settings-section-subtitle">Inbound webhook listener and automated ledger reconciliation with ERP &amp; General Ledger</div>
 
       <div class="settings-field">
-        <label>Xero Webhook Inbound URL (Read-Only)</label>
-        <input id="it-xero-endpoint" readonly style="color:var(--text-muted);background:var(--bg-secondary);" type="text" value="https://api.xero.com/webhooks/v2/hireengine-sync"/>
+        <label>ERP Webhook Inbound URL (Read-Only)</label>
+        <input id="it-xero-endpoint" readonly style="color:var(--text-muted);background:var(--bg-secondary);" type="text" value="https://api.erp-system.com/webhooks/v1/ledger-sync"/>
       </div>
       <div class="settings-field">
         <label>Webhook HMAC Signing Secret</label>
-        <input id="it-xero-secret" type="password" placeholder="Set webhook HMAC key" value="xero_sec_884920194857"/>
+        <input id="it-xero-secret" type="password" placeholder="Set webhook HMAC key" value="erp_sec_884920194857"/>
       </div>
       <div class="settings-field">
-        <label>Target Xero Tenant Name</label>
-        <input id="it-xero-tenant" type="text" placeholder="Organisation Name" value="ION Plant Hire Pty Ltd"/>
+        <label>Target ERP Tenant / Ledger Entity</label>
+        <input id="it-xero-tenant" type="text" placeholder="Enterprise Ledger Entity" value="ION Operations Pty Ltd"/>
       </div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
-        <button class="btn-primary" onclick="saveXeroITSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-primary settings-save-btn" id="btn-save-erp" onclick="saveErpSettings()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">save</span>
-          <span>Save Xero Config</span>
+          <span>Save ERP Config</span>
         </button>
-        <button class="btn-secondary" onclick="triggerXeroReconciliation()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" id="btn-reconcile-erp" onclick="triggerErpReconciliation()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">sync</span>
           <span>Reconcile Invoices</span>
         </button>
@@ -543,7 +757,7 @@
         </select>
       </div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:12px;">
-        <button class="btn-primary" onclick="saveLocalisationSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-primary settings-save-btn" id="btn-save-loc" onclick="saveLocalisationSettings()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">save</span>
           <span>Save Localisation</span>
         </button>
@@ -556,21 +770,24 @@
   </div>
 </div>
 
-<!-- Admin Add Fleet Asset Modal -->
+<!-- Admin Add / Edit Fleet Asset Modal -->
 <div class="modal-overlay" id="admin-add-asset-modal" style="display:none;">
   <div class="modal-box" style="max-width:540px;padding:24px;border-radius:var(--radius-lg);background:var(--bg-primary);border:1px solid var(--border-light);box-shadow:var(--shadow-lg);">
     <div class="modal-header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div class="modal-eyebrow" style="font-size:10px;font-weight:800;color:var(--accent-copper);letter-spacing:1px;text-transform:uppercase;">ENTERPRISE ADMINISTRATION // FLEET REGISTRY</div>
-        <h2 style="margin:2px 0 0 0;font-size:18px;font-weight:800;color:var(--text-primary);">Add Fleet Asset</h2>
+        <h2 id="admin-asset-modal-title" style="margin:2px 0 0 0;font-size:18px;font-weight:800;color:var(--text-primary);">Add Fleet Asset</h2>
       </div>
       <button class="modal-close" onclick="closeAddAssetAdminModal()" aria-label="Close modal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:20px;">close</span></button>
     </div>
 
+    <input type="hidden" id="modal-asset-mode" value="add"/>
+    <input type="hidden" id="modal-asset-original-id" value=""/>
+
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div class="settings-field">
         <label>Asset Identification Code (ID)</label>
-        <input id="modal-asset-id" placeholder="e.g. FC15, CR03, AT12" maxlength="10" type="text"/>
+        <input id="modal-asset-id" placeholder="e.g. FC15, CR03, AT12" maxlength="12" type="text"/>
       </div>
       <div class="settings-field">
         <label>Asset Class / Equipment Category</label>
@@ -578,17 +795,28 @@
       </div>
       <div class="settings-field">
         <label>Operational Description</label>
-        <input id="modal-asset-desc" placeholder="e.g. 25T Pick & Carry Mobile Crane" type="text"/>
+        <input id="modal-asset-desc" placeholder="e.g. 25T Pick &amp; Carry Mobile Crane" type="text"/>
       </div>
-      <div class="settings-field">
-        <label>Dispatch Board Colour Code</label>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <input id="modal-asset-color" type="color" value="#0284c7" oninput="document.getElementById('modal-asset-hex').value=this.value" style="width:40px;height:36px;border:none;border-radius:4px;cursor:pointer;background:none;"/>
-          <input id="modal-asset-hex" type="text" maxlength="7" value="#0284c7" oninput="document.getElementById('modal-asset-color').value=this.value" style="width:110px;font-family:monospace;"/>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>Dispatch Board Colour Code</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="modal-asset-color" type="color" value="#0284c7" oninput="document.getElementById('modal-asset-hex').value=this.value" style="width:38px;height:36px;border:none;border-radius:4px;cursor:pointer;background:none;"/>
+            <input id="modal-asset-hex" type="text" maxlength="7" value="#0284c7" oninput="document.getElementById('modal-asset-color').value=this.value" style="width:90px;font-family:monospace;"/>
+          </div>
+        </div>
+        <div class="settings-field">
+          <label>Operating Status</label>
+          <select id="modal-asset-status" class="dropdown-btn" style="appearance:auto;width:100%;">
+            <option value="available">Available (Operational)</option>
+            <option value="maintenance">Maintenance / Inactive</option>
+            <option value="overtime">Overtime Flagged</option>
+            <option value="standby">Standby / In Yard</option>
+          </select>
         </div>
       </div>
       <div class="settings-field">
-        <label>Default Allocated Operator / Crew</label>
+        <label>Default Allocated Operator / Driver</label>
         <select id="modal-asset-worker" class="dropdown-btn" style="appearance:auto;width:100%;">
           <!-- Populated from window.ionConfig.workerRegistry -->
         </select>
@@ -596,9 +824,208 @@
 
       <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
         <button class="btn-secondary" onclick="closeAddAssetAdminModal()">Cancel</button>
-        <button class="btn-primary" onclick="submitAddAssetAdmin()" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:16px;">add</span>
-          <span>Register Asset</span>
+        <button class="btn-primary" id="admin-asset-modal-submit-btn" onclick="submitAddAssetAdmin()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span id="admin-asset-modal-submit-label">Register Asset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Add / Edit Personnel & Roles Modal -->
+<div class="modal-overlay" id="admin-add-worker-modal" style="display:none;">
+  <div class="modal-box" style="max-width:580px;padding:24px;border-radius:var(--radius-lg);background:var(--bg-primary);border:1px solid var(--border-light);box-shadow:var(--shadow-lg);">
+    <div class="modal-header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="modal-eyebrow" style="font-size:10px;font-weight:800;color:var(--accent-copper);letter-spacing:1px;text-transform:uppercase;">ENTERPRISE ADMINISTRATION // PERSONNEL &amp; ROLES</div>
+        <h2 id="admin-worker-modal-title" style="margin:2px 0 0 0;font-size:18px;font-weight:800;color:var(--text-primary);">Add Personnel Member</h2>
+      </div>
+      <button class="modal-close" onclick="closeAddPersonnelAdminModal()" aria-label="Close modal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:20px;">close</span></button>
+    </div>
+
+    <input type="hidden" id="modal-worker-mode" value="add"/>
+    <input type="hidden" id="modal-worker-id" value=""/>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="settings-field">
+        <label>Full Name *</label>
+        <input id="modal-worker-name" placeholder="e.g. Sarah Jenkins" type="text" required/>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>Department / Function *</label>
+          <select id="modal-worker-dept" class="dropdown-btn" onchange="onWorkerDepartmentChange()" style="appearance:auto;width:100%;">
+            <option value="Operations">Operations &amp; Field Crews</option>
+            <option value="Administration">Administration &amp; Fleet Ops</option>
+            <option value="Office">Office &amp; Management</option>
+            <option value="Sales">Sales &amp; Estimating</option>
+            <option value="Safety">Safety &amp; Compliance</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label>Role / Position Title *</label>
+          <select id="modal-worker-role-preset" class="dropdown-btn" onchange="onWorkerRolePresetChange()" style="appearance:auto;width:100%;">
+            <!-- Populated dynamically based on department -->
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-field" id="modal-worker-custom-role-wrap" style="display:none;">
+        <label>Specify Custom Role Title</label>
+        <input id="modal-worker-custom-role" placeholder="e.g. Senior Crane Allocator / Logistics Lead" type="text"/>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>Contact Phone</label>
+          <input id="modal-worker-phone" placeholder="e.g. 0412 345 678" type="tel"/>
+        </div>
+        <div class="settings-field">
+          <label>Contact Email</label>
+          <input id="modal-worker-email" placeholder="e.g. s.jenkins@ionhire.com.au" type="email"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>HRWL / Qualification Class</label>
+          <input id="modal-worker-lic-class" placeholder="e.g. C1 / C6, DG, or N/A (Office)" type="text"/>
+        </div>
+        <div class="settings-field">
+          <label>Licence / Certificate Number</label>
+          <input id="modal-worker-lic-num" placeholder="e.g. QLD-HRW-C1-28491" type="text"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>HRWL Expiry Date (if applicable)</label>
+          <input id="modal-worker-lic-expiry" type="date"/>
+        </div>
+        <div class="settings-field">
+          <label>Compliance / Work Status</label>
+          <select id="modal-worker-status" class="dropdown-btn" style="appearance:auto;width:100%;">
+            <option value="Active">Active (Compliant)</option>
+            <option value="Exempt">Exempt (Office / Sales / Admin)</option>
+            <option value="Pending">Pending Renewal</option>
+            <option value="Expired">Expired (Locked)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+        <button class="btn-secondary" onclick="closeAddPersonnelAdminModal()">Cancel</button>
+        <button class="btn-primary" id="admin-worker-modal-submit-btn" onclick="submitPersonnelAdmin()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span id="admin-worker-modal-submit-label">Register Personnel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Delete Confirmation Modal (In-App Dialog, eliminates iframe confirm() blocking) -->
+<div class="modal-overlay" id="admin-delete-confirm-modal" style="display:none;z-index:9999;">
+  <div class="modal-box" style="max-width:460px;padding:24px;border-radius:var(--radius-lg);background:var(--bg-primary);border:1px solid var(--border-light);box-shadow:var(--shadow-lg);">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:rgba(220,38,38,0.12);color:var(--color-danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="material-symbols-outlined" style="font-size:24px;">delete_forever</span>
+      </div>
+      <div style="flex:1;">
+        <h3 id="admin-delete-confirm-title" style="margin:0 0 4px 0;font-size:17px;font-weight:800;color:var(--text-primary);">Delete Record</h3>
+        <p id="admin-delete-confirm-message" style="margin:0;font-size:13px;color:var(--text-secondary);line-height:1.5;">Are you sure you want to delete this record? This action will remove it from the global configuration registry.</p>
+      </div>
+    </div>
+    <div id="admin-delete-confirm-details" style="padding:10px 14px;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border-light);margin-bottom:18px;font-size:12.5px;">
+      <!-- Populated dynamically -->
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-secondary" onclick="closeDeleteConfirmModal()">Cancel</button>
+      <button class="btn-primary" id="admin-delete-confirm-btn" style="background:var(--color-danger);border-color:var(--color-danger);display:inline-flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:16px;">delete</span>
+        <span id="admin-delete-confirm-btn-label">Confirm Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Bulk Import Modal (Supports JSON and CSV for Fleet or Personnel) -->
+<div class="modal-overlay" id="admin-bulk-import-modal" style="display:none;z-index:9998;">
+  <div class="modal-box" style="max-width:640px;padding:24px;border-radius:var(--radius-lg);background:var(--bg-primary);border:1px solid var(--border-light);box-shadow:var(--shadow-lg);">
+    <div class="modal-header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="modal-eyebrow" style="font-size:10px;font-weight:800;color:var(--accent-copper);letter-spacing:1px;text-transform:uppercase;">ENTERPRISE ADMINISTRATION // BULK DATA IMPORT</div>
+        <h2 style="margin:2px 0 0 0;font-size:18px;font-weight:800;color:var(--text-primary);">Bulk Import Registry Data</h2>
+      </div>
+      <button class="modal-close" onclick="closeBulkImportAdminModal()" aria-label="Close modal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:20px;">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Target Registry & Mode -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="settings-field">
+          <label>Target Registry Destination</label>
+          <select id="bulk-import-target" class="dropdown-btn" onchange="onBulkImportTargetChange()" style="appearance:auto;width:100%;">
+            <option value="fleet">Fleet Assets Registry</option>
+            <option value="personnel">Personnel &amp; Workers Registry</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label>Import Mode</label>
+          <select id="bulk-import-mode" class="dropdown-btn" style="appearance:auto;width:100%;">
+            <option value="merge">Merge &amp; Update (Matches by ID)</option>
+            <option value="append">Append as New Records</option>
+            <option value="replace">Replace Entire Registry</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sample Templates Download Bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border-light);flex-wrap:wrap;gap:8px;">
+        <div style="font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent-primary);">download_for_offline</span>
+          <span>Sample Templates:</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="downloadSampleTemplate('fleet-csv')" style="font-size:11px;padding:3px 8px;height:auto;">Fleet CSV</button>
+          <button type="button" class="btn-secondary" onclick="downloadSampleTemplate('personnel-csv')" style="font-size:11px;padding:3px 8px;height:auto;">Personnel CSV</button>
+          <button type="button" class="btn-secondary" onclick="downloadSampleTemplate('json')" style="font-size:11px;padding:3px 8px;height:auto;">JSON Sample</button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div id="bulk-import-dropzone" class="bulk-import-dropzone" onclick="document.getElementById('bulk-import-file-input').click()">
+        <span class="material-symbols-outlined" style="font-size:36px;color:var(--accent-primary);margin-bottom:6px;">upload_file</span>
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-primary);">Click or drag &amp; drop file here</div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">Supports CSV (.csv) or JSON (.json) files</div>
+        <input type="file" id="bulk-import-file-input" accept=".csv, .json, text/csv, application/json" style="display:none;" onchange="handleBulkImportFileSelected(event)"/>
+      </div>
+
+      <!-- File Status & Parsed Preview Area -->
+      <div id="bulk-import-preview-wrap" style="display:none;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#059669;">check_circle</span>
+            <span id="bulk-import-filename" style="font-size:12.5px;font-weight:700;color:var(--text-primary);">file.csv</span>
+            <span id="bulk-import-badge" class="status-badge connected" style="font-size:11px;padding:1px 6px;">0 records</span>
+          </div>
+          <button type="button" class="btn-secondary" onclick="clearBulkImportFile()" style="font-size:11px;padding:2px 8px;height:auto;">Change File</button>
+        </div>
+        <div style="max-height:160px;overflow-y:auto;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-secondary);">
+          <table class="admin-data-table" style="font-size:11px;">
+            <thead id="bulk-preview-thead"></thead>
+            <tbody id="bulk-preview-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
+        <button class="btn-secondary" onclick="closeBulkImportAdminModal()">Cancel</button>
+        <button class="btn-primary" id="bulk-import-submit-btn" onclick="executeBulkImport()" disabled style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">file_download_done</span>
+          <span>Execute Bulk Import</span>
         </button>
       </div>
     </div>
@@ -741,10 +1168,15 @@
       <div class="form-group">
         <label for="booking-status">Booking Status</label>
         <select id="booking-status">
-          <option value="Scheduled" selected>Scheduled</option>
+          <option value="EOI / Pending">EOI / Pending</option>
+          <option value="Scheduled / Dispatched" selected>Scheduled / Dispatched</option>
+          <option value="Active On-Site">Active On-Site</option>
+          <option value="Pending Docket">Pending Docket</option>
+          <option value="Ready for Invoicing">Ready for Invoicing</option>
+          <option value="Scheduled">Scheduled (Legacy)</option>
           <option value="Urgent">Urgent</option>
-          <option value="Invoiced">Invoiced</option>
-          <option value="Completed">Completed</option>
+          <option value="Invoiced">Invoiced (Legacy)</option>
+          <option value="Completed">Completed (Legacy)</option>
           <option value="Out of Service">Out of Service</option>
         </select>
       </div>
@@ -1129,6 +1561,153 @@
       <!-- Action buttons -->
     </div>
   </aside>
+</div>
+
+<!-- User Profile Slide-Out Drawer Backdrop & Panel -->
+<div id="user-profile-drawer-backdrop" class="drawer-backdrop" onclick="closeUserProfileDrawer()"></div>
+<aside id="user-profile-drawer" class="user-profile-drawer" aria-label="User Profile and Preferences Drawer">
+  <div class="profile-drawer-header">
+    <div class="profile-drawer-header-title-wrap">
+      <span class="material-symbols-outlined profile-drawer-header-icon">account_circle</span>
+      <h2 class="profile-drawer-title">User Profile</h2>
+    </div>
+    <button class="drawer-close-btn" onclick="closeUserProfileDrawer()" title="Close profile drawer (Esc)">
+      <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+    </button>
+  </div>
+
+  <div class="profile-drawer-body">
+    <!-- Profile Hero Card -->
+    <div class="profile-hero-card">
+      <div class="profile-avatar-large">JP</div>
+      <div class="profile-hero-info">
+        <h3 class="profile-hero-name" id="drawer-user-name">Jamie P.</h3>
+        <span class="profile-hero-role-badge" id="drawer-user-role">Dispatcher</span>
+        <div class="profile-hero-email" id="drawer-user-email">jamiep@ionsolutions.com.au</div>
+      </div>
+    </div>
+
+    <!-- Account Details Section -->
+    <div class="profile-drawer-section">
+      <div class="profile-drawer-section-heading">Account Information</div>
+      <div class="profile-info-group">
+        <div class="profile-info-row">
+          <span class="profile-info-label">Full Name</span>
+          <span class="profile-info-value">Jamie P.</span>
+        </div>
+        <div class="profile-info-row">
+          <span class="profile-info-label">Role</span>
+          <span class="profile-info-value">Dispatcher</span>
+        </div>
+        <div class="profile-info-row">
+          <span class="profile-info-label">Email</span>
+          <span class="profile-info-value">jamiep@ionsolutions.com.au</span>
+        </div>
+        <div class="profile-info-row">
+          <span class="profile-info-label">Organisation</span>
+          <span class="profile-info-value">ionSolutions Operations</span>
+        </div>
+        <div class="profile-info-row">
+          <span class="profile-info-label">System Status</span>
+          <span class="profile-info-value" style="color:var(--color-compliant);display:flex;align-items:center;gap:4px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--color-compliant);display:inline-block;"></span>
+            Active
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security & Password Section -->
+    <div class="profile-drawer-section">
+      <div class="profile-drawer-section-heading">Security &amp; Credentials</div>
+      <button class="btn-secondary profile-password-btn" id="drawer-change-password-btn" onclick="openChangePasswordModal()" type="button">
+        <span class="material-symbols-outlined" style="font-size: 18px;">lock_reset</span>
+        <span>Change Password</span>
+      </button>
+    </div>
+
+    <!-- Theme & Display Preferences -->
+    <div class="profile-drawer-section">
+      <div class="profile-drawer-section-heading">Interface Preferences</div>
+      <div class="profile-theme-toggle-row">
+        <div class="profile-theme-toggle-left">
+          <span class="material-symbols-outlined profile-theme-icon" id="drawer-theme-icon">dark_mode</span>
+          <div>
+            <div class="profile-theme-name">Dark Theme</div>
+            <div class="profile-theme-desc" id="drawer-theme-desc">ion brand purple &amp; flat dark palette</div>
+          </div>
+        </div>
+        <label class="switch-toggle" style="margin:0;">
+          <input type="checkbox" id="drawer-dark-mode-toggle" onchange="applyTheme(this.checked ? 'dark' : 'light', true)">
+          <span class="slider-round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Permissions & Roles Badges -->
+    <div class="profile-drawer-section" style="border-bottom:none;">
+      <div class="profile-drawer-section-heading">Assigned Authorisations</div>
+      <div class="profile-access-grid">
+        <div class="profile-access-chip">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-compliant);">check_circle</span>
+          <span>Fleet Dispatch &amp; Schedule Operations</span>
+        </div>
+        <div class="profile-access-chip">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-compliant);">check_circle</span>
+          <span>Job Pipeline &amp; Docket Processing</span>
+        </div>
+        <div class="profile-access-chip">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-compliant);">check_circle</span>
+          <span>Registry &amp; Personnel Administration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-drawer-footer">
+    <button class="btn-secondary" onclick="closeUserProfileDrawer()" style="width:100%;height:36px;">
+      <span>Close Drawer</span>
+    </button>
+  </div>
+</aside>
+
+<!-- Change Password Modal Dialog -->
+<div class="modal-overlay" id="change-password-modal" style="display:none;" onclick="if(event.target===this)closeChangePasswordModal()">
+  <div class="modal-box" style="max-width:440px;width:100%;" onclick="event.stopPropagation()">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-primary);font-size:22px;">lock</span>
+        <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text-primary);">Change Password</h3>
+      </div>
+      <button class="drawer-close-btn" onclick="closeChangePasswordModal()" title="Close">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+      </button>
+    </div>
+
+    <form id="change-password-form" onsubmit="saveNewPassword(event)" style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
+      <div class="settings-field">
+        <label for="pwd-current">Current Password</label>
+        <input type="password" id="pwd-current" required placeholder="Enter current password" autocomplete="current-password" />
+      </div>
+      <div class="settings-field">
+        <label for="pwd-new">New Password</label>
+        <input type="password" id="pwd-new" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password" />
+      </div>
+      <div class="settings-field">
+        <label for="pwd-confirm">Confirm New Password</label>
+        <input type="password" id="pwd-confirm" required minlength="6" placeholder="Repeat new password" autocomplete="new-password" />
+      </div>
+      <div id="change-pwd-error" style="display:none;color:var(--color-danger);font-size:12px;font-weight:600;"></div>
+      
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+        <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+        <button type="submit" class="btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">check</span>
+          <span>Update Password</span>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>

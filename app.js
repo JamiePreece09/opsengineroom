@@ -5,7 +5,7 @@
  */
 import { clientsRegistry, projectsRegistry, addClient, addProject, assetRegistry, addAsset, removeAssetById, updateAssetById,
  complianceRegistry, updateComplianceRecord,
- workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById,
+ workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById, addWorker, updateWorkerById, removeWorkerById,
  bookings, addBooking, updateBooking, removeBooking, getBookingById, getAssetHex,
  HOURLY_RATES, HIRE_TYPES } from './dataModels.js';
 import { ComplianceEngine } from './complianceEngine.js';
@@ -35,21 +35,28 @@ window.ionConfig = {
     { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1 }
   ],
   workerRegistry: [
-    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', hrwlExpiry: '2027-03-15', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491' },
-    { id: 'W002', name: 'John Smith', role: 'Crane Operator', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234' },
-    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120' },
-    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981' },
-    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023' },
-    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211' },
-    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102' },
-    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301' },
-    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908' },
-    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123' },
-    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201' },
-    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409' },
-    { id: 'W013', name: 'Gary White', role: 'Rigger', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984' },
-    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410' },
-    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042' }
+    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-03-15', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491', phone: '0412 001 001', email: 'l.harris@hireengine.com.au' },
+    { id: 'W002', name: 'John Smith', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234', phone: '0412 001 002', email: 'j.smith@hireengine.com.au' },
+    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120', phone: '0412 001 003', email: 'm.johnson@hireengine.com.au' },
+    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981', phone: '0412 001 004', email: 'd.wilson@hireengine.com.au' },
+    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023', phone: '0412 001 005', email: 's.davies@hireengine.com.au' },
+    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211', phone: '0412 001 006', email: 'a.morgan@hireengine.com.au' },
+    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102', phone: '0412 001 007', email: 'c.evans@hireengine.com.au' },
+    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301', phone: '0412 001 008', email: 'p.taylor@hireengine.com.au' },
+    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908', phone: '0412 001 009', email: 'b.walker@hireengine.com.au' },
+    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123', phone: '0412 001 010', email: 't.clarke@hireengine.com.au' },
+    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', department: 'Operations', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201', phone: '0412 001 011', email: 's.oconnor@hireengine.com.au' },
+    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', department: 'Operations', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409', phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au' },
+    { id: 'W013', name: 'Gary White', role: 'Rigger', department: 'Operations', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984', phone: '0412 001 013', email: 'g.white@hireengine.com.au' },
+    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', department: 'Operations', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410', phone: '0412 001 014', email: 'l.hughes@hireengine.com.au' },
+    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', department: 'Operations', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042', phone: '0412 001 015', email: 'd.kelly@hireengine.com.au' },
+    // Administration, Office & Sales Roles
+    { id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', phone: '0412 110 091', email: 's.jenkins@ionhire.com.au' },
+    { id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', phone: '0413 552 819', email: 'm.chang@ionhire.com.au' },
+    { id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', phone: '0415 889 204', email: 'j.miller@ionhire.com.au' },
+    { id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'MGMT-01', phone: '0418 332 901', email: 'd.thornton@ionhire.com.au' },
+    { id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', hrwlExpiry: '2027-12-31', hrwlStatus: 'Active', licenseClass: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', phone: '0416 771 430', email: 'r.vance@ionhire.com.au' },
+    { id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', phone: '0417 443 652', email: 'a.ross@ionhire.com.au' }
   ],
   schedulingRules: {
     standardHoursStart: '06:00',
@@ -60,13 +67,19 @@ window.ionConfig = {
     restPeriodHours: 10
   },
   integrations: {
-    docuwareEndpoint: 'https://your-instance.docuware.cloud/DocuWare/Platform',
-    docuwareOrgId: 'DW-VAULT-8802',
-    docuwareStatus: 'Connected',
-    xeroWebhook: 'https://api.xero.com/webhooks/v2/hireengine-sync',
-    xeroStatus: 'Active',
-    xeroTenant: 'ION Plant Hire Pty Ltd',
-    localisation: 'Australia/Brisbane (AEST, UTC+10)'
+    edmsEndpoint: 'https://api.edms-provider.com/v1/documents',
+    edmsOrgId: 'ORG-VAULT-8802',
+    edmsStatus: 'Connected',
+    erpWebhook: 'https://api.erp-system.com/webhooks/v1/ledger-sync',
+    erpStatus: 'Active',
+    erpTenant: 'ION Operations Pty Ltd',
+    localisation: 'Australia/Brisbane (AEST, UTC+10)',
+    get docuwareEndpoint() { return this.edmsEndpoint; },
+    get docuwareOrgId() { return this.edmsOrgId; },
+    get docuwareStatus() { return this.edmsStatus; },
+    get xeroWebhook() { return this.erpWebhook; },
+    get xeroStatus() { return this.erpStatus; },
+    get xeroTenant() { return this.erpTenant; }
   }
 };
 
@@ -1962,8 +1975,8 @@ function renderWeekViewScaffolding() {
           <span class="material-symbols-outlined" style="font-size: 20px;">view_week</span>
         </div>
         <div>
-          <h2 class="day-scheduler-title">Weekly Fleet Dispatch Timeline</h2>
-          <div class="day-scheduler-subtitle">Multi-Day Fleet Schedule &bull; Staged View</div>
+          <h2 class="day-scheduler-title">Weekly Fleet Schedule</h2>
+          <div class="day-scheduler-subtitle">Manage multi-day asset bookings and availability</div>
         </div>
       </div>
 
@@ -2009,8 +2022,8 @@ function renderMonthViewScaffolding() {
           <span class="material-symbols-outlined" style="font-size: 20px;">calendar_month</span>
         </div>
         <div>
-          <h2 class="day-scheduler-title">Monthly Asset Dispatch Outlook</h2>
-          <div class="day-scheduler-subtitle">Long-Term Fleet Allocations &bull; Staged View</div>
+          <h2 class="day-scheduler-title">Monthly Fleet Schedule</h2>
+          <div class="day-scheduler-subtitle">Review long-term fleet allocations and maintenance windows</div>
         </div>
       </div>
 
@@ -2077,8 +2090,8 @@ function renderDayViewScheduler() {
           <span class="material-symbols-outlined" style="font-size: 20px;">calendar_view_day</span>
         </div>
         <div>
-          <h2 class="day-scheduler-title">Daily Fleet Dispatch</h2>
-          <div class="day-scheduler-subtitle">24-Hour Dispatch Grid &bull; Real-Time Asset Allocation</div>
+          <h2 class="day-scheduler-title">Daily Dispatch</h2>
+          <div class="day-scheduler-subtitle">Manage day allocations and 24-hour equipment availability</div>
         </div>
       </div>
 
@@ -2224,7 +2237,7 @@ function renderDayViewScheduler() {
                  ondragend="handleJobDragEnd(event)"
                  onclick="handleJobClick(event, '${job.id}')"
                  onmousedown="startJobDrag(event, '${job.id}')"
-                 style="left: ${leftPx}px; width: ${widthPx}px; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 style="left: ${leftPx}px; width: ${widthPx}px; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
                  title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
               <div class="dispatch-job-header">
                 <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
@@ -2396,7 +2409,7 @@ function renderDayViewScheduler() {
                  ondragend="handleJobDragEnd(event)"
                  onclick="handleJobClick(event, '${job.id}')"
                  onmousedown="startJobDrag(event, '${job.id}')"
-                 style="top: ${topPx}px; height: ${heightPx}px; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 style="top: ${topPx}px; height: ${heightPx}px; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
                  title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
               <div class="dispatch-job-header">
                 <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
@@ -2719,141 +2732,633 @@ function indexDocuWareCert(assetId){
  renderJobBoard();
 }
 
-/* ── PHASE 3: JOB BOARD & PIPELINE INTEGRATION (DOCUWARE AUTOMATION) ── */
-function renderJobBoard(){
- const container=document.getElementById('job-board-container');
- if(!container)return;
+/* ── PHASE 3: CENTRAL OPERATIONAL PIPELINE (LIFECYCLE LANES & HIGH-DENSITY ENTERPRISE CARDS) ── */
 
- const searchQuery=(document.getElementById('jb-search')?.value||'').toLowerCase().trim();
- const stageFilter=document.getElementById('jb-stage-filter')?.value||'ALL';
-
- const columns=[
-  {id:'Scheduled',title:'Scheduled',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',color:'#3b82f6'},
-  {id:'Dispatched',title:'Dispatched',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',color:'#8b5cf6'},
-  {id:'On-Site',title:'On-Site',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>',color:'#d97706'},
-  {id:'Docket Verification',title:'Docket Verification',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>',color:'#06b6d4'},
-  {id:'Completed',title:'Complete & Ready to Bill',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',color:'#10b981'},
-  {id:'Invoiced',title:'Invoiced',svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',color:'#334155'}
- ];
-
- let filteredBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
- if(searchQuery){
-  filteredBookings=filteredBookings.filter(b=>
-   b && (
-     (b.clientName||'').toLowerCase().includes(searchQuery)||
-     (b.assetNumber||'').toLowerCase().includes(searchQuery)||
-     (b.operatorName||'').toLowerCase().includes(searchQuery)||
-     (b.jobDescription||'').toLowerCase().includes(searchQuery)
-   )
-  );
- }
-
- let html=`<div class="kanban-board" style="display:flex; gap:16px; padding:16px; height:100%; overflow-x:auto; background:var(--bg-secondary);">`;
-
- columns.forEach(col=>{
-  if(stageFilter!=='ALL'&&stageFilter!==col.id) return;
-
-  const colB=filteredBookings.filter(b=>b && (b.status||'Scheduled')===col.id);
-  
-  html+=`<div class="kanban-col" style="flex: 0 0 320px; display:flex; flex-direction:column; background:var(--bg-primary); border-radius:8px; border:1px solid var(--border-light); box-shadow:0 1px 2px rgba(0,0,0,0.05);" ondragover="event.preventDefault()" ondrop="moveBookingStatus(event, '${col.id}')">`;
-  
-  // Column Header
-  html+=`<div class="kanban-col-header" style="padding:16px; border-bottom:2px solid ${col.color}; display:flex; justify-content:space-between; align-items:center;">
-    <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:12px; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.5px;">
-      <span style="color:${col.color};">${col.svg}</span>
-      ${col.title}
-    </div>
-    <div style="background:var(--bg-secondary); padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; color:var(--text-secondary);">${colB.length}</div>
-  </div>`;
-  
-  // Column Body
-  html+=`<div class="kanban-col-body" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px;">`;
-  
-  if(colB.length===0){
-    html+=`<div style="text-align:center; padding:24px 0; color:var(--text-muted); font-size:12px; font-weight:500;">No jobs in this stage</div>`;
+const OPERATIONAL_PIPELINE_LANES = [
+  {
+    id: 'EOI / Pending',
+    title: 'EOI / Pending',
+    subtitle: 'Awaiting client confirmation or site checks',
+    materialIcon: 'hourglass_top',
+    stageIcon: 'pending_actions',
+    color: '#F59E0B'
+  },
+  {
+    id: 'Scheduled / Dispatched',
+    title: 'Scheduled / Dispatched',
+    subtitle: 'Visible to field operators',
+    materialIcon: 'local_shipping',
+    stageIcon: 'local_shipping',
+    color: '#00ADEF'
+  },
+  {
+    id: 'Active On-Site',
+    title: 'Active On-Site',
+    subtitle: 'Operator actively logging hours/SWMS',
+    materialIcon: 'engineering',
+    stageIcon: 'engineering',
+    color: '#8B5CF6'
+  },
+  {
+    id: 'Pending Docket',
+    title: 'Pending Docket',
+    subtitle: 'Awaiting supervisor signature or internal review',
+    materialIcon: 'description',
+    stageIcon: 'description',
+    color: '#F97316'
+  },
+  {
+    id: 'Ready for Invoicing',
+    title: 'Ready for Invoicing',
+    subtitle: 'Docket signed, ready for ERP/Accounting sync',
+    materialIcon: 'check_circle',
+    stageIcon: 'check_circle',
+    color: '#10B981'
   }
+];
 
-  colB.forEach(b=>{
-   const startD=new Date(b.startTime);
-   const hex=ASSET_HEX[b.assetNumber]||'#888';
-   const pipeline=getDocPipelineStatus(b);
-   
-   html+=`<div class="kanban-card" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${b.id}')" style="background:#fff; border:1px solid var(--border-light); border-radius:6px; padding:16px; cursor:grab; box-shadow:0 1px 3px rgba(0,0,0,0.08); transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)'">`;
-   
-   html+=`<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-    <div style="background:${hex}15; color:${hex}; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">${b.assetNumber}</div>
-    <div style="font-size:11px; font-weight:600; color:var(--text-muted);">${startD.toLocaleDateString('en-AU')}</div>
-   </div>`;
-   
-   html+=`<div style="font-weight:700; font-size:14px; margin-bottom:4px; color:var(--text-primary); line-height:1.2;">${b.clientName}</div>`;
-   
-   const opName = b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0 ? b.wetHireResources[0].workerName : (b.operatorName || '');
-   if(opName) html+=`<div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:4px;">
-     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-     ${opName}
-   </div>`;
-   else html+=`<div style="height:28px;"></div>`;
-   
-   // Action button based on column
-   if(col.id==='Scheduled') {
-      const isSigned = pipeline?.hireAgreement?.status === 'signed' || Boolean(b.contractSigned);
-      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:${isSigned?'var(--bg-secondary)':'var(--brand-primary)'}; color:${isSigned?'var(--text-primary)':'#fff'}; border:1px solid ${isSigned?'var(--border-light)':'transparent'};" onclick="openDocuWareContractModal('${b.id}')">${isSigned?'Contract Signed':'Generate Agreement'}</button>`;
-   }
-   if(col.id==='Docket Verification') {
-      const isUploaded = pipeline?.fieldDocket?.status === 'pushed' || Boolean(b.docketUploaded);
-      html+=`<div style="display:flex; gap:8px;">
-        <button style="width:32px; height:32px; flex-shrink:0; border:1px solid var(--border-light); background:var(--bg-secondary); border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="openDocuWareDocketModal('${b.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
-        <button class="btn-primary" style="flex:1; padding:6px; font-size:11px; background:${isUploaded?'var(--bg-secondary)':'var(--accent-copper)'}; color:${isUploaded?'var(--text-primary)':'#fff'}; border:1px solid ${isUploaded?'var(--border-light)':'transparent'};" onclick="openDocuWareDocketModal('${b.id}')">${isUploaded?'Docket Verified':'Upload Field Docket'}</button>
-      </div>`;
-   }
-   if(col.id==='Completed') {
-      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:var(--brand-primary); color:#fff; border:none;" onclick="triggerDocuWareDoc('${b.id}', '${b.clientName}')">Issue Invoice</button>`;
-   }
-   if(col.id==='Invoiced') {
-      html+=`<button class="btn-primary" style="width:100%; padding:6px; font-size:11px; background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-light);" onclick="alert('Viewing invoice for ${b.clientName}...')">View Billing Record</button>`;
-   }
+function normalizePipelineStage(status) {
+  if (!status) return 'Scheduled / Dispatched';
+  const s = String(status).trim();
+  if (s === 'EOI / Pending') return 'EOI / Pending';
+  if (s === 'Scheduled / Dispatched') return 'Scheduled / Dispatched';
+  if (s === 'Active On-Site') return 'Active On-Site';
+  if (s === 'Pending Docket') return 'Pending Docket';
+  if (s === 'Ready for Invoicing') return 'Ready for Invoicing';
 
-   html+=`</div>`;
-  });
-
-  html+=`</div></div>`;
- });
-
- html+=`</div>`;
- container.innerHTML=html;
+  const lower = s.toLowerCase();
+  if (lower.includes('eoi') || lower === 'pending' || lower.includes('urgent') || lower.includes('quote') || lower.includes('enquiry')) {
+    return 'EOI / Pending';
+  }
+  if (lower.includes('on-site') || lower.includes('onsite') || lower.includes('active') || lower.includes('in progress')) {
+    return 'Active On-Site';
+  }
+  if (lower.includes('docket') || lower.includes('verification') || lower.includes('review') || lower.includes('supervisor')) {
+    return 'Pending Docket';
+  }
+  if (lower.includes('invoice') || lower.includes('invoiced') || lower.includes('complete') || lower.includes('ready') || lower.includes('billing')) {
+    return 'Ready for Invoicing';
+  }
+  if (lower.includes('schedule') || lower.includes('dispatch') || lower.includes('booked')) {
+    return 'Scheduled / Dispatched';
+  }
+  return 'Scheduled / Dispatched';
 }
 
-function moveBookingStatus(id,dir){
- const stages=['Scheduled','Dispatched','On-Site','Docket Verification','Completed','Invoiced'];
- const b=bookings.find(x=>x.id===id);
- if(!b)return;
+function getPipelineAssetColor(assetNumber) {
+  if (!assetNumber) return '#00ADEF';
+  if (typeof ASSET_HEX !== 'undefined' && ASSET_HEX[assetNumber]) {
+    return ASSET_HEX[assetNumber];
+  }
+  if (typeof assetRegistry !== 'undefined' && Array.isArray(assetRegistry)) {
+    const found = assetRegistry.find(a => a.id === assetNumber);
+    if (found && found.hex) return found.hex;
+  }
+  if (typeof window !== 'undefined' && window.ionConfig && Array.isArray(window.ionConfig.fleetRegistry)) {
+    const found = window.ionConfig.fleetRegistry.find(a => a.id === assetNumber);
+    if (found && found.hex) return found.hex;
+  }
+  return '#00ADEF';
+}
 
- // Resolve current stage index
- let currStage = b.status||'Scheduled';
- if(currStage==='Completed'&&!b.docketUploaded) currStage='Docket Verification';
- let idx=stages.indexOf(currStage);
- if(idx===-1) idx=0;
+function formatJobDateTime(startTime, endTime) {
+  if (!startTime) return 'Time TBD';
+  const s = new Date(startTime);
+  if (isNaN(s.getTime())) return 'Time TBD';
+  
+  const day = s.getDate();
+  const month = s.toLocaleDateString('en-AU', { month: 'short' });
+  const startHours = String(s.getHours()).padStart(2, '0');
+  const startMins = String(s.getMinutes()).padStart(2, '0');
+  
+  if (endTime) {
+    const e = new Date(endTime);
+    if (!isNaN(e.getTime())) {
+      const endHours = String(e.getHours()).padStart(2, '0');
+      const endMins = String(e.getMinutes()).padStart(2, '0');
+      return `${day} ${month} • ${startHours}:${startMins}-${endHours}:${endMins}`;
+    }
+  }
+  return `${day} ${month} • ${startHours}:${startMins}`;
+}
 
- let nextIdx = dir==='next' ? idx+1 : idx-1;
- if(nextIdx < 0 || nextIdx >= stages.length) return;
+// Auto-Scroll on Drag Engine for Job Board
+let jbAutoScrollRaf = null;
+let jbAutoScrollVelocity = 0;
 
- const targetStage = stages[nextIdx];
+function stepJbAutoScroll() {
+  const container = document.getElementById('job-board-container');
+  if (!container || jbAutoScrollVelocity === 0) {
+    if (jbAutoScrollRaf) cancelAnimationFrame(jbAutoScrollRaf);
+    jbAutoScrollRaf = null;
+    return;
+  }
+  container.scrollLeft += jbAutoScrollVelocity;
+  jbAutoScrollRaf = requestAnimationFrame(stepJbAutoScroll);
+}
 
- // Chronological Lock Safeguard: Future jobs cannot be moved to Invoiced
- if(targetStage==='Invoiced' && new Date(b.startTime) > new Date()){
- showToast(` Chronological Safeguard: Job for ${b.clientName} is scheduled in the future and cannot be moved to Invoiced until work is executed.`);
-  return;
- }
+function handleJbContainerEdgeScroll(clientX) {
+  const container = document.getElementById('job-board-container');
+  if (!container || clientX == null || clientX <= 0) return;
+  const rect = container.getBoundingClientRect();
+  const edgeThreshold = 130; // pixels from board container boundary
+  const maxVelocity = 24; // max scroll pixels per animation frame
 
- // Billing Lockout Safeguard: Cannot move to Completed/Invoiced without verified docket
- if((targetStage==='Completed'||targetStage==='Invoiced') && !b.docketUploaded && currStage==='Docket Verification'){
-  showToast(` Billing Lockout: You must click "Upload Field Docket" to verify hours via DocuWare Intelligent Indexing before advancing.`);
-  return;
- }
+  if (clientX >= rect.left && clientX <= rect.left + edgeThreshold) {
+    // Near left edge -> scroll towards the left
+    const intensity = (rect.left + edgeThreshold - clientX) / edgeThreshold;
+    jbAutoScrollVelocity = -Math.max(5, Math.round(maxVelocity * intensity));
+    if (!jbAutoScrollRaf) {
+      jbAutoScrollRaf = requestAnimationFrame(stepJbAutoScroll);
+    }
+  } else if (clientX <= rect.right && clientX >= rect.right - edgeThreshold) {
+    // Near right edge -> scroll towards the right
+    const intensity = (clientX - (rect.right - edgeThreshold)) / edgeThreshold;
+    jbAutoScrollVelocity = Math.max(5, Math.round(maxVelocity * intensity));
+    if (!jbAutoScrollRaf) {
+      jbAutoScrollRaf = requestAnimationFrame(stepJbAutoScroll);
+    }
+  } else {
+    jbAutoScrollVelocity = 0;
+    if (jbAutoScrollRaf) {
+      cancelAnimationFrame(jbAutoScrollRaf);
+      jbAutoScrollRaf = null;
+    }
+  }
+}
 
- b.status = targetStage;
- renderJobBoard();
- renderCalendar();
+function stopJbAutoScroll() {
+  jbAutoScrollVelocity = 0;
+  if (jbAutoScrollRaf) {
+    cancelAnimationFrame(jbAutoScrollRaf);
+    jbAutoScrollRaf = null;
+  }
+}
+
+// Global Drag and Drop Handlers
+window.__draggedJobBookingId = null;
+window.__isDraggingJobCard = false;
+
+window.handleJobCardDragStart = function(event, bookingId) {
+  window.__draggedJobBookingId = bookingId;
+  window.__isDraggingJobCard = true;
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('text/plain', bookingId);
+    event.dataTransfer.effectAllowed = 'move';
+  }
+  const card = document.getElementById('jb-card-' + bookingId);
+  if (card) {
+    card.classList.add('jb-card-dragging');
+  }
+};
+
+window.handleJobCardDragEnd = function(event) {
+  window.__draggedJobBookingId = null;
+  window.__isDraggingJobCard = false;
+  stopJbAutoScroll();
+  document.querySelectorAll('.jb-card-dragging').forEach(el => el.classList.remove('jb-card-dragging'));
+  document.querySelectorAll('.jb-lane.jb-lane-drag-over').forEach(el => el.classList.remove('jb-lane-drag-over'));
+};
+
+window.handleJobLaneDragOver = function(event, laneId) {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+  if (event.clientX) {
+    handleJbContainerEdgeScroll(event.clientX);
+  }
+  const laneDomId = 'jb-lane-' + laneId.replace(/[^a-zA-Z0-9]/g, '-');
+  const laneEl = document.getElementById(laneDomId);
+  if (laneEl && !laneEl.classList.contains('jb-lane-drag-over')) {
+    laneEl.classList.add('jb-lane-drag-over');
+  }
+};
+
+window.handleJobLaneDragEnter = function(event, laneId) {
+  event.preventDefault();
+  const laneDomId = 'jb-lane-' + laneId.replace(/[^a-zA-Z0-9]/g, '-');
+  const laneEl = document.getElementById(laneDomId);
+  if (laneEl) {
+    laneEl.classList.add('jb-lane-drag-over');
+  }
+};
+
+window.handleJobLaneDragLeave = function(event, laneId) {
+  const laneDomId = 'jb-lane-' + laneId.replace(/[^a-zA-Z0-9]/g, '-');
+  const laneEl = document.getElementById(laneDomId);
+  if (laneEl && event.relatedTarget && !laneEl.contains(event.relatedTarget)) {
+    laneEl.classList.remove('jb-lane-drag-over');
+  }
+};
+
+window.handleJobLaneDrop = function(event, targetLaneId) {
+  event.preventDefault();
+  stopJbAutoScroll();
+  window.__isDraggingJobCard = false;
+  document.querySelectorAll('.jb-lane.jb-lane-drag-over').forEach(el => el.classList.remove('jb-lane-drag-over'));
+  document.querySelectorAll('.jb-card-dragging').forEach(el => el.classList.remove('jb-card-dragging'));
+  
+  const id = (event.dataTransfer && event.dataTransfer.getData('text/plain')) || window.__draggedJobBookingId;
+  window.__draggedJobBookingId = null;
+  if (!id) return;
+
+  moveBookingStatus(id, targetLaneId);
+};
+
+window.handleJobBoardContainerDragOver = function(event) {
+  if (window.__isDraggingJobCard && event.clientX) {
+    handleJbContainerEdgeScroll(event.clientX);
+  }
+};
+
+// Expandable Card Drawer state & handlers
+window.__expandedJobCards = window.__expandedJobCards || {};
+
+window.toggleJobCardExpand = function(bookingId) {
+  const isCurrentlyOpen = !!window.__expandedJobCards[bookingId];
+  window.__expandedJobCards[bookingId] = !isCurrentlyOpen;
+
+  const drawer = document.getElementById('jb-card-drawer-' + bookingId);
+  const btn = document.getElementById('jb-expand-btn-' + bookingId);
+
+  if (drawer) {
+    if (!isCurrentlyOpen) {
+      drawer.classList.add('is-open');
+    } else {
+      drawer.classList.remove('is-open');
+    }
+  }
+  if (btn) {
+    if (!isCurrentlyOpen) {
+      btn.classList.add('is-expanded');
+      btn.title = 'Collapse details';
+    } else {
+      btn.classList.remove('is-expanded');
+      btn.title = 'Expand site and scope details';
+    }
+  }
+};
+
+// Priority Star toggle handler
+window.toggleJobPriority = function(bookingId) {
+  const b = (Array.isArray(bookings) ? bookings.find(x => x && x.id === bookingId) : null);
+  const isPriority = b ? (b.isHighPriority = !b.isHighPriority) : false;
+
+  const card = document.getElementById('jb-card-' + bookingId);
+  const starBtn = document.getElementById('jb-priority-btn-' + bookingId);
+
+  if (card) {
+    card.classList.toggle('is-high-priority', isPriority);
+  }
+  if (starBtn) {
+    starBtn.classList.toggle('is-active', isPriority);
+    starBtn.title = isPriority ? 'High Priority (Click to remove)' : 'Mark as High Priority';
+  }
+
+  // If currently sorting by priority, reorder dynamically
+  const sortSelect = document.getElementById('jb-sort-by');
+  if (sortSelect && sortSelect.value === 'priority-first') {
+    window.sortJobBoardCards();
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(isPriority ? `Job ${bookingId.toUpperCase()} marked as High Priority` : `High Priority removed from ${bookingId.toUpperCase()}`);
+  }
+};
+
+// Status Badge toggle handler ('On-Schedule' vs 'Delayed')
+window.toggleJobStatusBadge = function(bookingId) {
+  const b = (Array.isArray(bookings) ? bookings.find(x => x && x.id === bookingId) : null);
+  if (!b) return;
+
+  b.isDelayed = !b.isDelayed;
+  b.statusBadge = b.isDelayed ? 'Delayed' : 'On-Schedule';
+
+  const pill = document.getElementById('jb-status-pill-' + bookingId);
+  if (pill) {
+    pill.textContent = b.statusBadge;
+    if (b.isDelayed) {
+      pill.classList.remove('jb-status-on-schedule');
+      pill.classList.add('jb-status-delayed');
+      pill.title = 'Status: Delayed • Click to toggle';
+    } else {
+      pill.classList.remove('jb-status-delayed');
+      pill.classList.add('jb-status-on-schedule');
+      pill.title = 'Status: On-Schedule • Click to toggle';
+    }
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`Job ${bookingId.toUpperCase()} status: ${b.statusBadge}`);
+  }
+};
+
+// Physical DOM Reordering Function for Job Board Cards
+window.sortJobBoardCards = function(customSortOption) {
+  const sortSelect = document.getElementById('jb-sort-by');
+  const sortBy = customSortOption || (sortSelect ? sortSelect.value : 'date-asc');
+
+  const laneContainers = document.querySelectorAll('.jb-lane-cards');
+  laneContainers.forEach(container => {
+    const cards = Array.from(container.querySelectorAll('.jb-card'));
+    if (cards.length <= 1) return;
+
+    cards.sort((a, b) => {
+      const timeA = Number(a.getAttribute('data-start-time')) || 0;
+      const timeB = Number(b.getAttribute('data-start-time')) || 0;
+      const prioA = a.classList.contains('is-high-priority') ? 1 : 0;
+      const prioB = b.classList.contains('is-high-priority') ? 1 : 0;
+
+      if (sortBy === 'priority-first') {
+        if (prioA !== prioB) return prioB - prioA;
+        return timeA - timeB;
+      } else if (sortBy === 'date-desc') {
+        return timeB - timeA;
+      } else {
+        // 'date-asc'
+        return timeA - timeB;
+      }
+    });
+
+    // Physically reorder DOM elements inside the lane container
+    cards.forEach(card => container.appendChild(card));
+  });
+};
+
+function renderJobBoard() {
+  const container = document.getElementById('job-board-container');
+  if (!container) return;
+
+  const searchQuery = (document.getElementById('jb-search')?.value || '').toLowerCase().trim();
+  const stageFilter = document.getElementById('jb-stage-filter')?.value || 'ALL';
+
+  let filteredBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
+  if (searchQuery) {
+    filteredBookings = filteredBookings.filter(b => {
+      if (!b) return false;
+      const bId = String(b.id || '').toLowerCase();
+      const client = String(b.clientName || '').toLowerCase();
+      const asset = String(b.assetNumber || '').toLowerCase();
+      const op = String(b.operatorName || '').toLowerCase();
+      const desc = String(b.jobDescription || '').toLowerCase();
+      const addr = String(b.siteAddress || '').toLowerCase();
+      return bId.includes(searchQuery) ||
+             client.includes(searchQuery) ||
+             asset.includes(searchQuery) ||
+             op.includes(searchQuery) ||
+             desc.includes(searchQuery) ||
+             addr.includes(searchQuery);
+    });
+  }
+
+  let html = `<div class="jb-board">`;
+
+  OPERATIONAL_PIPELINE_LANES.forEach(lane => {
+    if (stageFilter !== 'ALL' && stageFilter !== lane.id) return;
+
+    // Filter bookings belonging to this lane
+    const laneBookings = filteredBookings.filter(b => b && normalizePipelineStage(b.status) === lane.id);
+    const laneDomId = 'jb-lane-' + lane.id.replace(/[^a-zA-Z0-9]/g, '-');
+
+    html += `
+      <div id="${laneDomId}" class="jb-lane" data-lane-id="${escapeHtml(lane.id)}"
+           ondragover="window.handleJobLaneDragOver(event, '${escapeHtml(lane.id)}')"
+           ondragenter="window.handleJobLaneDragEnter(event, '${escapeHtml(lane.id)}')"
+           ondragleave="window.handleJobLaneDragLeave(event, '${escapeHtml(lane.id)}')"
+           ondrop="window.handleJobLaneDrop(event, '${escapeHtml(lane.id)}')">
+        
+        <!-- Lane Header -->
+        <div class="jb-lane-header" style="border-top:3px solid ${lane.color};">
+          <div class="jb-lane-header-top">
+            <div class="jb-lane-title">
+              <span class="material-symbols-outlined" style="color:${lane.color};">${lane.materialIcon}</span>
+              <span>${escapeHtml(lane.title)}</span>
+            </div>
+            <span class="jb-lane-count">${laneBookings.length}</span>
+          </div>
+          <div class="jb-lane-subtitle">${escapeHtml(lane.subtitle)}</div>
+        </div>
+
+        <!-- Lane Cards Container -->
+        <div class="jb-lane-cards" id="${laneDomId}-cards">
+    `;
+
+    if (laneBookings.length === 0) {
+      html += `
+        <div class="jb-empty-lane">
+          <span class="material-symbols-outlined">${lane.stageIcon}</span>
+          <span>No active jobs in lane</span>
+        </div>
+      `;
+    } else {
+      laneBookings.forEach(b => {
+        const assetColor = getPipelineAssetColor(b.assetNumber);
+        const dateTimeStr = formatJobDateTime(b.startTime, b.endTime);
+        const opName = (b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0)
+          ? b.wetHireResources[0].workerName
+          : (b.operatorName || 'Dry Hire / Unassigned');
+        const formattedJobId = b.id ? (b.id.startsWith('#') ? b.id.toUpperCase() : '#' + b.id.toUpperCase()) : '#JOB';
+        const isPriority = Boolean(b.isHighPriority);
+        const isDelayed = Boolean(b.isDelayed || b.statusBadge === 'Delayed');
+        const isExpanded = Boolean(window.__expandedJobCards[b.id]);
+        const startTimeStamp = b.startTime ? new Date(b.startTime).getTime() : 0;
+
+        // Site contact lookup
+        const matchedClient = (typeof clientsRegistry !== 'undefined' && Array.isArray(clientsRegistry))
+          ? clientsRegistry.find(c => c && c.name && c.name.toLowerCase() === (b.clientName || '').toLowerCase())
+          : null;
+        const contactPhone = b.clientPhone || matchedClient?.phone || '0412 889 900';
+        const siteLocation = b.siteAddress || 'Perth Metro Site';
+        const scopeNotes = b.jobDescription || 'Standard operational deployment as per client specifications.';
+
+        html += `
+          <div id="jb-card-${escapeHtml(b.id)}"
+               class="jb-card ${isPriority ? 'is-high-priority' : ''}"
+               draggable="true"
+               data-booking-id="${escapeHtml(b.id)}"
+               data-start-time="${startTimeStamp}"
+               ondragstart="window.handleJobCardDragStart(event, '${escapeHtml(b.id)}')"
+               ondragend="window.handleJobCardDragEnd(event)"
+               onclick="editBooking('${escapeHtml(b.id)}')"
+               title="Click to view/edit booking • Drag to change operational stage"
+               style="border-left: 4px solid ${assetColor}; --asset-color: ${assetColor};">
+            
+            <!-- Top Row: Job ID (bold), Priority Star, and Status Pill Badge -->
+            <div class="jb-card-top-row">
+              <span class="jb-card-id">${escapeHtml(formattedJobId)}</span>
+              <div class="jb-card-top-actions" onclick="event.stopPropagation()">
+                <button id="jb-priority-btn-${escapeHtml(b.id)}"
+                        type="button"
+                        class="jb-priority-btn ${isPriority ? 'is-active' : ''}"
+                        onclick="window.toggleJobPriority('${escapeHtml(b.id)}')"
+                        title="${isPriority ? 'High Priority (Click to remove)' : 'Mark as High Priority'}">
+                  <span class="material-symbols-outlined">star</span>
+                </button>
+                <span id="jb-status-pill-${escapeHtml(b.id)}"
+                      class="jb-status-pill ${isDelayed ? 'jb-status-delayed' : 'jb-status-on-schedule'}"
+                      onclick="window.toggleJobStatusBadge('${escapeHtml(b.id)}')"
+                      title="Status: ${isDelayed ? 'Delayed' : 'On-Schedule'} • Click to toggle">
+                  ${isDelayed ? 'Delayed' : 'On-Schedule'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Middle Row: Client Name (prominent) and Asset Code Tag -->
+            <div class="jb-card-middle-row">
+              <span class="jb-card-client" title="${escapeHtml(b.clientName || 'Unassigned')}">${escapeHtml(b.clientName || 'Unassigned Client')}</span>
+              <span class="jb-card-asset-tag">${escapeHtml(b.assetNumber || 'TBD')}</span>
+            </div>
+
+            <!-- Bottom Row: Assigned Operator Name, Date/Time, and Expand Chevron -->
+            <div class="jb-card-bottom-row">
+              <span class="jb-card-operator" title="Operator: ${escapeHtml(opName)}">
+                <span class="material-symbols-outlined">person</span>
+                ${escapeHtml(opName)}
+              </span>
+              <div class="jb-card-bottom-meta" onclick="event.stopPropagation()">
+                <span class="jb-card-datetime" title="Scheduled Window">
+                  <span class="material-symbols-outlined">schedule</span>
+                  ${escapeHtml(dateTimeStr)}
+                </span>
+                <button id="jb-expand-btn-${escapeHtml(b.id)}"
+                        type="button"
+                        class="jb-expand-btn ${isExpanded ? 'is-expanded' : ''}"
+                        onclick="window.toggleJobCardExpand('${escapeHtml(b.id)}')"
+                        title="${isExpanded ? 'Collapse details' : 'Expand site and scope details'}">
+                  <span class="material-symbols-outlined">expand_more</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expandable Details Drawer (Collapsible) -->
+            <div class="jb-card-details-drawer ${isExpanded ? 'is-open' : ''}"
+                 id="jb-card-drawer-${escapeHtml(b.id)}"
+                 onclick="event.stopPropagation()">
+              <div class="jb-detail-row">
+                <span class="jb-detail-label">
+                  <span class="material-symbols-outlined">call</span> Contact
+                </span>
+                <span class="jb-detail-val">
+                  <a href="tel:${escapeHtml(contactPhone)}" class="jb-phone-link" onclick="event.stopPropagation()">${escapeHtml(contactPhone)}</a>
+                </span>
+              </div>
+              <div class="jb-detail-row">
+                <span class="jb-detail-label">
+                  <span class="material-symbols-outlined">location_on</span> Site
+                </span>
+                <span class="jb-detail-val" title="${escapeHtml(siteLocation)}">${escapeHtml(siteLocation)}</span>
+              </div>
+              <div class="jb-detail-row jb-scope-row">
+                <span class="jb-detail-label">
+                  <span class="material-symbols-outlined">assignment</span> Scope
+                </span>
+                <span class="jb-detail-val">${escapeHtml(scopeNotes)}</span>
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // Apply active sort order directly to the DOM cards
+  window.sortJobBoardCards();
+}
+
+function moveBookingStatus(id, targetStageOrDir) {
+  let b = bookings.find(x => x && x.id === id);
+  if (!b) {
+    const dj = (typeof mockDispatchData !== 'undefined' && Array.isArray(mockDispatchData))
+      ? mockDispatchData.find(j => j.id === id)
+      : null;
+    if (dj) {
+      const datePrefix = (currentDate instanceof Date && !isNaN(currentDate.getTime()))
+        ? currentDate.toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+      b = {
+        id: dj.id,
+        assetNumber: dj.assetId,
+        clientName: dj.client,
+        siteAddress: dj.siteAddress,
+        startTime: `${datePrefix}T${dj.startTime}:00`,
+        endTime: `${datePrefix}T${dj.endTime}:00`,
+        status: dj.isInspection ? 'Ready for Invoicing' : 'Scheduled / Dispatched',
+        hireType: 'wet',
+        operatorName: dj.operatorName || 'Field Operator',
+        jobDescription: dj.jobDescription || 'Operational Assignment'
+      };
+      bookings.push(b);
+    }
+  }
+
+  if (!b) return;
+
+  const laneIds = OPERATIONAL_PIPELINE_LANES.map(l => l.id);
+  const currentNormalized = normalizePipelineStage(b.status);
+  let targetStage = currentNormalized;
+
+  if (targetStageOrDir === 'next' || targetStageOrDir === 'prev') {
+    let idx = laneIds.indexOf(currentNormalized);
+    if (idx === -1) idx = 1;
+    const nextIdx = targetStageOrDir === 'next' ? idx + 1 : idx - 1;
+    if (nextIdx < 0 || nextIdx >= laneIds.length) return;
+    targetStage = laneIds[nextIdx];
+  } else if (typeof targetStageOrDir === 'string') {
+    targetStage = normalizePipelineStage(targetStageOrDir);
+  }
+
+  // State update simulation
+  b.status = targetStage;
+
+  if (targetStage === 'Ready for Invoicing') {
+    b.docketUploaded = true;
+    b.docketStatus = 'pushed';
+    b.contractSigned = true;
+  } else if (targetStage === 'Pending Docket') {
+    b.swmsStatus = 'completed';
+    b.preStartStatus = 'completed';
+    b.contractSigned = true;
+  } else if (targetStage === 'Active On-Site') {
+    b.swmsStatus = 'completed';
+    b.contractSigned = true;
+  } else if (targetStage === 'Scheduled / Dispatched') {
+    b.contractSigned = true;
+  }
+
+  // Instant UI reflection: update card stage icon if card is in DOM
+  const cardEl = document.getElementById('jb-card-' + b.id);
+  if (cardEl) {
+    const laneMeta = OPERATIONAL_PIPELINE_LANES.find(l => l.id === targetStage);
+    if (laneMeta) {
+      const stageIconEl = cardEl.querySelector('.jb-card-stage-icon');
+      if (stageIconEl) {
+        stageIconEl.innerHTML = `<span class="material-symbols-outlined" style="color:${laneMeta.color};">${laneMeta.stageIcon}</span>`;
+        stageIconEl.title = `Stage: ${laneMeta.title}`;
+      }
+    }
+  }
+
+  // Re-render Job Board and Calendar to maintain complete system coherence
+  renderJobBoard();
+  if (typeof renderCalendar === 'function') {
+    renderCalendar();
+  }
+
+  // Provide high-visibility feedback toast
+  if (typeof showToast === 'function') {
+    const jobIdLabel = b.id ? (b.id.startsWith('#') ? b.id.toUpperCase() : '#' + b.id.toUpperCase()) : 'Job';
+    showToast(`${jobIdLabel} (${b.clientName || 'Client'}) moved to "${targetStage}"`);
+  }
 }
 
 /* ── PHASE 4: CLIENTS DIRECTORY & DOCUWARE SMART CONNECT ── */
@@ -2978,7 +3483,7 @@ let currentAdminSubTab = 'fleet';
 
 function switchAdminSubTab(tabName) {
   currentAdminSubTab = tabName;
-  ['fleet', 'personnel', 'scheduling'].forEach(t => {
+  ['fleet', 'personnel', 'roles', 'scheduling'].forEach(t => {
     const btn = document.getElementById(`admin-subtab-${t}`);
     const view = document.getElementById(`admin-view-${t}`);
     if (btn) {
@@ -2996,13 +3501,138 @@ function switchAdminSubTab(tabName) {
 
   if (tabName === 'fleet') renderAdminFleetTable();
   else if (tabName === 'personnel') renderAdminPersonnelTable();
+  else if (tabName === 'roles') renderAdminRolesTable();
   else if (tabName === 'scheduling') loadAdminSchedulingRules();
 }
+window.switchAdminSubTab = switchAdminSubTab;
 
 function renderAdminModule() {
+  initAdminModule();
   switchAdminSubTab(currentAdminSubTab || 'fleet');
 }
+window.renderAdminModule = renderAdminModule;
 
+function filterAdminFleetTable(query) {
+  const q = (query !== undefined ? query : (document.getElementById('admin-fleet-search')?.value || '')).toLowerCase().trim();
+  const tbody = document.getElementById('admin-fleet-table-body');
+  if (!tbody) return;
+
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  let matchCount = 0;
+
+  rows.forEach(row => {
+    if (row.cells.length <= 1) return;
+    const assetId = (row.cells[1]?.textContent || '').toLowerCase().trim();
+    const description = (row.cells[3]?.textContent || '').toLowerCase().trim();
+
+    const matches = !q || assetId.includes(q) || description.includes(q);
+    row.style.display = matches ? '' : 'none';
+    if (matches) matchCount++;
+  });
+
+  const countBadge = document.getElementById('admin-fleet-count');
+  if (countBadge) {
+    countBadge.textContent = `${matchCount} Registered`;
+  }
+}
+window.filterAdminFleetTable = filterAdminFleetTable;
+
+/* ── Administration Table Sorting & Utilities ────────────────────────── */
+window.adminFleetSort = window.adminFleetSort || { column: 'id', direction: 'asc' };
+window.adminPersonnelSort = window.adminPersonnelSort || { column: 'name', direction: 'asc' };
+
+function compareAdminTableValues(a, b, direction = 'asc') {
+  let res = 0;
+  if (a == null && b == null) res = 0;
+  else if (a == null || a === '' || a === '—' || a === 'N/A') res = 1;
+  else if (b == null || b === '' || b === '—' || b === 'N/A') res = -1;
+  else if (typeof a === 'number' && typeof b === 'number') {
+    res = a - b;
+  } else {
+    const isDateA = /^\d{4}-\d{2}-\d{2}$/.test(String(a).trim());
+    const isDateB = /^\d{4}-\d{2}-\d{2}$/.test(String(b).trim());
+    if (isDateA && isDateB) {
+      res = new Date(a).getTime() - new Date(b).getTime();
+    } else {
+      res = String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+    }
+  }
+  return direction === 'desc' ? -res : res;
+}
+
+function updateFleetTableSortHeaders() {
+  const cols = ['color', 'id', 'class', 'description', 'workerName', 'status'];
+  const curCol = window.adminFleetSort?.column || 'id';
+  const curDir = window.adminFleetSort?.direction || 'asc';
+
+  cols.forEach(col => {
+    const th = document.getElementById(`sort-th-fleet-${col}`);
+    const icon = document.getElementById(`sort-icon-fleet-${col}`);
+    if (!th) return;
+
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (col === curCol) {
+      th.classList.add(curDir === 'asc' ? 'sort-asc' : 'sort-desc');
+      if (icon) icon.textContent = curDir === 'asc' ? 'arrow_upward' : 'arrow_downward';
+      th.setAttribute('title', `Sort by ${col} (Currently ${curDir === 'asc' ? 'Ascending' : 'Descending'} — click to reverse)`);
+    } else {
+      if (icon) icon.textContent = 'unfold_more';
+      th.setAttribute('title', `Click to sort by ${col}`);
+    }
+  });
+}
+
+function sortAdminFleetTable(column) {
+  if (!window.adminFleetSort) {
+    window.adminFleetSort = { column: 'id', direction: 'asc' };
+  }
+  if (window.adminFleetSort.column === column) {
+    window.adminFleetSort.direction = window.adminFleetSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    window.adminFleetSort.column = column;
+    window.adminFleetSort.direction = 'asc';
+  }
+  renderAdminFleetTable();
+}
+window.sortAdminFleetTable = sortAdminFleetTable;
+
+function updatePersonnelTableSortHeaders() {
+  const cols = ['name', 'role', 'contact', 'licenseClass', 'licenseNumber', 'hrwlExpiry', 'status'];
+  const curCol = window.adminPersonnelSort?.column || 'name';
+  const curDir = window.adminPersonnelSort?.direction || 'asc';
+
+  cols.forEach(col => {
+    const th = document.getElementById(`sort-th-personnel-${col}`);
+    const icon = document.getElementById(`sort-icon-personnel-${col}`);
+    if (!th) return;
+
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (col === curCol) {
+      th.classList.add(curDir === 'asc' ? 'sort-asc' : 'sort-desc');
+      if (icon) icon.textContent = curDir === 'asc' ? 'arrow_upward' : 'arrow_downward';
+      th.setAttribute('title', `Sort by ${col} (Currently ${curDir === 'asc' ? 'Ascending' : 'Descending'} — click to reverse)`);
+    } else {
+      if (icon) icon.textContent = 'unfold_more';
+      th.setAttribute('title', `Click to sort by ${col}`);
+    }
+  });
+}
+
+function sortAdminPersonnelTable(column) {
+  if (!window.adminPersonnelSort) {
+    window.adminPersonnelSort = { column: 'name', direction: 'asc' };
+  }
+  if (window.adminPersonnelSort.column === column) {
+    window.adminPersonnelSort.direction = window.adminPersonnelSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    window.adminPersonnelSort.column = column;
+    window.adminPersonnelSort.direction = 'asc';
+  }
+  renderAdminPersonnelTable();
+}
+window.sortAdminPersonnelTable = sortAdminPersonnelTable;
+
+/* ── Enterprise Fleet Table & Management ────────────────────────────────── */
 function renderAdminFleetTable() {
   const tbody = document.getElementById('admin-fleet-table-body');
   if (!tbody) return;
@@ -3010,8 +3640,11 @@ function renderAdminFleetTable() {
   const fleet = window.ionConfig?.fleetRegistry || [];
   const searchInput = document.getElementById('admin-fleet-search');
   const classFilter = document.getElementById('admin-fleet-class-filter');
-  const q = (searchInput?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('admin-fleet-status-filter');
+
+  const rawQ = (searchInput?.value || '').trim().toLowerCase();
   const cFilter = (classFilter?.value || 'ALL');
+  const sFilter = (statusFilter?.value || 'ALL');
 
   // Populate class filter dynamically if options are just standard
   if (classFilter && classFilter.options.length <= 1) {
@@ -3024,31 +3657,101 @@ function renderAdminFleetTable() {
     });
   }
 
+  // Robust multi-token search
+  const tokens = rawQ ? rawQ.split(/\s+/).filter(Boolean) : [];
+
   let filtered = fleet.filter(a => {
-    const matchesSearch = !q ||
-      (a.id && a.id.toLowerCase().includes(q)) ||
-      (a.class && a.class.toLowerCase().includes(q)) ||
-      (a.description && a.description.toLowerCase().includes(q)) ||
-      (a.label && a.label.toLowerCase().includes(q)) ||
-      (a.workerName && a.workerName.toLowerCase().includes(q));
+    // 1. Class filter
+    if (cFilter !== 'ALL') {
+      const matchesClass = (a.class && a.class === cFilter) || (a.category && a.category === cFilter);
+      if (!matchesClass) return false;
+    }
 
-    const matchesClass = (cFilter === 'ALL') ||
-      (a.class && a.class === cFilter) ||
-      (a.category && a.category === cFilter);
+    // 2. Status filter (Active vs Expired/Maintenance/Overtime/Standby)
+    const isMaintenanceOrExpired = (a.workerStatus === 'maintenance' || a.status === 'maintenance' || a.workerStatus === 'expired' || a.status === 'expired' || a.workerStatus === 'standby' || a.status === 'standby' || a.workerStatus === 'overtime' || a.overtimeWarning);
+    const isActive = !isMaintenanceOrExpired;
 
-    return matchesSearch && matchesClass;
+    if (sFilter === 'Active') {
+      if (!isActive) return false;
+    } else if (sFilter === 'Expired') {
+      if (!isMaintenanceOrExpired) return false;
+    }
+
+    // 3. Multi-column search across Name, Role/Class, and Status simultaneously
+    if (tokens.length > 0) {
+      const statusLabel = isActive ? 'active available operational' : 'expired maintenance standby overtime inactive locked';
+      const corpus = [
+        a.id || '',
+        a.label || '',
+        a.description || '',
+        a.workerName || '',
+        a.class || '',
+        a.category || '',
+        a.type || '',
+        statusLabel,
+        a.workerStatus || '',
+        a.status || '',
+        a.color || '',
+        a.hex || ''
+      ].join(' ').toLowerCase();
+
+      const allTokensMatch = tokens.every(tok => corpus.includes(tok));
+      if (!allTokensMatch) return false;
+    }
+
+    return true;
   });
 
   const countBadge = document.getElementById('admin-fleet-count');
   if (countBadge) {
-    countBadge.textContent = `${filtered.length} Registered`;
+    countBadge.textContent = `${filtered.length} of ${fleet.length} Assets`;
   }
+
+  // Sort filtered fleet list
+  const sortCol = window.adminFleetSort?.column || 'id';
+  const sortDir = window.adminFleetSort?.direction || 'asc';
+
+  filtered.sort((itemA, itemB) => {
+    let valA, valB;
+    switch (sortCol) {
+      case 'color':
+        valA = itemA.color || itemA.hex || '';
+        valB = itemB.color || itemB.hex || '';
+        break;
+      case 'id':
+        valA = itemA.id || '';
+        valB = itemB.id || '';
+        break;
+      case 'class':
+        valA = itemA.class || itemA.category || '';
+        valB = itemB.class || itemB.category || '';
+        break;
+      case 'description':
+        valA = itemA.description || itemA.label || '';
+        valB = itemB.description || itemB.label || '';
+        break;
+      case 'workerName':
+        valA = itemA.workerName || 'Unassigned (Pool)';
+        valB = itemB.workerName || 'Unassigned (Pool)';
+        break;
+      case 'status':
+        valA = itemA.workerStatus || itemA.status || 'available';
+        valB = itemB.workerStatus || itemB.status || 'available';
+        break;
+      default:
+        valA = itemA.id || '';
+        valB = itemB.id || '';
+    }
+    return compareAdminTableValues(valA, valB, sortDir);
+  });
+
+  updateFleetTableSortHeaders();
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);font-style:italic;">
-          No fleet assets found matching the filter criteria.
+        <td colspan="7" style="text-align:center;padding:36px 16px;color:var(--text-muted);font-style:italic;">
+          No fleet assets found matching the search and status criteria.
         </td>
       </tr>
     `;
@@ -3057,33 +3760,50 @@ function renderAdminFleetTable() {
 
   tbody.innerHTML = filtered.map(a => {
     const color = a.color || a.hex || '#0284c7';
-    const desc = a.description || a.label || 'Standard Plant Asset';
+    const desc = a.description || a.label || 'Standard Fleet Asset';
     const cls = a.class || a.category || 'General Plant';
     const operator = a.workerName || 'Unassigned (Pool)';
-    const status = a.workerStatus === 'overtime' ?
-      '<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Overtime</span>' :
-      '<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Available</span>';
+    
+    let statusBadge = '<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Available</span>';
+    if (a.workerStatus === 'maintenance' || a.status === 'maintenance') {
+      statusBadge = '<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:14px;">build</span> Maintenance</span>';
+    } else if (a.workerStatus === 'overtime' || a.overtimeWarning) {
+      statusBadge = '<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Overtime</span>';
+    } else if (a.workerStatus === 'standby' || a.status === 'standby') {
+      statusBadge = '<span class="admin-badge-exempt"><span class="material-symbols-outlined" style="font-size:14px;">pause_circle</span> Standby</span>';
+    }
 
     return `
       <tr>
         <td style="text-align:center;">
-          <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,0.15);" title="${color}"></span>
+          <span style="display:inline-block;width:22px;height:22px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,0.2);box-shadow:0 1px 2px rgba(0,0,0,0.1);" title="${color}"></span>
         </td>
         <td style="font-weight:800;color:var(--text-primary);font-family:monospace;font-size:13px;">${escapeHtml(a.id)}</td>
         <td style="font-weight:600;color:var(--text-primary);">${escapeHtml(cls)}</td>
-        <td style="color:var(--text-secondary);">${escapeHtml(desc)}</td>
-        <td style="font-size:13px;color:var(--text-primary);"><span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:var(--text-muted);">person</span>${escapeHtml(operator)}</td>
-        <td>${status}</td>
-        <td style="text-align:right;">
-          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;color:#dc2626;border-color:rgba(220,38,38,0.3);" onclick="deleteFleetAssetAdmin('${a.id}')" title="Delete Asset">
-            <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
-          </button>
+        <td style="color:var(--text-secondary);max-width:280px;">${escapeHtml(desc)}</td>
+        <td style="font-size:13px;color:var(--text-primary);">
+          <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:var(--text-muted);">person</span>${escapeHtml(operator)}
+        </td>
+        <td>${statusBadge}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <div style="display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;">
+            <button class="btn-secondary admin-table-action-btn edit-btn" onclick="openEditAssetAdminModal('${escapeHtml(a.id)}')" title="Edit Asset ${escapeHtml(a.id)}">
+              <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
+              <span>Edit</span>
+            </button>
+            <button class="btn-secondary admin-table-action-btn delete-btn" onclick="promptDeleteFleetAsset('${escapeHtml(a.id)}')" title="Delete Asset ${escapeHtml(a.id)}">
+              <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+              <span>Delete</span>
+            </button>
+          </div>
         </td>
       </tr>
     `;
   }).join('');
 }
+window.renderAdminFleetTable = renderAdminFleetTable;
 
+/* ── Enterprise Personnel & Roles Table ─────────────────────────────────── */
 function renderAdminPersonnelTable() {
   const tbody = document.getElementById('admin-personnel-table-body');
   if (!tbody) return;
@@ -3093,36 +3813,124 @@ function renderAdminPersonnelTable() {
   const roleFilter = document.getElementById('admin-workers-role-filter');
   const statusFilter = document.getElementById('admin-workers-status-filter');
 
-  const q = (searchInput?.value || '').toLowerCase().trim();
+  const rawQ = (searchInput?.value || '').trim().toLowerCase();
   const rFilter = (roleFilter?.value || 'ALL');
   const sFilter = (statusFilter?.value || 'ALL');
 
+  const tokens = rawQ ? rawQ.split(/\s+/).filter(Boolean) : [];
+
   let filtered = workers.filter(w => {
-    const matchesSearch = !q ||
-      (w.name && w.name.toLowerCase().includes(q)) ||
-      (w.role && w.role.toLowerCase().includes(q)) ||
-      (w.licenseClass && w.licenseClass.toLowerCase().includes(q)) ||
-      (w.licenseNumber && w.licenseNumber.toLowerCase().includes(q));
+    // 1. Role / Department Filter
+    if (rFilter !== 'ALL') {
+      if (rFilter.startsWith('DEPT:')) {
+        const targetDept = rFilter.replace('DEPT:', '').toLowerCase();
+        const workerDept = (w.department || 'Operations').toLowerCase();
+        if (workerDept !== targetDept) return false;
+      } else {
+        const matchesRole = (w.role || '').toLowerCase().includes(rFilter.toLowerCase());
+        if (!matchesRole) return false;
+      }
+    }
 
-    const matchesRole = (rFilter === 'ALL') ||
-      (w.role && w.role.toLowerCase().includes(rFilter.toLowerCase()));
+    // 2. Status Filter
+    const isExpired = (w.hrwlStatus === 'Expired') || (w.hrwlExpiry && new Date(w.hrwlExpiry) < new Date());
+    const isExempt = (w.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(w.department);
+    const isActive = !isExpired;
 
-    const matchesStatus = (sFilter === 'ALL') ||
-      (w.hrwlStatus && w.hrwlStatus.toLowerCase() === sFilter.toLowerCase());
+    if (sFilter === 'Active') {
+      if (!isActive) return false;
+    } else if (sFilter === 'Expired') {
+      if (!isExpired) return false;
+    } else if (sFilter === 'Exempt') {
+      if (!isExempt) return false;
+    }
 
-    return matchesSearch && matchesRole && matchesStatus;
+    // 3. Multi-column search across Name, Role, and Status simultaneously
+    if (tokens.length > 0) {
+      const statusLabel = isExpired ? 'expired locked' : (isExempt ? 'active exempt office' : 'active valid compliant');
+      const corpus = [
+        w.id || '',
+        w.name || '',
+        w.role || '',
+        w.department || '',
+        statusLabel,
+        w.licenseClass || '',
+        w.licenseNumber || '',
+        w.phone || '',
+        w.email || '',
+        w.hrwlStatus || '',
+        w.hrwlExpiry || ''
+      ].join(' ').toLowerCase();
+
+      const allTokensMatch = tokens.every(tok => corpus.includes(tok));
+      if (!allTokensMatch) return false;
+    }
+
+    return true;
   });
 
   const countBadge = document.getElementById('admin-workers-count');
   if (countBadge) {
-    countBadge.textContent = `${filtered.length} Personnel`;
+    countBadge.textContent = `${filtered.length} of ${workers.length} Personnel`;
   }
+
+  // Sort filtered personnel list
+  const sortCol = window.adminPersonnelSort?.column || 'name';
+  const sortDir = window.adminPersonnelSort?.direction || 'asc';
+
+  filtered.sort((itemA, itemB) => {
+    let valA, valB;
+    switch (sortCol) {
+      case 'name':
+        valA = itemA.name || '';
+        valB = itemB.name || '';
+        break;
+      case 'role':
+        valA = `${itemA.role || ''} ${itemA.department || ''}`;
+        valB = `${itemB.role || ''} ${itemB.department || ''}`;
+        break;
+      case 'contact':
+        valA = itemA.phone || itemA.email || '';
+        valB = itemB.phone || itemB.email || '';
+        break;
+      case 'licenseClass':
+        valA = itemA.licenseClass || '';
+        valB = itemB.licenseClass || '';
+        break;
+      case 'licenseNumber':
+        valA = itemA.licenseNumber || '';
+        valB = itemB.licenseNumber || '';
+        break;
+      case 'hrwlExpiry': {
+        const isExemptA = (itemA.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(itemA.department);
+        const isExemptB = (itemB.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(itemA.department);
+        valA = isExemptA ? '' : (itemA.hrwlExpiry || '');
+        valB = isExemptB ? '' : (itemB.hrwlExpiry || '');
+        break;
+      }
+      case 'status': {
+        const isExpiredA = (itemA.hrwlStatus === 'Expired') || (itemA.hrwlExpiry && new Date(itemA.hrwlExpiry) < new Date());
+        const isExpiredB = (itemB.hrwlStatus === 'Expired') || (itemB.hrwlExpiry && new Date(itemB.hrwlExpiry) < new Date());
+        const isExemptA = (itemA.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(itemA.department);
+        const isExemptB = (itemB.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(itemB.department);
+        valA = isExpiredA ? 'Expired' : isExemptA ? 'Exempt' : (itemA.hrwlStatus || 'Active');
+        valB = isExpiredB ? 'Expired' : isExemptB ? 'Exempt' : (itemB.hrwlStatus || 'Active');
+        break;
+      }
+      default:
+        valA = itemA.name || '';
+        valB = itemB.name || '';
+    }
+    return compareAdminTableValues(valA, valB, sortDir);
+  });
+
+  updatePersonnelTableSortHeaders();
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);font-style:italic;">
-          No personnel found matching the filter criteria.
+        <td colspan="8" style="text-align:center;padding:36px 16px;color:var(--text-muted);font-style:italic;">
+          No personnel records found matching the search and filter criteria.
         </td>
       </tr>
     `;
@@ -3130,31 +3938,1008 @@ function renderAdminPersonnelTable() {
   }
 
   tbody.innerHTML = filtered.map(w => {
+    const dept = w.department || 'Operations';
     const isExpired = (w.hrwlStatus === 'Expired') || (w.hrwlExpiry && new Date(w.hrwlExpiry) < new Date());
-    const statusBadge = isExpired ?
-      `<span class="admin-badge-expired"><span class="material-symbols-outlined" style="font-size:14px;">error</span> Expired (Locked)</span>` :
-      `<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Active</span>`;
+    const isExempt = (w.hrwlStatus === 'Exempt') || ['Office', 'Sales', 'Administration'].includes(dept);
+
+    let statusBadge = '';
+    if (isExpired) {
+      statusBadge = `<span class="admin-badge-expired"><span class="material-symbols-outlined" style="font-size:14px;">error</span> Expired (Locked)</span>`;
+    } else if (isExempt) {
+      statusBadge = `<span class="admin-badge-exempt"><span class="material-symbols-outlined" style="font-size:14px;">verified_user</span> Exempt (Office)</span>`;
+    } else if (w.hrwlStatus === 'Pending') {
+      statusBadge = `<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:14px;">schedule</span> Pending</span>`;
+    } else {
+      statusBadge = `<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Active</span>`;
+    }
+
+    let deptPillClass = 'admin-dept-ops';
+    if (dept === 'Administration') deptPillClass = 'admin-dept-admin';
+    else if (dept === 'Office') deptPillClass = 'admin-dept-office';
+    else if (dept === 'Sales') deptPillClass = 'admin-dept-sales';
+    else if (dept === 'Safety') deptPillClass = 'admin-dept-safety';
+
+    const initials = (w.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'W';
+    const contactPhone = w.phone || '—';
+    const contactEmail = w.email || '—';
+    const licClass = w.licenseClass || (isExempt ? 'N/A (Exempt)' : 'HRWL');
+    const licNum = w.licenseNumber || '—';
+    const expiryDisplay = isExempt ? '<span style="color:var(--text-muted);font-style:italic;">Exempt</span>' : (w.hrwlExpiry || 'N/A');
 
     return `
       <tr>
-        <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-          <div style="width:28px;height:28px;border-radius:50%;background:rgba(2,132,199,0.1);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">
-            ${(w.name || '').split(' ').map(n=>n[0]).join('')}
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:rgba(2,132,199,0.12);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">
+              ${initials}
+            </div>
+            <div>
+              <div style="font-weight:700;color:var(--text-primary);">${escapeHtml(w.name)}</div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:monospace;">${escapeHtml(w.id || '')}</div>
+            </div>
           </div>
-          <span>${escapeHtml(w.name)}</span>
         </td>
-        <td style="color:var(--text-secondary);font-weight:500;">${escapeHtml(w.role)}</td>
-        <td style="font-family:monospace;font-weight:700;color:var(--text-primary);">${escapeHtml(w.licenseClass || 'HRWL')}</td>
-        <td style="font-family:monospace;font-size:12px;color:var(--text-muted);">${escapeHtml(w.licenseNumber || '—')}</td>
-        <td style="color:${isExpired ? '#dc2626' : 'var(--text-primary)'};font-weight:${isExpired ? '700' : '500'};">${escapeHtml(w.hrwlExpiry || 'N/A')}</td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;">
+            <span style="font-weight:600;color:var(--text-primary);">${escapeHtml(w.role || 'Team Member')}</span>
+            <span class="admin-dept-pill ${deptPillClass}">${escapeHtml(dept)}</span>
+          </div>
+        </td>
+        <td style="font-size:12px;">
+          <div style="color:var(--text-primary);display:flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:13px;color:var(--text-muted);">phone</span>
+            <span>${escapeHtml(contactPhone)}</span>
+          </div>
+          <div style="color:var(--text-secondary);font-size:11px;display:flex;align-items:center;gap:4px;margin-top:2px;">
+            <span class="material-symbols-outlined" style="font-size:13px;color:var(--text-muted);">mail</span>
+            <span>${escapeHtml(contactEmail)}</span>
+          </div>
+        </td>
+        <td style="font-family:monospace;font-weight:700;font-size:12px;color:var(--text-primary);">${escapeHtml(licClass)}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-secondary);">${escapeHtml(licNum)}</td>
+        <td style="font-size:12px;color:${isExpired ? '#dc2626' : 'var(--text-primary)'};font-weight:${isExpired ? '700' : '500'};">${expiryDisplay}</td>
         <td>${statusBadge}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <div style="display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;">
+            <button class="btn-secondary admin-table-action-btn edit-btn" onclick="openEditPersonnelAdminModal('${escapeHtml(w.id)}')" title="Edit Personnel ${escapeHtml(w.name)}">
+              <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
+              <span>Edit</span>
+            </button>
+            <button class="btn-secondary admin-table-action-btn delete-btn" onclick="promptDeletePersonnel('${escapeHtml(w.id)}')" title="Delete Personnel ${escapeHtml(w.name)}">
+              <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+              <span>Delete</span>
+            </button>
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
 }
+window.renderAdminPersonnelTable = renderAdminPersonnelTable;
+
+/* ── Fleet Asset CRUD Operations ────────────────────────────────────────── */
+function populateAssetWorkerDropdown(selectedWorkerName) {
+  const select = document.getElementById('modal-asset-worker');
+  if (!select) return;
+
+  const workers = window.ionConfig?.workerRegistry || [];
+  select.innerHTML = '<option value="Unassigned (Pool)">Unassigned (Pool)</option>' +
+    workers.map(w => {
+      const isSelected = selectedWorkerName && (w.name === selectedWorkerName);
+      return `<option value="${escapeHtml(w.name)}" ${isSelected ? 'selected' : ''}>${escapeHtml(w.name)} (${escapeHtml(w.role)})</option>`;
+    }).join('');
+}
+
+function openAddAssetAdminModal() {
+  const modal = document.getElementById('admin-add-asset-modal');
+  if (!modal) return;
+
+  document.getElementById('modal-asset-mode').value = 'add';
+  document.getElementById('modal-asset-original-id').value = '';
+  document.getElementById('admin-asset-modal-title').textContent = 'Add Fleet Asset';
+  document.getElementById('admin-asset-modal-submit-label').textContent = 'Register Asset';
+
+  const idInput = document.getElementById('modal-asset-id');
+  idInput.value = '';
+  idInput.readOnly = false;
+  idInput.style.opacity = '1';
+
+  document.getElementById('modal-asset-class').value = '';
+  document.getElementById('modal-asset-desc').value = '';
+  document.getElementById('modal-asset-color').value = '#0284c7';
+  document.getElementById('modal-asset-hex').value = '#0284c7';
+  document.getElementById('modal-asset-status').value = 'available';
+
+  populateAssetWorkerDropdown('Unassigned (Pool)');
+  modal.style.display = 'flex';
+}
+window.openAddAssetAdminModal = openAddAssetAdminModal;
+
+function handleAddAssetPrompt() {
+  openAddAssetAdminModal();
+}
+window.handleAddAssetPrompt = handleAddAssetPrompt;
+
+function openEditAssetAdminModal(assetId) {
+  const modal = document.getElementById('admin-add-asset-modal');
+  if (!modal) return;
+
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  const asset = fleet.find(a => a.id === assetId);
+  if (!asset) {
+    showToast(`Asset ${assetId} not found in fleet registry.`, 'error', 'Error');
+    return;
+  }
+
+  document.getElementById('modal-asset-mode').value = 'edit';
+  document.getElementById('modal-asset-original-id').value = asset.id;
+  document.getElementById('admin-asset-modal-title').textContent = `Edit Fleet Asset — ${asset.id}`;
+  document.getElementById('admin-asset-modal-submit-label').textContent = 'Save Asset Changes';
+
+  const idInput = document.getElementById('modal-asset-id');
+  idInput.value = asset.id;
+  idInput.readOnly = true;
+  idInput.style.opacity = '0.7';
+
+  document.getElementById('modal-asset-class').value = asset.class || asset.category || '';
+  document.getElementById('modal-asset-desc').value = asset.description || asset.label || '';
+  
+  const color = asset.color || asset.hex || '#0284c7';
+  document.getElementById('modal-asset-color').value = color;
+  document.getElementById('modal-asset-hex').value = color;
+
+  const statusVal = asset.workerStatus === 'maintenance' || asset.status === 'maintenance' ? 'maintenance' :
+                    asset.workerStatus === 'overtime' || asset.overtimeWarning ? 'overtime' :
+                    asset.workerStatus === 'standby' || asset.status === 'standby' ? 'standby' : 'available';
+  document.getElementById('modal-asset-status').value = statusVal;
+
+  populateAssetWorkerDropdown(asset.workerName || 'Unassigned (Pool)');
+  modal.style.display = 'flex';
+}
+window.openEditAssetAdminModal = openEditAssetAdminModal;
+
+function closeAddAssetAdminModal() {
+  const modal = document.getElementById('admin-add-asset-modal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeAddAssetAdminModal = closeAddAssetAdminModal;
+
+function submitAddAssetAdmin() {
+  const mode = document.getElementById('modal-asset-mode')?.value || 'add';
+  const originalId = document.getElementById('modal-asset-original-id')?.value || '';
+  const rawId = document.getElementById('modal-asset-id')?.value?.trim().toUpperCase();
+  const assetClass = document.getElementById('modal-asset-class')?.value?.trim();
+  const assetDesc = document.getElementById('modal-asset-desc')?.value?.trim();
+  const hexColor = document.getElementById('modal-asset-hex')?.value?.trim() || '#0284c7';
+  const workerName = document.getElementById('modal-asset-worker')?.value || 'Unassigned (Pool)';
+  const status = document.getElementById('modal-asset-status')?.value || 'available';
+
+  if (!rawId) {
+    showToast('Please provide an Asset Identification Code.', 'warning', 'Required Field');
+    return;
+  }
+  if (!assetClass) {
+    showToast('Please specify the Asset Class / Category.', 'warning', 'Required Field');
+    return;
+  }
+
+  const lowerClass = assetClass.toLowerCase();
+  const category = lowerClass.includes('franna') ? 'franna' :
+                   lowerClass.includes('crawler') ? 'crawler' :
+                   lowerClass.includes('terrain') ? 'all_terrain' :
+                   lowerClass.includes('excavator') ? 'excavator' :
+                   lowerClass.includes('truck') ? 'truck' : 'crane';
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.fleetRegistry)) window.ionConfig.fleetRegistry = [];
+
+  if (mode === 'add') {
+    const existing = window.ionConfig.fleetRegistry.find(a => a.id === rawId);
+    if (existing) {
+      showToast(`An asset with ID "${rawId}" already exists in the fleet registry.`, 'error', 'Duplicate ID');
+      return;
+    }
+
+    const newAsset = {
+      id: rawId,
+      label: `${rawId} - ${assetClass}`,
+      class: assetClass,
+      description: assetDesc || `${assetClass} (${rawId})`,
+      type: assetClass,
+      category: category,
+      color: hexColor,
+      hex: hexColor,
+      workerName: workerName,
+      workerStatus: status,
+      hoursToday: 0
+    };
+
+    window.ionConfig.fleetRegistry.push(newAsset);
+
+    // Sync to dataModels.assetRegistry
+    if (typeof assetRegistry !== 'undefined' && Array.isArray(assetRegistry)) {
+      assetRegistry.push({
+        id: rawId,
+        description: newAsset.description,
+        hex: hexColor,
+        assetType: category
+      });
+    }
+
+    showToast(`Fleet asset ${rawId} registered successfully.`, 'success', 'Asset Registered');
+  } else {
+    // Edit mode
+    const idx = window.ionConfig.fleetRegistry.findIndex(a => a.id === originalId);
+    if (idx >= 0) {
+      window.ionConfig.fleetRegistry[idx] = {
+        ...window.ionConfig.fleetRegistry[idx],
+        class: assetClass,
+        description: assetDesc || window.ionConfig.fleetRegistry[idx].description,
+        label: `${originalId} - ${assetClass}`,
+        type: assetClass,
+        category: category,
+        color: hexColor,
+        hex: hexColor,
+        workerName: workerName,
+        workerStatus: status,
+        overtimeWarning: (status === 'overtime')
+      };
+    }
+
+    // Sync to dataModels.assetRegistry
+    if (typeof assetRegistry !== 'undefined' && Array.isArray(assetRegistry)) {
+      const arIdx = assetRegistry.findIndex(a => a.id === originalId);
+      if (arIdx >= 0) {
+        assetRegistry[arIdx].description = assetDesc || assetRegistry[arIdx].description;
+        assetRegistry[arIdx].hex = hexColor;
+        assetRegistry[arIdx].assetType = category;
+      }
+    }
+
+    showToast(`Fleet asset ${originalId} configuration updated.`, 'success', 'Asset Updated');
+  }
+
+  if (typeof syncSchedulerLanes === 'function') {
+    syncSchedulerLanes();
+  }
+
+  closeAddAssetAdminModal();
+  renderAdminFleetTable();
+  renderSchedulerFilterDropdowns();
+}
+window.submitAddAssetAdmin = submitAddAssetAdmin;
+
+let pendingAdminDeleteAction = null;
+
+function promptDeleteFleetAsset(assetId) {
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  const asset = fleet.find(a => a.id === assetId);
+  const assetClass = asset?.class || asset?.category || 'Fleet Asset';
+  const operator = asset?.workerName || 'Unassigned (Pool)';
+  const color = asset?.color || asset?.hex || '#0284c7';
+
+  const modal = document.getElementById('admin-delete-confirm-modal');
+  const titleEl = document.getElementById('admin-delete-confirm-title');
+  const msgEl = document.getElementById('admin-delete-confirm-message');
+  const detailsEl = document.getElementById('admin-delete-confirm-details');
+  const confirmBtn = document.getElementById('admin-delete-confirm-btn');
+
+  if (titleEl) titleEl.textContent = 'Delete Fleet Asset';
+  if (msgEl) msgEl.textContent = `Are you sure you want to permanently delete asset "${assetId}" from the global configuration registry? This will also unassign it from active scheduler lanes.`;
+  if (detailsEl) {
+    detailsEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,0.2);"></span>
+        <strong style="color:var(--text-primary);font-family:monospace;font-size:13.5px;">${escapeHtml(assetId)}</strong>
+        <span style="color:var(--text-muted);">&bull;</span>
+        <span style="color:var(--text-secondary);font-weight:600;">${escapeHtml(assetClass)}</span>
+        <span style="color:var(--text-muted);">&bull;</span>
+        <span style="font-size:12px;color:var(--text-muted);">Operator: ${escapeHtml(operator)}</span>
+      </div>
+    `;
+  }
+
+  pendingAdminDeleteAction = () => executeDeleteFleetAsset(assetId);
+
+  if (confirmBtn) {
+    confirmBtn.onclick = () => {
+      if (typeof pendingAdminDeleteAction === 'function') {
+        pendingAdminDeleteAction();
+      }
+      closeDeleteConfirmModal();
+    };
+  }
+
+  if (modal) modal.style.display = 'flex';
+}
+window.promptDeleteFleetAsset = promptDeleteFleetAsset;
+
+function deleteFleetAssetAdmin(assetId) {
+  promptDeleteFleetAsset(assetId);
+}
+window.deleteFleetAssetAdmin = deleteFleetAssetAdmin;
+
+function executeDeleteFleetAsset(assetId) {
+  if (window.ionConfig?.fleetRegistry) {
+    window.ionConfig.fleetRegistry = window.ionConfig.fleetRegistry.filter(a => a.id !== assetId);
+  }
+
+  if (typeof mockFleetAssets !== 'undefined' && Array.isArray(mockFleetAssets)) {
+    mockFleetAssets = mockFleetAssets.filter(a => a.id !== assetId);
+  }
+
+  if (typeof allSchedulerLanes !== 'undefined' && Array.isArray(allSchedulerLanes)) {
+    allSchedulerLanes = allSchedulerLanes.filter(a => a.id !== assetId);
+  }
+
+  if (typeof assetRegistry !== 'undefined' && Array.isArray(assetRegistry)) {
+    const idx = assetRegistry.findIndex(a => a.id === assetId);
+    if (idx >= 0) assetRegistry.splice(idx, 1);
+  }
+
+  try {
+    localStorage.setItem('ion_fleet_registry', JSON.stringify(window.ionConfig?.fleetRegistry || []));
+  } catch (e) {
+    console.warn('Could not persist fleet registry to localStorage:', e);
+  }
+
+  if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
+  renderAdminFleetTable();
+  renderSchedulerFilterDropdowns();
+
+  showToast(`Asset ${assetId} deleted from global configuration registry.`, 'info', 'Asset Deleted');
+}
+window.executeDeleteFleetAsset = executeDeleteFleetAsset;
+
+function closeDeleteConfirmModal() {
+  const modal = document.getElementById('admin-delete-confirm-modal');
+  if (modal) modal.style.display = 'none';
+  pendingAdminDeleteAction = null;
+}
+window.closeDeleteConfirmModal = closeDeleteConfirmModal;
+
+/* ── Predefined Roles Registry & Management ────────────────────────────── */
+const ROLE_PRESETS = {
+  Operations: [
+    'Crane Operator',
+    'Plant Operator',
+    'Dogman',
+    'Rigger',
+    'Heavy Transport Driver',
+    'Lead Rigger / Site Supervisor'
+  ],
+  Administration: [
+    'Fleet & Operations Administrator',
+    'Dispatcher / Allocator',
+    'Executive Assistant',
+    'Compliance Administrator'
+  ],
+  Office: [
+    'General Manager / Office Admin',
+    'Office Administrator',
+    'Accounts & Billing Specialist',
+    'HR & Payroll Coordinator'
+  ],
+  Sales: [
+    'Sales & Estimating Manager',
+    'Technical Estimator / Hire Desk',
+    'Business Development Manager',
+    'Client Account Manager'
+  ],
+  Safety: [
+    'Safety & Compliance Officer',
+    'HSE Coordinator / Auditor'
+  ]
+};
+
+function initPredefinedRoles() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.roleRegistry) || window.ionConfig.roleRegistry.length === 0) {
+    window.ionConfig.roleRegistry = [
+      // Administration
+      { id: 'ROLE_ADM_01', department: 'Administration', role: 'Fleet & Operations Administrator', type: 'Exempt', description: 'Fleet allocation and dispatch administration' },
+      { id: 'ROLE_ADM_02', department: 'Administration', role: 'Dispatcher / Allocator', type: 'Exempt', description: 'Daily shift allocation and job dispatch' },
+      { id: 'ROLE_ADM_03', department: 'Administration', role: 'Executive Assistant', type: 'Exempt', description: 'Executive administrative coordination' },
+      { id: 'ROLE_ADM_04', department: 'Administration', role: 'Compliance Administrator', type: 'Exempt', description: 'Audit, licensing, and compliance tracking' },
+      
+      // Office
+      { id: 'ROLE_OFF_01', department: 'Office', role: 'General Manager / Office Admin', type: 'Exempt', description: 'Branch management and office oversight' },
+      { id: 'ROLE_OFF_02', department: 'Office', role: 'Office Administrator', type: 'Exempt', description: 'General office management and documentation' },
+      { id: 'ROLE_OFF_03', department: 'Office', role: 'Accounts & Billing Specialist', type: 'Exempt', description: 'Invoicing, billing, and accounts' },
+      { id: 'ROLE_OFF_04', department: 'Office', role: 'HR & Payroll Coordinator', type: 'Exempt', description: 'Personnel records, wages, and payroll' },
+
+      // Sales
+      { id: 'ROLE_SAL_01', department: 'Sales', role: 'Sales & Estimating Manager', type: 'Exempt', description: 'Commercial quotes, estimating, and tenders' },
+      { id: 'ROLE_SAL_02', department: 'Sales', role: 'Technical Estimator / Hire Desk', type: 'Exempt', description: 'Crane lift studies and hire quotes' },
+      { id: 'ROLE_SAL_03', department: 'Sales', role: 'Business Development Manager', type: 'Exempt', description: 'Client acquisition and field sales' },
+      { id: 'ROLE_SAL_04', department: 'Sales', role: 'Client Account Manager', type: 'Exempt', description: 'Key customer account support' },
+
+      // Operations
+      { id: 'ROLE_OPS_01', department: 'Operations', role: 'Crane Operator', type: 'HRWL', description: 'Certified mobile crane operator (C1/C6/CO)' },
+      { id: 'ROLE_OPS_02', department: 'Operations', role: 'Plant Operator', type: 'HRWL', description: 'Heavy earthmoving and plant machinery' },
+      { id: 'ROLE_OPS_03', department: 'Operations', role: 'Dogman', type: 'HRWL', description: 'High Risk Work Licenced Dogging (DG)' },
+      { id: 'ROLE_OPS_04', department: 'Operations', role: 'Rigger', type: 'HRWL', description: 'Rigging qualification (RB/RI/RA)' },
+      { id: 'ROLE_OPS_05', department: 'Operations', role: 'Heavy Transport Driver', type: 'HRWL', description: 'Heavy Combination / Multi-Combination float driver' },
+      { id: 'ROLE_OPS_06', department: 'Operations', role: 'Lead Rigger / Site Supervisor', type: 'HRWL', description: 'On-site lift supervision and lift director' },
+
+      // Safety
+      { id: 'ROLE_SAF_01', department: 'Safety', role: 'Safety & Compliance Officer', type: 'Safety', description: 'WHS auditor, SWMS author, and site compliance' },
+      { id: 'ROLE_SAF_02', department: 'Safety', role: 'HSE Coordinator / Auditor', type: 'Safety', description: 'Health, safety, and environmental systems' }
+    ];
+  }
+}
+window.initPredefinedRoles = initPredefinedRoles;
+
+function syncRoleDropdowns() {
+  initPredefinedRoles();
+  const roles = window.ionConfig?.roleRegistry || [];
+
+  // Update ROLE_PRESETS mapping dynamically
+  const depts = ['Operations', 'Administration', 'Office', 'Sales', 'Safety'];
+  depts.forEach(d => {
+    ROLE_PRESETS[d] = roles.filter(r => r.department.toLowerCase() === d.toLowerCase()).map(r => r.role);
+  });
+
+  // 1. Sync Personnel Table Role Filter (#admin-workers-role-filter)
+  const roleFilterSelect = document.getElementById('admin-workers-role-filter');
+  if (roleFilterSelect) {
+    const currentVal = roleFilterSelect.value || 'ALL';
+    let filterHtml = '<option value="ALL">All Roles &amp; Depts</option>';
+
+    // Departments optgroup
+    filterHtml += '<optgroup label="Departments">';
+    depts.forEach(d => {
+      filterHtml += `<option value="DEPT:${d}">${d}</option>`;
+    });
+    filterHtml += '</optgroup>';
+
+    // Grouped by departments
+    depts.forEach(d => {
+      const deptRoles = roles.filter(r => r.department.toLowerCase() === d.toLowerCase());
+      if (deptRoles.length > 0) {
+        filterHtml += `<optgroup label="${d} Roles">`;
+        deptRoles.forEach(r => {
+          filterHtml += `<option value="${escapeHtml(r.role)}">${escapeHtml(r.role)}</option>`;
+        });
+        filterHtml += '</optgroup>';
+      }
+    });
+
+    roleFilterSelect.innerHTML = filterHtml;
+    // Restore previous value if it still exists
+    if ([...roleFilterSelect.options].some(o => o.value === currentVal)) {
+      roleFilterSelect.value = currentVal;
+    }
+  }
+
+  // 2. Also sync Modal preset dropdown if modal is open
+  const modalDept = document.getElementById('modal-worker-dept')?.value;
+  if (modalDept) {
+    const currentPreset = document.getElementById('modal-worker-role-preset')?.value;
+    populateWorkerRolePresets(modalDept, currentPreset);
+  }
+}
+window.syncRoleDropdowns = syncRoleDropdowns;
+
+function renderAdminRolesTable() {
+  const tbody = document.getElementById('admin-roles-table-body');
+  if (!tbody) return;
+
+  initPredefinedRoles();
+  const roles = window.ionConfig?.roleRegistry || [];
+  const workers = window.ionConfig?.workerRegistry || [];
+
+  const searchInput = document.getElementById('admin-roles-search');
+  const deptFilter = document.getElementById('admin-roles-dept-filter');
+  const rawQ = (searchInput?.value || '').trim().toLowerCase();
+  const dFilter = (deptFilter?.value || 'ALL');
+
+  const tokens = rawQ ? rawQ.split(/\s+/).filter(Boolean) : [];
+
+  let filtered = roles.filter(r => {
+    if (dFilter !== 'ALL' && r.department.toLowerCase() !== dFilter.toLowerCase()) {
+      return false;
+    }
+
+    if (tokens.length > 0) {
+      const corpus = [
+        r.id || '',
+        r.role || '',
+        r.department || '',
+        r.type || '',
+        r.description || ''
+      ].join(' ').toLowerCase();
+
+      const allMatch = tokens.every(tok => corpus.includes(tok));
+      if (!allMatch) return false;
+    }
+
+    return true;
+  });
+
+  const countBadge = document.getElementById('admin-roles-count');
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} of ${roles.length} Roles`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;padding:36px 16px;color:var(--text-muted);font-style:italic;">
+          No predefined roles found matching criteria. Use the form above to register a new role.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const dept = r.department || 'Operations';
+    let deptPillClass = 'admin-dept-ops';
+    if (dept === 'Administration') deptPillClass = 'admin-dept-admin';
+    else if (dept === 'Office') deptPillClass = 'admin-dept-office';
+    else if (dept === 'Sales') deptPillClass = 'admin-dept-sales';
+    else if (dept === 'Safety') deptPillClass = 'admin-dept-safety';
+
+    // Count assigned personnel
+    const assignedCount = workers.filter(w => (w.role || '').toLowerCase() === (r.role || '').toLowerCase()).length;
+    
+    let typeBadge = '<span class="admin-badge-exempt"><span class="material-symbols-outlined" style="font-size:13px;">verified_user</span> Exempt</span>';
+    if (r.type === 'HRWL') {
+      typeBadge = '<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:13px;">badge</span> HRWL Licenced</span>';
+    } else if (r.type === 'Safety') {
+      typeBadge = '<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:13px;">shield</span> WHS Certified</span>';
+    }
+
+    return `
+      <tr>
+        <td>
+          <span class="admin-dept-pill ${deptPillClass}">${escapeHtml(dept)}</span>
+        </td>
+        <td>
+          <div style="font-weight:700;color:var(--text-primary);font-size:13px;">${escapeHtml(r.role)}</div>
+          ${r.description ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(r.description)}</div>` : ''}
+        </td>
+        <td>${typeBadge}</td>
+        <td>
+          <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;background:${assignedCount > 0 ? 'rgba(2,132,199,0.1)' : 'var(--bg-secondary)'};color:${assignedCount > 0 ? 'var(--accent-primary)' : 'var(--text-muted)'};border:1px solid ${assignedCount > 0 ? 'rgba(2,132,199,0.2)' : 'var(--border-light)'};">
+            ${assignedCount} active ${assignedCount === 1 ? 'member' : 'members'}
+          </span>
+        </td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn-secondary admin-table-action-btn delete-btn" onclick="removePredefinedRole('${escapeHtml(r.id)}')" title="Delete Predefined Role ${escapeHtml(r.role)}">
+            <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+            <span>Delete</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.renderAdminRolesTable = renderAdminRolesTable;
+
+function submitAddRoleAdmin() {
+  const deptEl = document.getElementById('admin-new-role-dept');
+  const titleEl = document.getElementById('admin-new-role-title');
+  const typeEl = document.getElementById('admin-new-role-type');
+
+  const dept = deptEl?.value || 'Administration';
+  const title = (titleEl?.value || '').trim();
+  const type = typeEl?.value || 'Exempt';
+
+  if (!title) {
+    showToast('Please enter a Role Title.', 'warning', 'Required Field');
+    if (titleEl) titleEl.focus();
+    return;
+  }
+
+  initPredefinedRoles();
+  const roles = window.ionConfig?.roleRegistry || [];
+
+  // Check duplicate
+  const existing = roles.find(r => r.role.toLowerCase() === title.toLowerCase() && r.department.toLowerCase() === dept.toLowerCase());
+  if (existing) {
+    showToast(`Role "${title}" already exists under ${dept}.`, 'warning', 'Duplicate Role');
+    return;
+  }
+
+  const newId = `ROLE_${dept.substring(0, 3).toUpperCase()}_${Date.now().toString().slice(-4)}`;
+  roles.push({
+    id: newId,
+    department: dept,
+    role: title,
+    type: type,
+    description: `Predefined ${dept} operational role`
+  });
+
+  if (titleEl) titleEl.value = '';
+
+  syncRoleDropdowns();
+  renderAdminRolesTable();
+  renderAdminPersonnelTable();
+
+  showToast(`Predefined role "${title}" added to ${dept}.`, 'success', 'Role Added');
+}
+window.submitAddRoleAdmin = submitAddRoleAdmin;
+
+function removePredefinedRole(roleId) {
+  initPredefinedRoles();
+  const roles = window.ionConfig?.roleRegistry || [];
+  const target = roles.find(r => r.id === roleId);
+  if (!target) return;
+
+  const workers = window.ionConfig?.workerRegistry || [];
+  const assignedWorkers = workers.filter(w => (w.role || '').toLowerCase() === (target.role || '').toLowerCase());
+
+  let confirmMsg = `Are you sure you want to delete the predefined role "${target.role}" (${target.department})? It will be removed from all role dropdowns.`;
+  if (assignedWorkers.length > 0) {
+    confirmMsg += `\n\nNotice: ${assignedWorkers.length} personnel member(s) currently hold this role title.`;
+  }
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  window.ionConfig.roleRegistry = roles.filter(r => r.id !== roleId);
+
+  syncRoleDropdowns();
+  renderAdminRolesTable();
+  renderAdminPersonnelTable();
+
+  showToast(`Role "${target.role}" removed from predefined registry.`, 'info', 'Role Removed');
+}
+window.removePredefinedRole = removePredefinedRole;
+
+function populateWorkerRolePresets(dept, selectedRole) {
+  const select = document.getElementById('modal-worker-role-preset');
+  const customWrap = document.getElementById('modal-worker-custom-role-wrap');
+  const customInput = document.getElementById('modal-worker-custom-role');
+  if (!select) return;
+
+  initPredefinedRoles();
+  const allRoles = window.ionConfig?.roleRegistry || [];
+  const deptRoles = allRoles.filter(r => r.department.toLowerCase() === (dept || 'operations').toLowerCase()).map(r => r.role);
+  const roles = deptRoles.length > 0 ? deptRoles : (ROLE_PRESETS[dept] || ['Team Member']);
+  let isPresetFound = false;
+
+  let html = roles.map(r => {
+    const match = selectedRole && (selectedRole.toLowerCase() === r.toLowerCase());
+    if (match) isPresetFound = true;
+    return `<option value="${escapeHtml(r)}" ${match ? 'selected' : ''}>${escapeHtml(r)}</option>`;
+  }).join('');
+
+  html += `<option value="CUSTOM" ${(!isPresetFound && selectedRole) ? 'selected' : ''}>Custom Role / Title...</option>`;
+  select.innerHTML = html;
+
+  if (!isPresetFound && selectedRole) {
+    if (customWrap) customWrap.style.display = 'block';
+    if (customInput) customInput.value = selectedRole;
+  } else {
+    if (customWrap) customWrap.style.display = 'none';
+    if (customInput) customInput.value = '';
+  }
+}
+window.populateWorkerRolePresets = populateWorkerRolePresets;
+
+function onWorkerDepartmentChange() {
+  const dept = document.getElementById('modal-worker-dept')?.value || 'Operations';
+  populateWorkerRolePresets(dept, '');
+
+  const licClassInput = document.getElementById('modal-worker-lic-class');
+  const licNumInput = document.getElementById('modal-worker-lic-num');
+  const statusSelect = document.getElementById('modal-worker-status');
+  const expiryInput = document.getElementById('modal-worker-lic-expiry');
+
+  if (['Office', 'Sales', 'Administration'].includes(dept)) {
+    if (licClassInput && !licClassInput.value) licClassInput.value = `N/A (${dept})`;
+    if (licNumInput && !licNumInput.value) licNumInput.value = `${dept.toUpperCase().substring(0, 3)}-${Math.floor(100 + Math.random()*900)}`;
+    if (statusSelect) statusSelect.value = 'Exempt';
+    if (expiryInput) expiryInput.value = '';
+  } else if (dept === 'Safety') {
+    if (licClassInput && !licClassInput.value) licClassInput.value = 'Cert IV WHS / Safety Auditor';
+    if (statusSelect) statusSelect.value = 'Active';
+  } else {
+    if (licClassInput && licClassInput.value.startsWith('N/A')) licClassInput.value = 'C1 / C6';
+    if (statusSelect && statusSelect.value === 'Exempt') statusSelect.value = 'Active';
+  }
+}
+window.onWorkerDepartmentChange = onWorkerDepartmentChange;
+
+function onWorkerRolePresetChange() {
+  const preset = document.getElementById('modal-worker-role-preset')?.value;
+  const customWrap = document.getElementById('modal-worker-custom-role-wrap');
+  const customInput = document.getElementById('modal-worker-custom-role');
+
+  if (preset === 'CUSTOM') {
+    if (customWrap) customWrap.style.display = 'block';
+    if (customInput) customInput.focus();
+  } else {
+    if (customWrap) customWrap.style.display = 'none';
+  }
+}
+window.onWorkerRolePresetChange = onWorkerRolePresetChange;
+
+function openAddPersonnelAdminModal() {
+  const modal = document.getElementById('admin-add-worker-modal');
+  if (!modal) return;
+
+  document.getElementById('modal-worker-mode').value = 'add';
+  document.getElementById('modal-worker-id').value = '';
+  document.getElementById('admin-worker-modal-title').textContent = 'Add Personnel Member';
+  document.getElementById('admin-worker-modal-submit-label').textContent = 'Register Personnel';
+
+  document.getElementById('modal-worker-name').value = '';
+  document.getElementById('modal-worker-dept').value = 'Operations';
+  populateWorkerRolePresets('Operations', 'Crane Operator');
+  document.getElementById('modal-worker-phone').value = '';
+  document.getElementById('modal-worker-email').value = '';
+  document.getElementById('modal-worker-lic-class').value = 'C1 / C6';
+  document.getElementById('modal-worker-lic-num').value = 'QLD-HRW-' + Math.floor(10000 + Math.random()*89999);
+  document.getElementById('modal-worker-lic-expiry').value = '2027-06-30';
+  document.getElementById('modal-worker-status').value = 'Active';
+
+  modal.style.display = 'flex';
+}
+window.openAddPersonnelAdminModal = openAddPersonnelAdminModal;
+
+function openEditPersonnelAdminModal(workerId) {
+  const modal = document.getElementById('admin-add-worker-modal');
+  if (!modal) return;
+
+  const workers = window.ionConfig?.workerRegistry || [];
+  const worker = workers.find(w => w.id === workerId);
+  if (!worker) {
+    showToast(`Worker ${workerId} not found.`, 'error', 'Error');
+    return;
+  }
+
+  document.getElementById('modal-worker-mode').value = 'edit';
+  document.getElementById('modal-worker-id').value = worker.id;
+  document.getElementById('admin-worker-modal-title').textContent = `Edit Personnel — ${worker.name}`;
+  document.getElementById('admin-worker-modal-submit-label').textContent = 'Save Personnel Changes';
+
+  document.getElementById('modal-worker-name').value = worker.name || '';
+  const dept = worker.department || 'Operations';
+  document.getElementById('modal-worker-dept').value = dept;
+  populateWorkerRolePresets(dept, worker.role || '');
+
+  document.getElementById('modal-worker-phone').value = worker.phone || '';
+  document.getElementById('modal-worker-email').value = worker.email || '';
+  document.getElementById('modal-worker-lic-class').value = worker.licenseClass || '';
+  document.getElementById('modal-worker-lic-num').value = worker.licenseNumber || '';
+  document.getElementById('modal-worker-lic-expiry').value = worker.hrwlExpiry || '';
+  document.getElementById('modal-worker-status').value = worker.hrwlStatus || (['Office', 'Sales', 'Administration'].includes(dept) ? 'Exempt' : 'Active');
+
+  modal.style.display = 'flex';
+}
+window.openEditPersonnelAdminModal = openEditPersonnelAdminModal;
+
+function closeAddPersonnelAdminModal() {
+  const modal = document.getElementById('admin-add-worker-modal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeAddPersonnelAdminModal = closeAddPersonnelAdminModal;
+
+function submitPersonnelAdmin() {
+  const mode = document.getElementById('modal-worker-mode')?.value || 'add';
+  const workerId = document.getElementById('modal-worker-id')?.value || '';
+  const name = document.getElementById('modal-worker-name')?.value?.trim();
+  const dept = document.getElementById('modal-worker-dept')?.value || 'Operations';
+  const rolePreset = document.getElementById('modal-worker-role-preset')?.value || '';
+  const customRole = document.getElementById('modal-worker-custom-role')?.value?.trim();
+  const phone = document.getElementById('modal-worker-phone')?.value?.trim();
+  const email = document.getElementById('modal-worker-email')?.value?.trim();
+  const licClass = document.getElementById('modal-worker-lic-class')?.value?.trim();
+  const licNum = document.getElementById('modal-worker-lic-num')?.value?.trim();
+  const expiry = document.getElementById('modal-worker-lic-expiry')?.value;
+  const status = document.getElementById('modal-worker-status')?.value || 'Active';
+
+  if (!name) {
+    showToast('Please enter the team member\'s full name.', 'warning', 'Required Field');
+    return;
+  }
+
+  const finalRole = (rolePreset === 'CUSTOM' ? customRole : rolePreset) || 'Team Member';
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.workerRegistry)) window.ionConfig.workerRegistry = [];
+
+  if (mode === 'add') {
+    // Generate next worker ID
+    const existingCount = window.ionConfig.workerRegistry.length + 1;
+    const newId = `W${String(existingCount).padStart(3, '0')}`;
+
+    const newWorker = {
+      id: newId,
+      name: name,
+      role: finalRole,
+      department: dept,
+      phone: phone || '0412 000 000',
+      email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@ionhire.com.au`,
+      licenseClass: licClass || (dept === 'Operations' ? 'HRWL' : `N/A (${dept})`),
+      licenseNumber: licNum || '—',
+      hrwlExpiry: expiry || '',
+      hrwlStatus: status
+    };
+
+    window.ionConfig.workerRegistry.push(newWorker);
+
+    // Sync to dataModels.workerRegistry
+    if (typeof addWorker === 'function') {
+      addWorker({
+        id: newId,
+        name: name,
+        role: finalRole,
+        department: dept,
+        status: 'available',
+        phone: newWorker.phone,
+        email: newWorker.email,
+        licenses: [{
+          type: newWorker.licenseClass,
+          licenseNumber: newWorker.licenseNumber,
+          expiry: newWorker.hrwlExpiry,
+          state: 'QLD'
+        }]
+      });
+    }
+
+    showToast(`Personnel record for ${name} (${finalRole}) created successfully.`, 'success', 'Personnel Added');
+  } else {
+    // Edit mode
+    const idx = window.ionConfig.workerRegistry.findIndex(w => w.id === workerId);
+    if (idx >= 0) {
+      window.ionConfig.workerRegistry[idx] = {
+        ...window.ionConfig.workerRegistry[idx],
+        name: name,
+        role: finalRole,
+        department: dept,
+        phone: phone,
+        email: email,
+        licenseClass: licClass,
+        licenseNumber: licNum,
+        hrwlExpiry: expiry,
+        hrwlStatus: status
+      };
+    }
+
+    // Sync to dataModels.workerRegistry
+    if (typeof updateWorkerById === 'function') {
+      updateWorkerById(workerId, {
+        name: name,
+        role: finalRole,
+        department: dept,
+        phone: phone,
+        email: email,
+        licenses: [{
+          type: licClass,
+          licenseNumber: licNum,
+          expiry: expiry,
+          state: 'QLD'
+        }]
+      });
+    }
+
+    showToast(`Personnel record for ${name} updated successfully.`, 'success', 'Record Updated');
+  }
+
+  closeAddPersonnelAdminModal();
+  renderAdminPersonnelTable();
+
+  // If worker view is open or initialized, refresh it
+  if (typeof renderWorkerView === 'function') {
+    try { renderWorkerView(); } catch(e) {}
+  }
+}
+window.submitPersonnelAdmin = submitPersonnelAdmin;
+
+function promptDeletePersonnel(workerId) {
+  const workers = window.ionConfig?.workerRegistry || [];
+  const worker = workers.find(w => w.id === workerId);
+  const workerName = worker?.name || workerId;
+  const role = worker?.role || 'Staff Member';
+  const dept = worker?.department || 'Operations';
+
+  const modal = document.getElementById('admin-delete-confirm-modal');
+  const titleEl = document.getElementById('admin-delete-confirm-title');
+  const msgEl = document.getElementById('admin-delete-confirm-message');
+  const detailsEl = document.getElementById('admin-delete-confirm-details');
+  const confirmBtn = document.getElementById('admin-delete-confirm-btn');
+
+  if (titleEl) titleEl.textContent = 'Delete Personnel Record';
+  if (msgEl) msgEl.textContent = `Are you sure you want to permanently delete personnel member "${workerName}" (${workerId}) from the global configuration registry?`;
+  if (detailsEl) {
+    detailsEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="material-symbols-outlined" style="font-size:20px;color:var(--text-muted);">badge</span>
+        <strong style="color:var(--text-primary);font-size:13.5px;">${escapeHtml(workerName)}</strong>
+        <span style="color:var(--text-muted);">&bull;</span>
+        <span style="color:var(--text-secondary);font-weight:600;">${escapeHtml(role)}</span>
+        <span style="color:var(--text-muted);">&bull;</span>
+        <span style="font-size:12px;color:var(--text-muted);">${escapeHtml(dept)} [ID: ${escapeHtml(workerId)}]</span>
+      </div>
+    `;
+  }
+
+  pendingAdminDeleteAction = () => executeDeletePersonnel(workerId);
+
+  if (confirmBtn) {
+    confirmBtn.onclick = () => {
+      if (typeof pendingAdminDeleteAction === 'function') {
+        pendingAdminDeleteAction();
+      }
+      closeDeleteConfirmModal();
+    };
+  }
+
+  if (modal) modal.style.display = 'flex';
+}
+window.promptDeletePersonnel = promptDeletePersonnel;
+
+function deletePersonnelAdmin(workerId) {
+  promptDeletePersonnel(workerId);
+}
+window.deletePersonnelAdmin = deletePersonnelAdmin;
+
+function executeDeletePersonnel(workerId) {
+  const workers = window.ionConfig?.workerRegistry || [];
+  const worker = workers.find(w => w.id === workerId);
+  const workerName = worker?.name || workerId;
+
+  if (window.ionConfig?.workerRegistry) {
+    window.ionConfig.workerRegistry = window.ionConfig.workerRegistry.filter(w => w.id !== workerId);
+  }
+
+  if (typeof removeWorkerById === 'function') {
+    try { removeWorkerById(workerId); } catch(e) {}
+  }
+
+  // De-allocate from any fleet assets where this worker was primary
+  if (window.ionConfig?.fleetRegistry) {
+    window.ionConfig.fleetRegistry.forEach(a => {
+      if (a.workerName === workerName) {
+        a.workerName = 'Unassigned (Pool)';
+      }
+    });
+    renderAdminFleetTable();
+  }
+
+  // Persist worker registry to localStorage
+  try {
+    localStorage.setItem('ion_worker_registry', JSON.stringify(window.ionConfig?.workerRegistry || []));
+  } catch (e) {
+    console.warn('Could not persist worker registry to localStorage:', e);
+  }
+
+  renderAdminPersonnelTable();
+  renderAdminRolesTable();
+
+  if (typeof renderWorkerView === 'function') {
+    try { renderWorkerView(); } catch(e) {}
+  }
+
+  showToast(`Personnel record for ${workerName} removed from configuration registry.`, 'info', 'Personnel Deleted');
+}
+window.executeDeletePersonnel = executeDeletePersonnel;
+
+/* ── Scheduling Rules Auto-Save & Persistence ─────────────────────────── */
+let schedAutoSaveTimer = null;
 
 function loadAdminSchedulingRules() {
-  const rules = window.ionConfig?.schedulingRules || {};
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.schedulingRules) window.ionConfig.schedulingRules = {};
+
+  // Check localStorage first
+  try {
+    const saved = localStorage.getItem('ion_scheduling_rules');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      window.ionConfig.schedulingRules = Object.assign(window.ionConfig.schedulingRules, parsed);
+    }
+  } catch (e) {
+    console.warn('Error reading saved scheduling rules:', e);
+  }
+
+  const rules = window.ionConfig.schedulingRules;
   const startEl = document.getElementById('admin-rule-start-time');
   const endEl = document.getElementById('admin-rule-end-time');
   const hoursEl = document.getElementById('admin-rule-std-hours');
@@ -3164,13 +4949,29 @@ function loadAdminSchedulingRules() {
 
   if (startEl && rules.standardHoursStart) startEl.value = rules.standardHoursStart;
   if (endEl && rules.standardHoursEnd) endEl.value = rules.standardHoursEnd;
-  if (hoursEl && rules.standardHoursDuration) hoursEl.value = rules.standardHoursDuration;
-  if (otEl && rules.overtimeMultiplier) otEl.value = rules.overtimeMultiplier;
-  if (dblEl && rules.doubleTimeMultiplier) dblEl.value = rules.doubleTimeMultiplier;
-  if (restEl && rules.restPeriodHours) restEl.value = rules.restPeriodHours;
+  if (hoursEl && rules.standardHoursDuration !== undefined) hoursEl.value = rules.standardHoursDuration;
+  if (otEl && rules.overtimeMultiplier !== undefined) otEl.value = rules.overtimeMultiplier;
+  if (dblEl && rules.doubleTimeMultiplier !== undefined) dblEl.value = rules.doubleTimeMultiplier;
+  if (restEl && rules.restPeriodHours !== undefined) restEl.value = rules.restPeriodHours;
+}
+window.loadAdminSchedulingRules = loadAdminSchedulingRules;
+
+function updateSchedulingRulesAutoSaveBadge(isSaving = false) {
+  const badge = document.getElementById('admin-sched-autosave-badge');
+  const text = document.getElementById('admin-sched-autosave-text');
+  if (!badge || !text) return;
+
+  if (isSaving) {
+    text.textContent = 'Auto-saving...';
+    badge.style.opacity = '0.7';
+  } else {
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    text.textContent = `Auto-saved (${timeStr})`;
+    badge.style.opacity = '1';
+  }
 }
 
-function saveAdminSchedulingRules() {
+function saveAdminSchedulingRules(isAutoSave = false) {
   if (!window.ionConfig) window.ionConfig = {};
   if (!window.ionConfig.schedulingRules) window.ionConfig.schedulingRules = {};
 
@@ -3188,167 +4989,1050 @@ function saveAdminSchedulingRules() {
   if (dblEl) window.ionConfig.schedulingRules.doubleTimeMultiplier = parseFloat(dblEl.value) || 2.0;
   if (restEl) window.ionConfig.schedulingRules.restPeriodHours = parseInt(restEl.value, 10) || 10;
 
+  // Persist to localStorage automatically
+  try {
+    localStorage.setItem('ion_scheduling_rules', JSON.stringify(window.ionConfig.schedulingRules));
+  } catch (e) {
+    console.warn('Could not persist scheduling rules to localStorage:', e);
+  }
+
+  updateSchedulingRulesAutoSaveBadge(false);
+
   const statusEl = document.getElementById('admin-rules-status');
   if (statusEl) {
     statusEl.style.display = 'inline';
-    statusEl.textContent = 'Saved to window.ionConfig';
-    setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+    statusEl.textContent = isAutoSave ? 'Auto-saved' : 'Saved to window.ionConfig & storage';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
   }
 
-  showToast('Operational scheduling rules successfully persisted to system configuration.', 'success', 'Rules Updated');
+  if (!isAutoSave) {
+    showToast('Operational scheduling rules successfully persisted to system configuration.', 'success', 'Rules Updated');
+  }
+}
+window.saveAdminSchedulingRules = saveAdminSchedulingRules;
+
+function initSchedulingRulesAutoSave() {
+  const inputs = [
+    'admin-rule-start-time',
+    'admin-rule-end-time',
+    'admin-rule-std-hours',
+    'admin-rule-ot-mult',
+    'admin-rule-double-mult',
+    'admin-rule-rest-period'
+  ];
+
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._hasAutoSaveListener) return;
+    el._hasAutoSaveListener = true;
+
+    const triggerAutoSave = () => {
+      updateSchedulingRulesAutoSaveBadge(true);
+      if (schedAutoSaveTimer) clearTimeout(schedAutoSaveTimer);
+      schedAutoSaveTimer = setTimeout(() => {
+        saveAdminSchedulingRules(true);
+      }, 400);
+    };
+
+    el.addEventListener('input', triggerAutoSave);
+    el.addEventListener('change', triggerAutoSave);
+  });
+}
+window.initSchedulingRulesAutoSave = initSchedulingRulesAutoSave;
+
+/* ── CSV Export Functionality for Fleet & Personnel ───────────────────── */
+function escapeCSVField(val) {
+  if (val === null || val === undefined) return '""';
+  const str = String(val).replace(/"/g, '""');
+  return `"${str}"`;
 }
 
-function openAddAssetAdminModal() {
-  const modal = document.getElementById('admin-add-asset-modal');
-  if (!modal) return;
+function downloadCSVFile(csvContent, filename) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
-  // Reset fields
-  const idEl = document.getElementById('modal-asset-id');
-  const classEl = document.getElementById('modal-asset-class');
-  const descEl = document.getElementById('modal-asset-desc');
-  const colorEl = document.getElementById('modal-asset-color');
-  const hexEl = document.getElementById('modal-asset-hex');
-  const workerEl = document.getElementById('modal-asset-worker');
-
-  if (idEl) idEl.value = '';
-  if (classEl) classEl.value = '';
-  if (descEl) descEl.value = '';
-  if (colorEl) colorEl.value = '#0284c7';
-  if (hexEl) hexEl.value = '#0284c7';
-
-  if (workerEl) {
-    const workers = window.ionConfig?.workerRegistry || [];
-    workerEl.innerHTML = '<option value="">Unassigned (Open Pool)</option>' +
-      workers.map(w => `<option value="${w.name}">${w.name} (${w.role})</option>`).join('');
+function exportAdminFleetCSV() {
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  if (fleet.length === 0) {
+    showToast('No fleet asset records available to export.', 'warning', 'Export Empty');
+    return;
   }
 
-  modal.style.display = 'flex';
-}
+  const headers = ['Asset ID', 'Class/Category', 'Description/Label', 'Assigned Operator', 'Status', 'Color/Hex'];
+  const rows = fleet.map(a => [
+    escapeCSVField(a.id || ''),
+    escapeCSVField(a.class || a.category || ''),
+    escapeCSVField(a.description || a.label || ''),
+    escapeCSVField(a.workerName || 'Unassigned (Pool)'),
+    escapeCSVField(a.workerStatus || a.status || 'Active'),
+    escapeCSVField(a.color || a.hex || '#0284c7')
+  ]);
 
-function closeAddAssetAdminModal() {
-  const modal = document.getElementById('admin-add-asset-modal');
+  const csvContent = [headers.map(escapeCSVField).join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const dateStr = new Date().toISOString().split('T')[0];
+  downloadCSVFile(csvContent, `ion_fleet_registry_${dateStr}.csv`);
+  showToast(`Successfully exported ${fleet.length} fleet assets to CSV.`, 'success', 'Export Complete');
+}
+window.exportAdminFleetCSV = exportAdminFleetCSV;
+
+function exportAdminPersonnelCSV() {
+  const workers = window.ionConfig?.workerRegistry || [];
+  if (workers.length === 0) {
+    showToast('No personnel records available to export.', 'warning', 'Export Empty');
+    return;
+  }
+
+  const headers = ['Personnel ID', 'Full Name', 'Role Title', 'Department', 'Phone', 'Email', 'License Class', 'License Number', 'HRWL Expiry', 'HRWL Status'];
+  const rows = workers.map(w => [
+    escapeCSVField(w.id || ''),
+    escapeCSVField(w.name || ''),
+    escapeCSVField(w.role || ''),
+    escapeCSVField(w.department || 'Operations'),
+    escapeCSVField(w.phone || ''),
+    escapeCSVField(w.email || ''),
+    escapeCSVField(w.licenseClass || ''),
+    escapeCSVField(w.licenseNumber || ''),
+    escapeCSVField(w.hrwlExpiry || ''),
+    escapeCSVField(w.hrwlStatus || 'Active')
+  ]);
+
+  const csvContent = [headers.map(escapeCSVField).join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const dateStr = new Date().toISOString().split('T')[0];
+  downloadCSVFile(csvContent, `ion_personnel_registry_${dateStr}.csv`);
+  showToast(`Successfully exported ${workers.length} personnel records to CSV.`, 'success', 'Export Complete');
+}
+window.exportAdminPersonnelCSV = exportAdminPersonnelCSV;
+
+/* ── Bulk Data Import Module (JSON & CSV) ──────────────────────────────── */
+let parsedBulkImportData = [];
+let currentBulkImportTarget = 'fleet';
+
+function openBulkImportAdminModal(target = 'fleet') {
+  currentBulkImportTarget = target;
+  const select = document.getElementById('bulk-import-target');
+  if (select) select.value = target;
+
+  clearBulkImportFile();
+  const modal = document.getElementById('admin-bulk-import-modal');
+  if (modal) modal.style.display = 'flex';
+}
+window.openBulkImportAdminModal = openBulkImportAdminModal;
+
+function closeBulkImportAdminModal() {
+  const modal = document.getElementById('admin-bulk-import-modal');
   if (modal) modal.style.display = 'none';
+  clearBulkImportFile();
+}
+window.closeBulkImportAdminModal = closeBulkImportAdminModal;
+
+function onBulkImportTargetChange() {
+  const select = document.getElementById('bulk-import-target');
+  if (select) currentBulkImportTarget = select.value;
+  if (parsedBulkImportData.length > 0) {
+    renderBulkImportPreview();
+  }
+}
+window.onBulkImportTargetChange = onBulkImportTargetChange;
+
+function clearBulkImportFile() {
+  parsedBulkImportData = [];
+  const fileInput = document.getElementById('bulk-import-file-input');
+  if (fileInput) fileInput.value = '';
+
+  const dropzone = document.getElementById('bulk-import-dropzone');
+  const previewWrap = document.getElementById('bulk-import-preview-wrap');
+  const submitBtn = document.getElementById('bulk-import-submit-btn');
+
+  if (dropzone) dropzone.style.display = 'flex';
+  if (previewWrap) previewWrap.style.display = 'none';
+  if (submitBtn) submitBtn.disabled = true;
+}
+window.clearBulkImportFile = clearBulkImportFile;
+
+function handleBulkImportFileSelected(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+  processBulkImportFile(file);
+}
+window.handleBulkImportFileSelected = handleBulkImportFileSelected;
+
+function setupBulkImportDropzone() {
+  const dropzone = document.getElementById('bulk-import-dropzone');
+  if (!dropzone || dropzone._hasDropListeners) return;
+  dropzone._hasDropListeners = true;
+
+  ['dragenter', 'dragover'].forEach(name => {
+    dropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(name => {
+    dropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove('dragover');
+    });
+  });
+
+  dropzone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) processBulkImportFile(file);
+  });
+}
+window.setupBulkImportDropzone = setupBulkImportDropzone;
+
+function processBulkImportFile(file) {
+  const filename = file.name;
+  const isJson = filename.toLowerCase().endsWith('.json') || file.type.includes('json');
+  const isCsv = filename.toLowerCase().endsWith('.csv') || file.type.includes('csv') || file.type.includes('text');
+
+  if (!isJson && !isCsv) {
+    showToast('Unsupported file format. Please upload a .csv or .json file.', 'error', 'Invalid File');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    try {
+      if (isJson) {
+        parseJsonImportData(content);
+      } else {
+        parseCsvImportData(content);
+      }
+
+      if (parsedBulkImportData.length === 0) {
+        showToast('The uploaded file contained no valid registry records.', 'warning', 'No Records Found');
+        return;
+      }
+
+      const dropzone = document.getElementById('bulk-import-dropzone');
+      const previewWrap = document.getElementById('bulk-import-preview-wrap');
+      const filenameEl = document.getElementById('bulk-import-filename');
+      const badgeEl = document.getElementById('bulk-import-badge');
+      const submitBtn = document.getElementById('bulk-import-submit-btn');
+
+      if (dropzone) dropzone.style.display = 'none';
+      if (previewWrap) previewWrap.style.display = 'flex';
+      if (filenameEl) filenameEl.textContent = filename;
+      if (badgeEl) badgeEl.textContent = `${parsedBulkImportData.length} records ready`;
+      if (submitBtn) submitBtn.disabled = false;
+
+      renderBulkImportPreview();
+      showToast(`Parsed ${parsedBulkImportData.length} records from ${filename}. Review preview before executing.`, 'success', 'File Parsed');
+    } catch (err) {
+      console.error('Error parsing bulk import file:', err);
+      showToast(`Failed to parse file: ${err.message}`, 'error', 'Import Error');
+    }
+  };
+  reader.readAsText(file);
 }
 
-function submitAddAssetAdmin() {
-  const idEl = document.getElementById('modal-asset-id');
-  const classEl = document.getElementById('modal-asset-class');
-  const descEl = document.getElementById('modal-asset-desc');
-  const colorEl = document.getElementById('modal-asset-color');
-  const hexEl = document.getElementById('modal-asset-hex');
-  const workerEl = document.getElementById('modal-asset-worker');
+function parseCsvImportData(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+  if (lines.length < 2) throw new Error('CSV must contain a header row and at least one data row.');
 
-  const assetId = (idEl?.value || '').trim().toUpperCase();
-  const assetClass = (classEl?.value || '').trim() || 'General Crane / Plant';
-  const assetDesc = (descEl?.value || '').trim() || assetClass;
-  const color = hexEl?.value || colorEl?.value || '#0284c7';
-  const workerName = workerEl?.value || 'Unassigned';
-
-  if (!assetId) {
-    showToast('Asset Identification Code is required.', 'error', 'Validation Error');
-    if (idEl) idEl.focus();
-    return;
-  }
-
-  // Check duplicate
-  if (window.ionConfig?.fleetRegistry?.some(a => a.id === assetId)) {
-    showToast(`Asset ID "${assetId}" already exists in the fleet registry.`, 'error', 'Duplicate Code');
-    return;
-  }
-
-  const newAsset = {
-    id: assetId,
-    label: `${assetId} - ${assetClass}`,
-    class: assetClass,
-    description: assetDesc,
-    type: assetClass,
-    category: assetClass.toLowerCase().includes('franna') ? 'franna' :
-              assetClass.toLowerCase().includes('crawler') ? 'crawler' :
-              assetClass.toLowerCase().includes('terrain') ? 'all_terrain' : 'crane',
-    color: color,
-    hex: color,
-    workerName: workerName,
-    workerStatus: 'available',
-    hoursToday: 0
+  // Parse CSV line taking quotes into account
+  const parseRow = (line) => {
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(cur.trim());
+        cur = '';
+      } else {
+        cur += char;
+      }
+    }
+    result.push(cur.trim());
+    return result;
   };
 
-  if (!window.ionConfig.fleetRegistry) window.ionConfig.fleetRegistry = [];
-  window.ionConfig.fleetRegistry.push(newAsset);
+  const headers = parseRow(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  const target = currentBulkImportTarget;
+  const records = [];
 
-  // Sync to dataModels.assetRegistry
-  if (!assetRegistry.some(a => a.id === assetId)) {
-    assetRegistry.push({
-      id: assetId,
-      description: assetDesc,
-      hex: color,
-      assetType: newAsset.category
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseRow(lines[i]);
+    if (values.every(v => v === '')) continue;
+
+    const rowObj = {};
+    headers.forEach((h, idx) => {
+      rowObj[h] = values[idx] || '';
+    });
+
+    if (target === 'fleet') {
+      const id = rowObj['assetid'] || rowObj['id'] || rowObj['asset'] || `ASSET-${Date.now()}-${i}`;
+      const cls = rowObj['classcategory'] || rowObj['class'] || rowObj['category'] || 'General Plant';
+      const desc = rowObj['descriptionlabel'] || rowObj['description'] || rowObj['label'] || id;
+      const worker = rowObj['assignedoperator'] || rowObj['operator'] || rowObj['workername'] || 'Unassigned (Pool)';
+      const status = rowObj['status'] || 'Active';
+      const color = rowObj['colorhex'] || rowObj['color'] || rowObj['hex'] || '#0284c7';
+
+      records.push({
+        id,
+        class: cls,
+        category: cls,
+        description: desc,
+        label: desc,
+        workerName: worker,
+        status: status,
+        color: color,
+        hex: color
+      });
+    } else {
+      const name = rowObj['fullname'] || rowObj['name'] || rowObj['workername'] || `Worker ${i}`;
+      const id = rowObj['personnelid'] || rowObj['id'] || rowObj['workerid'] || `WKR-${Date.now()}-${i}`;
+      const role = rowObj['roletitle'] || rowObj['role'] || 'Plant Operator';
+      const dept = rowObj['department'] || rowObj['dept'] || 'Operations';
+      const phone = rowObj['phone'] || rowObj['contact'] || '';
+      const email = rowObj['email'] || '';
+      const licClass = rowObj['licenseclass'] || rowObj['class'] || '';
+      const licNum = rowObj['licensenumber'] || rowObj['number'] || '';
+      const hrwlExpiry = rowObj['hrwlexpiry'] || rowObj['expiry'] || '';
+      const hrwlStatus = rowObj['hrwlstatus'] || rowObj['status'] || (['Office', 'Sales', 'Administration'].includes(dept) ? 'Exempt' : 'Active');
+
+      records.push({
+        id,
+        name,
+        role,
+        department: dept,
+        phone,
+        email,
+        licenseClass: licClass,
+        licenseNumber: licNum,
+        hrwlExpiry,
+        hrwlStatus
+      });
+    }
+  }
+
+  parsedBulkImportData = records;
+}
+
+function parseJsonImportData(text) {
+  let data = JSON.parse(text);
+  const target = currentBulkImportTarget;
+
+  if (!Array.isArray(data)) {
+    if (data.fleet && Array.isArray(data.fleet) && target === 'fleet') {
+      data = data.fleet;
+    } else if (data.workers && Array.isArray(data.workers) && target === 'personnel') {
+      data = data.workers;
+    } else if (data.personnel && Array.isArray(data.personnel) && target === 'personnel') {
+      data = data.personnel;
+    } else if (data.records && Array.isArray(data.records)) {
+      data = data.records;
+    } else {
+      throw new Error('JSON structure must be an array of records or contain a target key (fleet or personnel).');
+    }
+  }
+
+  if (target === 'fleet') {
+    parsedBulkImportData = data.map((item, idx) => ({
+      id: item.id || item.assetId || `ASSET-${Date.now()}-${idx}`,
+      class: item.class || item.category || 'General Plant',
+      category: item.category || item.class || 'General Plant',
+      description: item.description || item.label || item.id || 'Fleet Asset',
+      label: item.label || item.description || item.id || 'Fleet Asset',
+      workerName: item.workerName || item.operator || 'Unassigned (Pool)',
+      status: item.status || 'Active',
+      color: item.color || item.hex || '#0284c7',
+      hex: item.hex || item.color || '#0284c7'
+    }));
+  } else {
+    parsedBulkImportData = data.map((item, idx) => ({
+      id: item.id || item.workerId || `WKR-${Date.now()}-${idx}`,
+      name: item.name || item.fullName || `Worker ${idx + 1}`,
+      role: item.role || item.roleTitle || 'Plant Operator',
+      department: item.department || 'Operations',
+      phone: item.phone || '',
+      email: item.email || '',
+      licenseClass: item.licenseClass || '',
+      licenseNumber: item.licenseNumber || '',
+      hrwlExpiry: item.hrwlExpiry || '',
+      hrwlStatus: item.hrwlStatus || 'Active'
+    }));
+  }
+}
+
+function renderBulkImportPreview() {
+  const thead = document.getElementById('bulk-preview-thead');
+  const tbody = document.getElementById('bulk-preview-tbody');
+  if (!thead || !tbody) return;
+
+  const target = currentBulkImportTarget;
+  const sample = parsedBulkImportData.slice(0, 5);
+
+  if (target === 'fleet') {
+    thead.innerHTML = `
+      <tr>
+        <th style="padding:4px 8px;">ID</th>
+        <th style="padding:4px 8px;">Class</th>
+        <th style="padding:4px 8px;">Description</th>
+        <th style="padding:4px 8px;">Operator</th>
+        <th style="padding:4px 8px;">Color</th>
+      </tr>
+    `;
+    tbody.innerHTML = sample.map(a => `
+      <tr>
+        <td style="padding:4px 8px;font-family:monospace;font-weight:700;">${escapeHtml(a.id)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(a.class)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(a.description)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(a.workerName)}</td>
+        <td style="padding:4px 8px;"><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:${a.color};vertical-align:middle;margin-right:4px;"></span>${escapeHtml(a.color)}</td>
+      </tr>
+    `).join('') + (parsedBulkImportData.length > 5 ? `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:4px;">+ ${parsedBulkImportData.length - 5} more records...</td></tr>` : '');
+  } else {
+    thead.innerHTML = `
+      <tr>
+        <th style="padding:4px 8px;">ID</th>
+        <th style="padding:4px 8px;">Name</th>
+        <th style="padding:4px 8px;">Role</th>
+        <th style="padding:4px 8px;">Department</th>
+        <th style="padding:4px 8px;">HRWL Expiry</th>
+      </tr>
+    `;
+    tbody.innerHTML = sample.map(w => `
+      <tr>
+        <td style="padding:4px 8px;font-family:monospace;font-weight:700;">${escapeHtml(w.id)}</td>
+        <td style="padding:4px 8px;font-weight:600;">${escapeHtml(w.name)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(w.role)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(w.department)}</td>
+        <td style="padding:4px 8px;">${escapeHtml(w.hrwlExpiry || 'N/A')}</td>
+      </tr>
+    `).join('') + (parsedBulkImportData.length > 5 ? `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:4px;">+ ${parsedBulkImportData.length - 5} more records...</td></tr>` : '');
+  }
+}
+
+function executeBulkImport() {
+  if (parsedBulkImportData.length === 0) return;
+
+  const target = currentBulkImportTarget;
+  const mode = document.getElementById('bulk-import-mode')?.value || 'merge';
+
+  if (!window.ionConfig) window.ionConfig = {};
+
+  if (target === 'fleet') {
+    if (!Array.isArray(window.ionConfig.fleetRegistry)) window.ionConfig.fleetRegistry = [];
+
+    if (mode === 'replace') {
+      window.ionConfig.fleetRegistry = [...parsedBulkImportData];
+    } else if (mode === 'append') {
+      window.ionConfig.fleetRegistry.push(...parsedBulkImportData);
+    } else {
+      // merge / update existing by id, append new
+      parsedBulkImportData.forEach(imported => {
+        const existingIdx = window.ionConfig.fleetRegistry.findIndex(a => a.id === imported.id);
+        if (existingIdx >= 0) {
+          window.ionConfig.fleetRegistry[existingIdx] = Object.assign(window.ionConfig.fleetRegistry[existingIdx], imported);
+        } else {
+          window.ionConfig.fleetRegistry.push(imported);
+        }
+      });
+    }
+
+    try {
+      localStorage.setItem('ion_fleet_registry', JSON.stringify(window.ionConfig.fleetRegistry));
+    } catch(e) {
+      console.warn('Could not persist fleet registry to localStorage:', e);
+    }
+
+    if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
+    renderAdminFleetTable();
+    renderSchedulerFilterDropdowns();
+
+    showToast(`Bulk imported ${parsedBulkImportData.length} fleet assets successfully (${mode} mode).`, 'success', 'Import Completed');
+  } else {
+    if (!Array.isArray(window.ionConfig.workerRegistry)) window.ionConfig.workerRegistry = [];
+
+    if (mode === 'replace') {
+      window.ionConfig.workerRegistry = [...parsedBulkImportData];
+    } else if (mode === 'append') {
+      window.ionConfig.workerRegistry.push(...parsedBulkImportData);
+    } else {
+      // merge / update existing by id, append new
+      parsedBulkImportData.forEach(imported => {
+        const existingIdx = window.ionConfig.workerRegistry.findIndex(w => w.id === imported.id);
+        if (existingIdx >= 0) {
+          window.ionConfig.workerRegistry[existingIdx] = Object.assign(window.ionConfig.workerRegistry[existingIdx], imported);
+        } else {
+          window.ionConfig.workerRegistry.push(imported);
+        }
+      });
+    }
+
+    try {
+      localStorage.setItem('ion_worker_registry', JSON.stringify(window.ionConfig.workerRegistry));
+    } catch(e) {
+      console.warn('Could not persist worker registry to localStorage:', e);
+    }
+
+    renderAdminPersonnelTable();
+    renderAdminRolesTable();
+
+    if (typeof renderWorkerView === 'function') {
+      try { renderWorkerView(); } catch(e) {}
+    }
+
+    showToast(`Bulk imported ${parsedBulkImportData.length} personnel records successfully (${mode} mode).`, 'success', 'Import Completed');
+  }
+
+  closeBulkImportAdminModal();
+}
+window.executeBulkImport = executeBulkImport;
+
+function downloadSampleTemplate(type) {
+  if (type === 'fleet-csv') {
+    const csv = 'Asset ID,Class/Category,Description/Label,Assigned Operator,Status,Color/Hex\r\n' +
+      'M-01,Frannas,MAC-25 Mobile Franna Crane,Dave S.,Active,#2563eb\r\n' +
+      'TRK-09,Transport,Volvo FH16 Prime Mover,Sarah Connor,Active,#059669\r\n' +
+      'GEN-03,Power,Cummins 100kVA Whisper Generator,Unassigned (Pool),Active,#d97706';
+    downloadCSVFile(csv, 'sample_fleet_template.csv');
+  } else if (type === 'personnel-csv') {
+    const csv = 'Personnel ID,Full Name,Role Title,Department,Phone,Email,License Class,License Number,HRWL Expiry,HRWL Status\r\n' +
+      'WKR-012,John Doe,Crane Operator,Operations,0412 345 678,john.d@ionsolutions.com.au,CN CO,HRWL-99214,2028-11-20,Active\r\n' +
+      'WKR-013,Emily Vance,Dispatcher / Allocator,Administration,0433 987 654,emily.v@ionsolutions.com.au,,,Exempt,Exempt\r\n' +
+      'WKR-014,Marcus Webb,Heavy Transport Driver,Transport,0421 112 233,marcus.w@ionsolutions.com.au,MC HR,HRWL-88312,2027-06-15,Active';
+    downloadCSVFile(csv, 'sample_personnel_template.csv');
+  } else if (type === 'json') {
+    const data = currentBulkImportTarget === 'fleet' ? {
+      fleet: [
+        { id: 'M-05', class: 'Frannas', description: 'TIDD PC28-2 Pick & Carry', workerName: 'Alex Mercer', status: 'Active', color: '#7c3aed' },
+        { id: 'CR-08', class: 'All Terrain', description: 'Liebherr LTM 1120-4.1', workerName: 'Jack Reacher', status: 'Active', color: '#db2777' }
+      ]
+    } : {
+      personnel: [
+        { id: 'WKR-020', name: 'Liam Neeson', role: 'Plant Operator', department: 'Operations', phone: '0488 123 456', email: 'liam@ionsolutions.com.au', licenseClass: 'CN DG', licenseNumber: 'HRWL-77112', hrwlExpiry: '2028-09-12', hrwlStatus: 'Active' },
+        { id: 'WKR-021', name: 'Chloe Decker', role: 'Executive Assistant', department: 'Administration', phone: '0411 999 888', email: 'chloe@ionsolutions.com.au', hrwlStatus: 'Exempt' }
+      ]
+    };
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sample_${currentBulkImportTarget}_template.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+}
+window.downloadSampleTemplate = downloadSampleTemplate;
+
+/* ── High-Contrast Dark Mode & User Profile System ─────────────────────── */
+let currentThemeMode = 'light';
+
+function initThemeEngine() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem('ion_theme_mode');
+  } catch(e) {}
+
+  if (!saved) {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      saved = 'dark';
+    } else {
+      saved = 'light';
+    }
+  }
+
+  applyTheme(saved, false);
+
+  // Close profile dropdown on outside click
+  if (!window._profileDropdownListenerAttached) {
+    window._profileDropdownListenerAttached = true;
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('user-profile-dropdown');
+      const trigger = document.getElementById('user-profile-btn');
+      if (dropdown && (dropdown.classList.contains('open') || dropdown.style.display === 'block')) {
+        if (!dropdown.contains(e.target) && !trigger?.contains(e.target)) {
+          closeUserProfileDropdown();
+        }
+      }
+    });
+  }
+}
+window.initThemeEngine = initThemeEngine;
+
+function applyTheme(theme, showNotice = false) {
+  currentThemeMode = theme;
+  const isDark = theme === 'dark';
+
+  if (isDark) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.body.classList.add('dark-mode');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.body.classList.remove('dark-mode');
+  }
+
+  try {
+    localStorage.setItem('ion_theme_mode', theme);
+  } catch(e) {}
+
+  // Update header theme icon if present
+  const headerThemeIcon = document.getElementById('header-theme-icon');
+  if (headerThemeIcon) {
+    headerThemeIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+  }
+
+  // Update drawer theme switch & description
+  const drawerSwitch = document.getElementById('drawer-dark-mode-toggle');
+  if (drawerSwitch) {
+    drawerSwitch.checked = isDark;
+  }
+  const drawerIcon = document.getElementById('drawer-theme-icon');
+  if (drawerIcon) {
+    drawerIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+  }
+  const drawerDesc = document.getElementById('drawer-theme-desc');
+  if (drawerDesc) {
+    drawerDesc.textContent = isDark ? 'ion brand purple & flat dark palette active' : 'Clean high-contrast light palette active';
+  }
+
+  // Update popover switch if present
+  const popoverSwitch = document.getElementById('profile-dark-mode-toggle');
+  if (popoverSwitch) {
+    popoverSwitch.checked = isDark;
+  }
+  const popoverIcon = document.getElementById('popover-theme-icon');
+  if (popoverIcon) {
+    popoverIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+  }
+  const popoverSubtitle = document.getElementById('popover-theme-subtitle');
+  if (popoverSubtitle) {
+    popoverSubtitle.textContent = isDark ? 'ion flat dark palette active' : 'Standard light palette active';
+  }
+
+  if (showNotice) {
+    showToast(`Switched interface appearance to ${isDark ? 'Dark (ion Flat Dark)' : 'Standard Light'} theme.`, 'info', 'Theme Updated');
+  }
+}
+window.applyTheme = applyTheme;
+
+function toggleDarkMode() {
+  const next = currentThemeMode === 'dark' ? 'light' : 'dark';
+  applyTheme(next, true);
+}
+window.toggleDarkMode = toggleDarkMode;
+
+/* ── User Profile Slide-Out Drawer Controls ────────────────────────────── */
+function openUserProfileDrawer() {
+  closeUserProfileDropdown();
+  const drawer = document.getElementById('user-profile-drawer');
+  const backdrop = document.getElementById('user-profile-drawer-backdrop');
+  if (!drawer || !backdrop) return;
+
+  // Sync current theme state into drawer switch
+  const isDark = currentThemeMode === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
+  const drawerSwitch = document.getElementById('drawer-dark-mode-toggle');
+  if (drawerSwitch) drawerSwitch.checked = isDark;
+  const drawerIcon = document.getElementById('drawer-theme-icon');
+  if (drawerIcon) drawerIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+  const drawerDesc = document.getElementById('drawer-theme-desc');
+  if (drawerDesc) drawerDesc.textContent = isDark ? 'ion brand purple & flat dark palette active' : 'Clean high-contrast light palette active';
+
+  backdrop.classList.add('is-open');
+  drawer.classList.add('is-open');
+}
+window.openUserProfileDrawer = openUserProfileDrawer;
+
+function closeUserProfileDrawer() {
+  const drawer = document.getElementById('user-profile-drawer');
+  const backdrop = document.getElementById('user-profile-drawer-backdrop');
+  if (drawer) drawer.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+}
+window.closeUserProfileDrawer = closeUserProfileDrawer;
+
+/* ── Change Password Modal Controls ────────────────────────────────────── */
+function openChangePasswordModal() {
+  // Immediately slide the drawer closed (translateX(100%)) as the modal opens
+  closeUserProfileDrawer();
+
+  const modal = document.getElementById('change-password-modal');
+  if (!modal) return;
+  const form = document.getElementById('change-password-form');
+  if (form) form.reset();
+  const err = document.getElementById('change-pwd-error');
+  if (err) {
+    err.style.display = 'none';
+    err.textContent = '';
+  }
+  modal.style.display = 'flex';
+  const curInput = document.getElementById('pwd-current');
+  if (curInput) setTimeout(() => curInput.focus(), 120);
+}
+window.openChangePasswordModal = openChangePasswordModal;
+
+function closeChangePasswordModal() {
+  const modal = document.getElementById('change-password-modal');
+  if (modal) modal.style.display = 'none';
+  const form = document.getElementById('change-password-form');
+  if (form) form.reset();
+  const err = document.getElementById('change-pwd-error');
+  if (err) {
+    err.style.display = 'none';
+    err.textContent = '';
+  }
+}
+window.closeChangePasswordModal = closeChangePasswordModal;
+
+function saveNewPassword(event) {
+  if (event) event.preventDefault();
+  const current = document.getElementById('pwd-current')?.value || '';
+  const newPwd = document.getElementById('pwd-new')?.value || '';
+  const confirmPwd = document.getElementById('pwd-confirm')?.value || '';
+  const err = document.getElementById('change-pwd-error');
+
+  if (!current) {
+    if (err) {
+      err.textContent = 'Please enter your current password.';
+      err.style.display = 'block';
+    }
+    return;
+  }
+
+  if (newPwd.length < 6) {
+    if (err) {
+      err.textContent = 'New password must be at least 6 characters long.';
+      err.style.display = 'block';
+    }
+    return;
+  }
+
+  if (newPwd !== confirmPwd) {
+    if (err) {
+      err.textContent = 'New password and confirmation do not match.';
+      err.style.display = 'block';
+    }
+    return;
+  }
+
+  closeChangePasswordModal();
+  showToast('Your account password has been successfully updated.', 'success', 'Password Changed');
+}
+window.saveNewPassword = saveNewPassword;
+
+// Global Escape Key Listener for Drawer and Modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const pwdModal = document.getElementById('change-password-modal');
+    if (pwdModal && pwdModal.style.display !== 'none') {
+      closeChangePasswordModal();
+      return;
+    }
+    const profileDrawer = document.getElementById('user-profile-drawer');
+    if (profileDrawer && profileDrawer.classList.contains('is-open')) {
+      closeUserProfileDrawer();
+      return;
+    }
+    closeUserProfileDropdown();
+  }
+});
+
+function toggleUserProfileDropdown(event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const dropdown = document.getElementById('user-profile-dropdown');
+  const btn = document.getElementById('user-profile-btn');
+  const caret = document.getElementById('user-profile-caret');
+  if (!dropdown) return;
+
+  const isOpen = dropdown.classList.contains('open') || dropdown.style.display === 'block';
+  if (isOpen) {
+    closeUserProfileDropdown();
+  } else {
+    dropdown.style.display = 'block';
+    dropdown.classList.add('open');
+    if (btn) btn.classList.add('active');
+    if (caret) caret.textContent = 'expand_less';
+  }
+}
+window.toggleUserProfileDropdown = toggleUserProfileDropdown;
+
+function closeUserProfileDropdown() {
+  const dropdown = document.getElementById('user-profile-dropdown');
+  const btn = document.getElementById('user-profile-btn');
+  const caret = document.getElementById('user-profile-caret');
+  if (dropdown) {
+    dropdown.style.display = 'none';
+    dropdown.classList.remove('open');
+  }
+  if (btn) btn.classList.remove('active');
+  if (caret) caret.textContent = 'expand_more';
+}
+window.closeUserProfileDropdown = closeUserProfileDropdown;
+
+/* ── Hydrate Global Config from LocalStorage ───────────────────────────── */
+function hydrateIonConfigFromStorage() {
+  if (!window.ionConfig) window.ionConfig = {};
+
+  try {
+    const savedFleet = localStorage.getItem('ion_fleet_registry');
+    if (savedFleet) {
+      const parsed = JSON.parse(savedFleet);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        window.ionConfig.fleetRegistry = parsed;
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const savedWorkers = localStorage.getItem('ion_worker_registry');
+    if (savedWorkers) {
+      const parsed = JSON.parse(savedWorkers);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        window.ionConfig.workerRegistry = parsed;
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const savedRules = localStorage.getItem('ion_scheduling_rules');
+    if (savedRules) {
+      const parsed = JSON.parse(savedRules);
+      window.ionConfig.schedulingRules = Object.assign(window.ionConfig.schedulingRules || {}, parsed);
+    }
+  } catch(e) {}
+}
+window.hydrateIonConfigFromStorage = hydrateIonConfigFromStorage;
+
+function renderSchedulerFilterDropdowns() {
+  const assetSelect = document.getElementById('day-filter-asset');
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  if (assetSelect) {
+    const currentVal = assetSelect.value || (typeof selectedAssetFilter !== 'undefined' ? selectedAssetFilter : 'All Assets');
+    assetSelect.innerHTML = `
+      <option value="All Assets" ${currentVal === 'All Assets' ? 'selected' : ''}>All Assets</option>
+      <optgroup label="Categories">
+        <option value="Frannas" ${currentVal === 'Frannas' ? 'selected' : ''}>Frannas</option>
+        <option value="Crawlers" ${currentVal === 'Crawlers' ? 'selected' : ''}>Crawlers</option>
+        <option value="All Terrains" ${currentVal === 'All Terrains' ? 'selected' : ''}>All Terrains</option>
+      </optgroup>
+      <optgroup label="Fleet Assets">
+        ${fleet.map(a => `
+          <option value="asset:${a.id}" ${currentVal === 'asset:' + a.id ? 'selected' : ''}>${a.id} — ${a.label || a.description || a.class}</option>
+        `).join('')}
+      </optgroup>
+    `;
+  }
+
+  const classFilter = document.getElementById('admin-fleet-class-filter');
+  if (classFilter) {
+    const uniqueClasses = [...new Set(fleet.map(a => a.class || a.category).filter(Boolean))];
+    const curVal = classFilter.value;
+    classFilter.innerHTML = '<option value="ALL">All Fleet Classes</option>' +
+      uniqueClasses.map(cls => `<option value="${cls}" ${curVal === cls ? 'selected' : ''}>${cls}</option>`).join('');
+  }
+
+  if (typeof currentView !== 'undefined' && currentView === 'Day' && typeof renderDayViewScheduler === 'function') {
+    renderDayViewScheduler();
+  }
+}
+window.renderSchedulerFilterDropdowns = renderSchedulerFilterDropdowns;
+
+function initAdminModule() {
+  initPredefinedRoles();
+  syncRoleDropdowns();
+
+  // 1. Tab Navigation click listeners
+  const fleetTab = document.getElementById('admin-subtab-fleet');
+  const personnelTab = document.getElementById('admin-subtab-personnel');
+  const rolesTab = document.getElementById('admin-subtab-roles');
+  const schedulingTab = document.getElementById('admin-subtab-scheduling');
+  const gotoRolesBtn = document.getElementById('admin-goto-roles-btn');
+
+  if (fleetTab && !fleetTab._hasNavListener) {
+    fleetTab._hasNavListener = true;
+    fleetTab.addEventListener('click', () => switchAdminSubTab('fleet'));
+  }
+  if (personnelTab && !personnelTab._hasNavListener) {
+    personnelTab._hasNavListener = true;
+    personnelTab.addEventListener('click', () => switchAdminSubTab('personnel'));
+  }
+  if (rolesTab && !rolesTab._hasNavListener) {
+    rolesTab._hasNavListener = true;
+    rolesTab.addEventListener('click', () => switchAdminSubTab('roles'));
+  }
+  if (gotoRolesBtn && !gotoRolesBtn._hasNavListener) {
+    gotoRolesBtn._hasNavListener = true;
+    gotoRolesBtn.addEventListener('click', () => switchAdminSubTab('roles'));
+  }
+  if (schedulingTab && !schedulingTab._hasNavListener) {
+    schedulingTab._hasNavListener = true;
+    schedulingTab.addEventListener('click', () => switchAdminSubTab('scheduling'));
+  }
+
+  // 2. Search Fleet keyup & filter listeners
+  const fleetSearchInput = document.getElementById('admin-fleet-search');
+  if (fleetSearchInput && !fleetSearchInput._hasSearchListener) {
+    fleetSearchInput._hasSearchListener = true;
+    fleetSearchInput.addEventListener('input', renderAdminFleetTable);
+  }
+  const fleetClassFilter = document.getElementById('admin-fleet-class-filter');
+  if (fleetClassFilter && !fleetClassFilter._hasChangeListener) {
+    fleetClassFilter._hasChangeListener = true;
+    fleetClassFilter.addEventListener('change', renderAdminFleetTable);
+  }
+  const fleetStatusFilter = document.getElementById('admin-fleet-status-filter');
+  if (fleetStatusFilter && !fleetStatusFilter._hasChangeListener) {
+    fleetStatusFilter._hasChangeListener = true;
+    fleetStatusFilter.addEventListener('change', renderAdminFleetTable);
+  }
+
+  // 3. Search Personnel keyup & filter listeners
+  const workerSearchInput = document.getElementById('admin-workers-search');
+  if (workerSearchInput && !workerSearchInput._hasSearchListener) {
+    workerSearchInput._hasSearchListener = true;
+    workerSearchInput.addEventListener('input', renderAdminPersonnelTable);
+  }
+  const workerStatusFilter = document.getElementById('admin-workers-status-filter');
+  if (workerStatusFilter && !workerStatusFilter._hasChangeListener) {
+    workerStatusFilter._hasChangeListener = true;
+    workerStatusFilter.addEventListener('change', renderAdminPersonnelTable);
+  }
+  const workerRoleFilter = document.getElementById('admin-workers-role-filter');
+  if (workerRoleFilter && !workerRoleFilter._hasChangeListener) {
+    workerRoleFilter._hasChangeListener = true;
+    workerRoleFilter.addEventListener('change', renderAdminPersonnelTable);
+  }
+
+  // 4. Predefined Roles search and department filter listeners
+  const rolesSearchInput = document.getElementById('admin-roles-search');
+  if (rolesSearchInput && !rolesSearchInput._hasSearchListener) {
+    rolesSearchInput._hasSearchListener = true;
+    rolesSearchInput.addEventListener('input', renderAdminRolesTable);
+  }
+  const rolesDeptFilter = document.getElementById('admin-roles-dept-filter');
+  if (rolesDeptFilter && !rolesDeptFilter._hasChangeListener) {
+    rolesDeptFilter._hasChangeListener = true;
+    rolesDeptFilter.addEventListener('change', renderAdminRolesTable);
+  }
+
+  // 5. Add Asset Button click listener
+  const addAssetBtn = document.getElementById('admin-add-asset-btn');
+  if (addAssetBtn && !addAssetBtn._hasAddListener) {
+    addAssetBtn._hasAddListener = true;
+    addAssetBtn.addEventListener('click', openAddAssetAdminModal);
+  }
+
+  // 6. Add Personnel Button click listener
+  const addWorkerBtn = document.getElementById('admin-add-worker-btn');
+  if (addWorkerBtn && !addWorkerBtn._hasAddListener) {
+    addWorkerBtn._hasAddListener = true;
+    addWorkerBtn.addEventListener('click', openAddPersonnelAdminModal);
+  }
+
+  // 7. Scheduling Rules save button state listener
+  const schedSaveBtn = document.querySelector('#admin-view-scheduling button.btn-primary');
+  if (schedSaveBtn && !schedSaveBtn._hasSaveStateListener) {
+    schedSaveBtn._hasSaveStateListener = true;
+    schedSaveBtn.addEventListener('click', function() {
+      if (this.dataset.saving === 'true') return;
+      this.dataset.saving = 'true';
+      const originalContent = this.innerHTML;
+      this.textContent = 'Saved!';
+      setTimeout(() => {
+        this.innerHTML = originalContent;
+        delete this.dataset.saving;
+      }, 2000);
     });
   }
 
-  // Sync scheduler lanes
-  if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
-
-  closeAddAssetAdminModal();
-  renderAdminFleetTable();
-
-  // If calendar view is active, update scheduler
-  if (currentView === 'Day') {
-    renderDayViewScheduler();
-  }
-
-  showToast(`Asset ${assetId} (${assetClass}) successfully provisioned into fleet registry.`, 'success', 'Fleet Asset Added');
+  // 8. Hydrate from storage, auto-save rules, and bulk import dropzone
+  hydrateIonConfigFromStorage();
+  loadAdminSchedulingRules();
+  initSchedulingRulesAutoSave();
+  setupBulkImportDropzone();
+  initThemeEngine();
 }
-
-function deleteFleetAssetAdmin(assetId) {
-  if (!confirm(`Are you sure you want to decommission and remove asset ${assetId} from the active fleet registry?`)) {
-    return;
-  }
-
-  if (window.ionConfig?.fleetRegistry) {
-    window.ionConfig.fleetRegistry = window.ionConfig.fleetRegistry.filter(a => a.id !== assetId);
-  }
-
-  const idx = assetRegistry.findIndex(a => a.id === assetId);
-  if (idx >= 0) assetRegistry.splice(idx, 1);
-
-  if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
-
-  renderAdminFleetTable();
-  if (currentView === 'Day') renderDayViewScheduler();
-
-  showToast(`Asset ${assetId} removed from registry.`, 'info', 'Asset Decommissioned');
-}
+window.initAdminModule = initAdminModule;
 
 /* ==========================================================================
-   SYSTEM SETTINGS: IT INTEGRATIONS (DOCUWARE, XERO, LOCALISATION)
+   SYSTEM SETTINGS: IT INTEGRATIONS (EDMS, ERP, LOCALISATION)
+   Vendor-Agnostic Architecture
    ========================================================================== */
+function initSettingsSaveButtons() {
+  const settingsView = document.getElementById('settings-view');
+  if (!settingsView) return;
+
+  const buttons = settingsView.querySelectorAll('button');
+  buttons.forEach(btn => {
+    const text = (btn.textContent || '').trim().toLowerCase();
+    if (text.includes('save') || btn.classList.contains('settings-save-btn')) {
+      if (btn._hasSaveStateListener) return;
+      btn._hasSaveStateListener = true;
+
+      btn.addEventListener('click', function() {
+        if (this.dataset.saving === 'true') return;
+        this.dataset.saving = 'true';
+        const originalContent = this.innerHTML;
+        this.textContent = 'Saved!';
+        setTimeout(() => {
+          this.innerHTML = originalContent;
+          delete this.dataset.saving;
+        }, 2000);
+      });
+    }
+  });
+}
+window.initSettingsSaveButtons = initSettingsSaveButtons;
+
 function renderSystemSettingsView() {
   const it = window.ionConfig?.integrations || {};
 
   const dwEnd = document.getElementById('it-dw-endpoint');
   const dwOrg = document.getElementById('it-dw-org');
   const dwBadge = document.getElementById('it-dw-badge');
-  if (dwEnd && it.docuwareEndpoint) dwEnd.value = it.docuwareEndpoint;
-  if (dwOrg && it.docuwareOrgId) dwOrg.value = it.docuwareOrgId;
-  if (dwBadge && it.docuwareStatus) {
-    dwBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> ${it.docuwareStatus}`;
+  if (dwEnd && (it.edmsEndpoint || it.docuwareEndpoint)) dwEnd.value = it.edmsEndpoint || it.docuwareEndpoint;
+  if (dwOrg && (it.edmsOrgId || it.docuwareOrgId)) dwOrg.value = it.edmsOrgId || it.docuwareOrgId;
+  if (dwBadge && (it.edmsStatus || it.docuwareStatus)) {
+    dwBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> ${it.edmsStatus || it.docuwareStatus}`;
   }
 
   const xeroSec = document.getElementById('it-xero-secret');
   const xeroTen = document.getElementById('it-xero-tenant');
   const xeroBadge = document.getElementById('it-xero-badge');
-  if (xeroTen && it.xeroTenant) xeroTen.value = it.xeroTenant;
-  if (xeroBadge && it.xeroStatus) {
-    xeroBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">sync</span> ${it.xeroStatus}`;
+  if (xeroTen && (it.erpTenant || it.xeroTenant)) xeroTen.value = it.erpTenant || it.xeroTenant;
+  if (xeroBadge && (it.erpStatus || it.xeroStatus)) {
+    xeroBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">sync</span> ${it.erpStatus || it.xeroStatus}`;
   }
 
   const locBadge = document.getElementById('it-loc-badge');
   if (locBadge && it.localisation) {
     locBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">public</span> Configured`;
   }
-}
 
-function saveDocuWareITSettings() {
+  initSettingsSaveButtons();
+}
+window.renderSystemSettingsView = renderSystemSettingsView;
+
+function saveEdmsSettings() {
   if (!window.ionConfig) window.ionConfig = {};
   if (!window.ionConfig.integrations) window.ionConfig.integrations = {};
 
@@ -3356,26 +6040,30 @@ function saveDocuWareITSettings() {
   const orgEl = document.getElementById('it-dw-org');
   const badgeEl = document.getElementById('it-dw-badge');
 
-  if (endEl) window.ionConfig.integrations.docuwareEndpoint = endEl.value;
-  if (orgEl) window.ionConfig.integrations.docuwareOrgId = orgEl.value;
-  window.ionConfig.integrations.docuwareStatus = 'Connected';
+  if (endEl) window.ionConfig.integrations.edmsEndpoint = endEl.value;
+  if (orgEl) window.ionConfig.integrations.edmsOrgId = orgEl.value;
+  window.ionConfig.integrations.edmsStatus = 'Connected';
 
   if (badgeEl) {
     badgeEl.className = 'status-badge connected';
-    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Connected (Vault Online)';
+    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Connected (Repository Online)';
   }
 
-  showToast('DocuWare Cloud Platform credentials and Vault ID securely updated.', 'success', 'DocuWare Connected');
+  showToast('EDMS REST API credentials and Repository ID securely updated.', 'success', 'EDMS Connected');
 }
+window.saveEdmsSettings = saveEdmsSettings;
+window.saveDocuWareITSettings = saveEdmsSettings;
 
-function testDocuWareHandshake() {
-  showToast('Initiating handshake ping to DocuWare Platform API endpoint...', 'info', 'Connecting...');
+function testEdmsHandshake() {
+  showToast('Initiating handshake ping to EDMS Platform REST API endpoint...', 'info', 'Connecting...');
   setTimeout(() => {
-    showToast('DocuWare API Handshake Successful (HTTP 200 OK). REST token verified.', 'success', 'Handshake OK');
+    showToast('EDMS API Handshake Successful (HTTP 200 OK). Bearer token verified.', 'success', 'Handshake OK');
   }, 600);
 }
+window.testEdmsHandshake = testEdmsHandshake;
+window.testDocuWareHandshake = testEdmsHandshake;
 
-function saveXeroITSettings() {
+function saveErpSettings() {
   if (!window.ionConfig) window.ionConfig = {};
   if (!window.ionConfig.integrations) window.ionConfig.integrations = {};
 
@@ -3383,23 +6071,27 @@ function saveXeroITSettings() {
   const tenEl = document.getElementById('it-xero-tenant');
   const badgeEl = document.getElementById('it-xero-badge');
 
-  if (tenEl) window.ionConfig.integrations.xeroTenant = tenEl.value;
-  window.ionConfig.integrations.xeroStatus = 'Active';
+  if (tenEl) window.ionConfig.integrations.erpTenant = tenEl.value;
+  window.ionConfig.integrations.erpStatus = 'Active';
 
   if (badgeEl) {
     badgeEl.className = 'status-badge active';
     badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">sync</span> Active (Inbound Live)';
   }
 
-  showToast('Xero chart-of-accounts webhook integration settings saved.', 'success', 'Xero Sync Active');
+  showToast('ERP general ledger webhook configuration saved.', 'success', 'ERP Sync Active');
 }
+window.saveErpSettings = saveErpSettings;
+window.saveXeroITSettings = saveErpSettings;
 
-function triggerXeroReconciliation() {
-  showToast('Dispatching reconciliation sync with Xero general ledger...', 'info', 'Reconciling...');
+function triggerErpReconciliation() {
+  showToast('Dispatching reconciliation sync with ERP General Ledger...', 'info', 'Reconciling...');
   setTimeout(() => {
-    showToast('Xero General Ledger Reconciliation Complete. All 12 invoices synchronized.', 'success', 'Sync Successful');
+    showToast('ERP General Ledger Reconciliation Complete. All invoices synchronized.', 'success', 'Sync Successful');
   }, 750);
 }
+window.triggerErpReconciliation = triggerErpReconciliation;
+window.triggerXeroReconciliation = triggerErpReconciliation;
 
 function saveLocalisationSettings() {
   const tz = document.getElementById('it-timezone-select')?.value || 'Australia/Brisbane';
@@ -3418,6 +6110,7 @@ function saveLocalisationSettings() {
 
   showToast(`Regional settings updated: ${tz}, ${fmt}, Australian Dollar ($ AUD).`, 'success', 'Localisation Saved');
 }
+window.saveLocalisationSettings = saveLocalisationSettings;
 
 // Backward-compatible stub for operator portal
 function renderOperatorPortal() {
@@ -4435,9 +7128,69 @@ Object.assign(window, {
   handleSlotDragLeave,
   handleSlotDrop,
   attachGridInteractivity,
+  renderAdminFleetTable,
+  sortAdminFleetTable,
+  renderAdminPersonnelTable,
+  sortAdminPersonnelTable,
+  loadAdminSchedulingRules,
+  saveAdminSchedulingRules,
+  switchAdminSubTab,
+  renderAdminModule,
+  filterAdminFleetTable,
+  handleAddAssetPrompt,
+  renderSchedulerFilterDropdowns,
+  initAdminModule,
+  openAddAssetAdminModal,
+  openEditAssetAdminModal,
+  closeAddAssetAdminModal,
+  submitAddAssetAdmin,
+  deleteFleetAssetAdmin,
+  openAddPersonnelAdminModal,
+  openEditPersonnelAdminModal,
+  closeAddPersonnelAdminModal,
+  submitPersonnelAdmin,
+  deletePersonnelAdmin,
+  onWorkerDepartmentChange,
+  onWorkerRolePresetChange,
+  initSettingsSaveButtons,
+  renderSystemSettingsView,
+  saveEdmsSettings,
+  testEdmsHandshake,
+  saveErpSettings,
+  triggerErpReconciliation,
+  saveLocalisationSettings,
+  initPredefinedRoles,
+  syncRoleDropdowns,
+  renderAdminRolesTable,
+  submitAddRoleAdmin,
+  removePredefinedRole,
+  promptDeleteFleetAsset,
+  executeDeleteFleetAsset,
+  promptDeletePersonnel,
+  executeDeletePersonnel,
+  closeDeleteConfirmModal,
+  exportAdminFleetCSV,
+  exportAdminPersonnelCSV,
+  openBulkImportAdminModal,
+  closeBulkImportAdminModal,
+  onBulkImportTargetChange,
+  clearBulkImportFile,
+  handleBulkImportFileSelected,
+  executeBulkImport,
+  downloadSampleTemplate,
+  initThemeEngine,
+  applyTheme,
+  toggleDarkMode,
+  toggleUserProfileDropdown,
+  closeUserProfileDropdown,
+  initSchedulingRulesAutoSave,
+  hydrateIonConfigFromStorage,
 });
 
 function initApp() {
+  hydrateIonConfigFromStorage();
+  initThemeEngine();
+
   if (!document.getElementById('toast-container')) {
     const tc = document.createElement('div');
     tc.id = 'toast-container';
@@ -4465,6 +7218,8 @@ function initApp() {
   renderCalendar();
   if (typeof applyDatePreset === 'function') applyDatePreset();
   if (typeof renderWorkersView === 'function') renderWorkersView();
+  if (typeof initAdminModule === 'function') initAdminModule();
+  if (typeof initSettingsSaveButtons === 'function') initSettingsSaveButtons();
 }
 
 if (document.readyState === 'loading') {
