@@ -3034,6 +3034,7 @@ tr.expired-row td {
 #calendar-view.active { flex-direction: column; flex: 1; min-height: 0; }
 #admin-view, #operator-view { display: none; height: 100%; width: 100%; flex-direction: column; overflow: hidden; background: var(--bg-primary); padding: 0 !important; margin: 0 !important; }
 #admin-view.active, #operator-view.active { display: flex !important; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; padding: 0 !important; margin: 0 !important; }
+#admin-view.active, #operator-view.active { display: flex !important; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; padding: 0 !important; margin: 0 !important; }
 #settings-view.active { flex-direction: column; overflow-y: auto; padding: 24px; }
 #job-board-view.active { flex-direction: column; }
 #compliance-view.active { flex-direction: column; }

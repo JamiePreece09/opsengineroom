@@ -240,8 +240,15 @@ function switchTab(tab) {
   if (navEl) navEl.classList.add('active');
   if (tab === 'job-board') renderJobBoard();
   else if (tab === 'reports' || tab === 'analytics') renderAnalytics();
-  else if (tab === 'administration' || tab === 'operator') { renderAdminModule(); }
-  else if (tab === 'settings' || tab === 'system-settings') { renderSystemSettingsView(); }
+  else if (tab === 'administration' || tab === 'operator') {
+    if (typeof renderAdminModule === 'function') {
+      renderAdminModule(); 
+    } else if (typeof renderOperatorPortal === 'function') {
+      renderOperatorPortal();
+      if(typeof renderWorkersView === 'function') renderWorkersView();
+    }
+  }
+  else if (tab === 'settings' || tab === 'system-settings') { if(typeof renderSystemSettingsView === 'function') renderSystemSettingsView(); }
   else if (tab === 'compliance') renderComplianceView();
   else if (tab === 'scheduler' || tab === 'calendar') renderCalendar();
 }
