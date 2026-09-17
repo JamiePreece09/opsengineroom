@@ -159,26 +159,168 @@
 </div>
 <div id="job-board-container" style="flex:1;overflow-x:auto;"></div>
 </div><div class="view-container" id="operator-view">
-  <div style="flex:1; border-right:1px solid var(--border-light); display:flex; flex-direction:column;">
-    <div id="operator-portal-container" style="padding:24px; overflow-y:auto; flex:1;"></div>
+  <div class="page-header" style="margin-bottom:16px;">
+    <div>
+      <div class="header-breadcrumb">OPERATIONS MANAGEMENT // ENTERPRISE ADMINISTRATION</div>
+      <h1 style="margin:0 0 4px 0;font-size:20px;font-weight:800;color:var(--text-primary);">Administration</h1>
+      <div class="subtitle" style="font-size:13px;color:var(--text-muted);">Fleet Registry, Workforce Licensing &amp; Operational Scheduling Rules</div>
+    </div>
   </div>
-  <div style="flex:1; display:flex; flex-direction:column; padding:24px; background:var(--bg-primary); overflow-y:auto;">
-    <!-- Worker HRWL Registry section -->
-<div style="font-size:11px;font-weight:800;color:var(--accent-copper);text-transform:uppercase;letter-spacing:1px;margin-top:0;margin-bottom:16px;">Worker High Risk Work Licence (HRWL) Registry</div>
-<div class="module-filter-bar">
-<div class="search-input-wrap">
-<svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-<input id="workers-search" oninput="renderWorkersView()" placeholder="Search worker name, licence number, or class..." type="text"/>
-</div>
-<select class="module-filter-select" id="workers-role-filter" onchange="renderWorkersView()">
-<option value="ALL">All Roles</option>
-<option value="operator">Crane Operators</option>
-<option value="plant">Plant Operators</option>
-<option value="dogman">Dogmen</option>
-<option value="rigger">Riggers</option>
-</select>
-</div>
-<div id="workers-container" style="flex:1;overflow-y:auto;padding-bottom:20px;"></div>
+
+  <!-- Horizontal Sub-Navigation -->
+  <div class="admin-subnav" id="admin-subnav">
+    <button class="admin-subnav-btn active" id="admin-subtab-fleet" onclick="switchAdminSubTab('fleet')">
+      <span class="material-symbols-outlined">local_shipping</span>
+      <span>Fleet</span>
+    </button>
+    <button class="admin-subnav-btn" id="admin-subtab-personnel" onclick="switchAdminSubTab('personnel')">
+      <span class="material-symbols-outlined">badge</span>
+      <span>Personnel</span>
+    </button>
+    <button class="admin-subnav-btn" id="admin-subtab-scheduling" onclick="switchAdminSubTab('scheduling')">
+      <span class="material-symbols-outlined">schedule</span>
+      <span>Scheduling Rules</span>
+    </button>
+  </div>
+
+  <!-- Subview 1: Fleet View -->
+  <div class="admin-subview" id="admin-view-fleet" style="display:flex;flex-direction:column;gap:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:520px;">
+        <div class="search-input-wrap" style="flex:1;">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
+          <input id="admin-fleet-search" oninput="renderAdminFleetTable()" placeholder="Search fleet by ID, class, or description..." type="text" style="width:100%;"/>
+        </div>
+        <select class="module-filter-select" id="admin-fleet-class-filter" onchange="renderAdminFleetTable()">
+          <option value="ALL">All Fleet Classes</option>
+        </select>
+        <span class="badge" id="admin-fleet-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+      </div>
+      <button class="btn-primary" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+        <span>Add Asset</span>
+      </button>
+    </div>
+
+    <!-- Clean, scalable HTML Data Table pulling from window.ionConfig.fleetRegistry -->
+    <div class="admin-table-card">
+      <table class="admin-data-table" id="admin-fleet-table">
+        <thead>
+          <tr>
+            <th style="width:60px;">Color</th>
+            <th>Asset ID</th>
+            <th>Class / Category</th>
+            <th>Description</th>
+            <th>Default Operator</th>
+            <th>Operating Status</th>
+            <th style="width:100px;text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-fleet-table-body">
+          <!-- Dynamically populated from window.ionConfig.fleetRegistry -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subview 2: Personnel View -->
+  <div class="admin-subview" id="admin-view-personnel" style="display:none;flex-direction:column;gap:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:560px;">
+        <div class="search-input-wrap" style="flex:1;">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
+          <input id="admin-workers-search" oninput="renderAdminPersonnelTable()" placeholder="Search personnel by name, role, or licence..." type="text" style="width:100%;"/>
+        </div>
+        <select class="module-filter-select" id="admin-workers-role-filter" onchange="renderAdminPersonnelTable()">
+          <option value="ALL">All Roles</option>
+          <option value="Crane Operator">Crane Operators</option>
+          <option value="Plant Operator">Plant Operators</option>
+          <option value="Dogman">Dogmen</option>
+          <option value="Rigger">Riggers</option>
+        </select>
+        <select class="module-filter-select" id="admin-workers-status-filter" onchange="renderAdminPersonnelTable()">
+          <option value="ALL">All HRWL Statuses</option>
+          <option value="Active">Active Only</option>
+          <option value="Expired">Expired (Locked)</option>
+        </select>
+        <span class="badge" id="admin-workers-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+      </div>
+    </div>
+
+    <!-- Dense, scalable HTML Data Table pulling from window.ionConfig.workerRegistry -->
+    <div class="admin-table-card">
+      <table class="admin-data-table" id="admin-personnel-table">
+        <thead>
+          <tr>
+            <th>Worker Name</th>
+            <th>Role</th>
+            <th>HRWL Licence Class</th>
+            <th>Licence Number</th>
+            <th>HRWL Expiry</th>
+            <th>HRWL Status</th>
+          </tr>
+        </thead>
+        <tbody id="admin-personnel-table-body">
+          <!-- Dynamically populated from window.ionConfig.workerRegistry -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subview 3: Scheduling Rules View -->
+  <div class="admin-subview" id="admin-view-scheduling" style="display:none;flex-direction:column;gap:16px;">
+    <div class="settings-card glass-panel" style="max-width:720px;">
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-copper);">schedule</span>
+        <span>Operational Scheduling Rules &amp; Overtime Multipliers</span>
+      </div>
+      <div class="settings-section-subtitle">Define daily operational shift boundaries, standard work hours, and enterprise overtime calculation thresholds</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="settings-field">
+          <label>Daily Start Time (Shift Start)</label>
+          <input id="admin-rule-start-time" type="time" value="06:00"/>
+        </div>
+        <div class="settings-field">
+          <label>Daily End Time (Shift End)</label>
+          <input id="admin-rule-end-time" type="time" value="18:00"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="settings-field">
+          <label>Standard Daily Work Hours Limit</label>
+          <input id="admin-rule-std-hours" type="number" step="0.5" min="4" max="12" value="8.0"/>
+          <span style="font-size:11px;color:var(--text-muted);">Hours logged exceeding this daily threshold trigger automated overtime alerts.</span>
+        </div>
+        <div class="settings-field">
+          <label>Overtime Multiplier (1.5x Standard Tier)</label>
+          <input id="admin-rule-ot-mult" type="number" step="0.1" min="1.0" max="3.0" value="1.5"/>
+          <span style="font-size:11px;color:var(--text-muted);">Standard overtime rate applied to billable client and operator wages.</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="settings-field">
+          <label>Double-Time Overtime Multiplier (2.0x Tier)</label>
+          <input id="admin-rule-double-mult" type="number" step="0.1" min="1.5" max="4.0" value="2.0"/>
+          <span style="font-size:11px;color:var(--text-muted);">Applied to shifts exceeding 10 hours or Sunday / Public Holiday work.</span>
+        </div>
+        <div class="settings-field">
+          <label>Minimum Rest Period Between Shifts (Hours)</label>
+          <input id="admin-rule-rest-period" type="number" step="1" min="8" max="14" value="10"/>
+          <span style="font-size:11px;color:var(--text-muted);">Mandatory National Heavy Vehicle Reg &amp; HRWL fatigue safety rest.</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+        <button class="btn-primary" onclick="saveAdminSchedulingRules()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+          <span>Save Scheduling Rules</span>
+        </button>
+        <span id="admin-rules-status" style="font-size:12px;font-weight:600;color:#059669;display:none;">Saved to window.ionConfig</span>
+      </div>
+    </div>
   </div>
 </div><div class="view-container" id="compliance-view">
 <div class="page-header">
@@ -287,123 +429,179 @@
 </div>
 </div>
 </div><div class="view-container" id="settings-view">
-<div class="page-header">
-<div>
-<div class="header-breadcrumb">SYSTEM CONFIGURATION // INTEGRATIONS</div>
-<h1>System Settings</h1>
-<div class="subtitle">Document Repository Connections &amp; Work Hours Configuration</div>
-</div>
-</div>
-<div class="settings-grid">
-<div class="settings-card glass-panel">
-<div class="settings-section-title">Document Management Sync</div>
-<div class="settings-section-subtitle">Automate hire agreements, safety certs, and billing sync with your enterprise repository</div>
-<div class="settings-field">
-<label>Repository Server URL (e.g. DocuWare / Cloud DMS)</label>
-<input id="dw-url" placeholder="https://your-instance.docuware.cloud" type="url"/>
-</div>
-<div class="settings-field">
-<label>Organisation / Vault ID</label>
-<input id="dw-org" placeholder="Enter Vault / Org ID" type="text"/>
-</div>
-<div class="settings-field">
-<label>Secure API Access Token</label>
-<input id="dw-token" placeholder="••••••••••••••••" type="password"/>
-</div>
-<div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
-<button class="btn-primary" onclick="saveDocuWare()">Save &amp; Connect Engine</button>
-<span class="status-badge disconnected" id="dw-status">Disconnected</span>
-</div>
-</div>
-<div class="settings-card glass-panel">
-<div class="settings-section-title">Webhook Configuration</div>
-<div class="settings-section-subtitle">Configure inbound DocuWare webhook for live booking creation</div>
-<div class="settings-field">
-<label>Webhook Endpoint</label>
-<input readonly="" style="color:var(--text-muted);" type="text" value="https://your-domain.com/api/docuware-webhook"/>
-</div>
-<div class="settings-field">
-<label>Webhook Secret</label>
-<input id="webhook-secret" placeholder="Set a secure webhook secret" type="password"/>
-</div>
-<div class="settings-field">
-<label>Last Sync</label>
-<input id="last-sync" readonly="" style="color:var(--text-muted);" type="text" value="Never"/>
-</div>
-<button class="btn-secondary" onclick="alert('Document sync triggered manually for recent invoices.')">Force Sync Now</button>
-</div>
-<div class="settings-card glass-panel">
-<div class="settings-section-title">Notification Preferences</div>
-<div class="settings-section-subtitle">Manage how you receive booking and schedule alerts</div>
-<div class="settings-field">
-<label>Notification Email</label>
-<input id="notif-email" placeholder="dispatcher@yourcompany.com" type="email"/>
-</div>
-<div class="settings-field">
-<label>Alert Threshold</label>
-<select class="dropdown-btn" id="notif-threshold" style="appearance:auto;">
-<option>All Events</option>
-<option selected="">Urgent Only</option>
-<option>None</option>
-</select>
-</div>
-<button class="btn-primary" onclick="alert('Notification preferences saved.')">Save Preferences</button>
-</div>
-<div class="settings-card glass-panel">
-<div class="settings-section-title">Localisation &amp; Timezone</div>
-<div class="settings-section-subtitle">Set regional defaults for the scheduling engine</div>
-<div class="settings-field">
-<label>Timezone</label>
-<select class="dropdown-btn" style="appearance:auto;">
-<option selected="">Australia/Brisbane (AEST, UTC+10)</option>
-<option>Australia/Sydney (AEDT, UTC+11)</option>
-<option>Australia/Perth (AWST, UTC+8)</option>
-</select>
-</div>
-<div class="settings-field">
-<label>Date Format</label>
-<select class="dropdown-btn" style="appearance:auto;">
-<option selected="">DD/MM/YYYY</option>
-<option>MM/DD/YYYY</option>
-<option>YYYY-MM-DD</option>
-</select>
-</div>
-<div class="settings-field">
-<label>Default Work Hours</label>
-<div style="display:flex;align-items:center;gap:10px;">
-<select class="dropdown-btn" id="settings-work-start" style="appearance:auto;"><!-- populated by JS --></select>
-<span style="color:var(--text-muted);font-size:13px;">to</span>
-<select class="dropdown-btn" id="settings-work-end" style="appearance:auto;"><!-- populated by JS --></select>
-</div>
-<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Controls the default visible hours on the Command Center calendar.</div>
-</div>
-<button class="btn-primary" onclick="saveWorkHours()">Save Settings</button>
-</div>
-<!-- Fleet Asset Management — full width -->
-<div class="settings-card glass-panel" style="grid-column:span 2;">
-<div class="settings-section-title">Fleet Asset Management</div>
-<div class="settings-section-subtitle">Add or remove assets and configure their dispatch board colour codes</div>
-<div class="am-header">
-<span></span>
-<span>Asset ID</span>
-<span>Description</span>
-<span>Hex Colour</span>
-<span></span>
-</div>
-<div id="asset-manager-list"></div>
-<div class="am-add-row">
-<input class="am-input-new" id="new-asset-id" maxlength="8" placeholder="ID e.g. FC14" type="text"/>
-<input class="am-input-new am-input-wide" id="new-asset-desc" placeholder="Description e.g. Franna Crane" type="text"/>
-<div class="am-color-wrap">
-<input class="am-color-picker" id="new-asset-hex-color" type="color" value="#888888"/>
-<input class="am-hex-text" id="new-asset-hex-text" maxlength="7" onchange="document.getElementById('new-asset-hex-color').value=this.value" placeholder="#888888" type="text"/>
-</div>
-<button class="btn-primary" onclick="addAsset()">+ Add Asset</button>
-</div>
-</div>
-</div>
+  <div class="page-header" style="margin-bottom:16px;">
+    <div>
+      <div class="header-breadcrumb">SYSTEM CONFIGURATION // IT INFRASTRUCTURE &amp; INTEGRATIONS</div>
+      <h1 style="margin:0 0 4px 0;font-size:20px;font-weight:800;color:var(--text-primary);">System Settings</h1>
+      <div class="subtitle" style="font-size:13px;color:var(--text-muted);">Enterprise Integrations, Inbound Webhooks &amp; Regional IT Configuration</div>
+    </div>
+  </div>
+
+  <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:20px;">
+    <!-- Card 1: Document Management Sync (DocuWare API) -->
+    <div class="settings-card glass-panel">
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-copper);">description</span>
+        <span>Document Management Sync (DocuWare API)</span>
+      </div>
+      <div class="settings-section-subtitle">Automate hire agreements, compliance certificates, and billing sync via DocuWare Platform API</div>
+      
+      <div class="settings-field">
+        <label>DocuWare Platform API Endpoint</label>
+        <input id="it-dw-endpoint" type="url" placeholder="https://your-instance.docuware.cloud/DocuWare/Platform" value="https://your-instance.docuware.cloud/DocuWare/Platform"/>
+      </div>
+      <div class="settings-field">
+        <label>DocuWare Vault / Organisation ID</label>
+        <input id="it-dw-org" type="text" placeholder="DW-VAULT-8802" value="DW-VAULT-8802"/>
+      </div>
+      <div class="settings-field">
+        <label>Secure API Bearer Token</label>
+        <input id="it-dw-token" type="password" placeholder="••••••••••••••••" value="dwtok_live_992147318820"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="saveDocuWareITSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">cloud_sync</span>
+          <span>Save &amp; Connect API</span>
+        </button>
+        <button class="btn-secondary" onclick="testDocuWareHandshake()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">network_check</span>
+          <span>Test Handshake</span>
+        </button>
+        <span class="status-badge connected" id="it-dw-badge">
+          <span class="material-symbols-outlined" style="font-size:14px;">check_circle</span>
+          <span>Connected</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Financial Sync (Xero Webhooks) -->
+    <div class="settings-card glass-panel">
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#0284c7;">payments</span>
+        <span>Financial Sync (Xero Webhooks)</span>
+      </div>
+      <div class="settings-section-subtitle">Inbound webhook listener and automated ledger reconciliation with Xero Accounting</div>
+
+      <div class="settings-field">
+        <label>Xero Webhook Inbound URL (Read-Only)</label>
+        <input id="it-xero-endpoint" readonly style="color:var(--text-muted);background:var(--bg-secondary);" type="text" value="https://api.xero.com/webhooks/v2/hireengine-sync"/>
+      </div>
+      <div class="settings-field">
+        <label>Webhook HMAC Signing Secret</label>
+        <input id="it-xero-secret" type="password" placeholder="Set webhook HMAC key" value="xero_sec_884920194857"/>
+      </div>
+      <div class="settings-field">
+        <label>Target Xero Tenant Name</label>
+        <input id="it-xero-tenant" type="text" placeholder="Organisation Name" value="ION Plant Hire Pty Ltd"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="saveXeroITSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span>Save Xero Config</span>
+        </button>
+        <button class="btn-secondary" onclick="triggerXeroReconciliation()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">sync</span>
+          <span>Reconcile Invoices</span>
+        </button>
+        <span class="status-badge connected" id="it-xero-badge">
+          <span class="material-symbols-outlined" style="font-size:14px;">sync</span>
+          <span>Active (Auto-Reconcile)</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: Localisation & Timezone -->
+    <div class="settings-card glass-panel">
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#10b981;">public</span>
+        <span>Localisation &amp; Timezone</span>
+      </div>
+      <div class="settings-section-subtitle">Configure regional time standards, date formats, and Australian operational locale</div>
+
+      <div class="settings-field">
+        <label>Operational Timezone</label>
+        <select class="dropdown-btn" id="it-timezone-select" style="appearance:auto;width:100%;">
+          <option selected value="Australia/Brisbane (AEST, UTC+10)">Australia/Brisbane (AEST, UTC+10)</option>
+          <option value="Australia/Sydney (AEDT, UTC+11)">Australia/Sydney (AEDT, UTC+11)</option>
+          <option value="Australia/Melbourne (AEDT, UTC+11)">Australia/Melbourne (AEDT, UTC+11)</option>
+          <option value="Australia/Perth (AWST, UTC+8)">Australia/Perth (AWST, UTC+8)</option>
+          <option value="Australia/Adelaide (ACDT, UTC+10:30)">Australia/Adelaide (ACDT, UTC+10:30)</option>
+          <option value="Australia/Darwin (ACST, UTC+9:30)">Australia/Darwin (ACST, UTC+9:30)</option>
+        </select>
+      </div>
+      <div class="settings-field">
+        <label>Regional Locale &amp; Currency</label>
+        <select class="dropdown-btn" id="it-locale-select" style="appearance:auto;width:100%;">
+          <option selected value="en-AU">en-AU (Australian English // AUD $)</option>
+        </select>
+      </div>
+      <div class="settings-field">
+        <label>System Date Format</label>
+        <select class="dropdown-btn" id="it-date-format-select" style="appearance:auto;width:100%;">
+          <option selected value="DD/MM/YYYY">DD/MM/YYYY (Australian Commercial Standard)</option>
+          <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601 Database Standard)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;">
+        <button class="btn-primary" onclick="saveLocalisationSettings()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span>Save Localisation</span>
+        </button>
+        <span id="it-loc-status" style="font-size:12px;font-weight:600;color:#059669;display:none;">Saved to window.ionConfig</span>
+      </div>
+    </div>
+  </div>
 </div>
     </main>
+  </div>
+</div>
+
+<!-- Admin Add Fleet Asset Modal -->
+<div class="modal-overlay" id="admin-add-asset-modal" style="display:none;">
+  <div class="modal-box" style="max-width:540px;padding:24px;border-radius:var(--radius-lg);background:var(--bg-primary);border:1px solid var(--border-light);box-shadow:var(--shadow-lg);">
+    <div class="modal-header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="modal-eyebrow" style="font-size:10px;font-weight:800;color:var(--accent-copper);letter-spacing:1px;text-transform:uppercase;">ENTERPRISE ADMINISTRATION // FLEET REGISTRY</div>
+        <h2 style="margin:2px 0 0 0;font-size:18px;font-weight:800;color:var(--text-primary);">Add Fleet Asset</h2>
+      </div>
+      <button class="modal-close" onclick="closeAddAssetAdminModal()" aria-label="Close modal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:20px;">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="settings-field">
+        <label>Asset Identification Code (ID)</label>
+        <input id="modal-asset-id" placeholder="e.g. FC15, CR03, AT12" maxlength="10" type="text"/>
+      </div>
+      <div class="settings-field">
+        <label>Asset Class / Equipment Category</label>
+        <input id="modal-asset-class" placeholder="e.g. Terex Franna Crane 25T" type="text"/>
+      </div>
+      <div class="settings-field">
+        <label>Operational Description</label>
+        <input id="modal-asset-desc" placeholder="e.g. 25T Pick & Carry Mobile Crane" type="text"/>
+      </div>
+      <div class="settings-field">
+        <label>Dispatch Board Colour Code</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input id="modal-asset-color" type="color" value="#0284c7" oninput="document.getElementById('modal-asset-hex').value=this.value" style="width:40px;height:36px;border:none;border-radius:4px;cursor:pointer;background:none;"/>
+          <input id="modal-asset-hex" type="text" maxlength="7" value="#0284c7" oninput="document.getElementById('modal-asset-color').value=this.value" style="width:110px;font-family:monospace;"/>
+        </div>
+      </div>
+      <div class="settings-field">
+        <label>Default Allocated Operator / Crew</label>
+        <select id="modal-asset-worker" class="dropdown-btn" style="appearance:auto;width:100%;">
+          <!-- Populated from window.ionConfig.workerRegistry -->
+        </select>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+        <button class="btn-secondary" onclick="closeAddAssetAdminModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitAddAssetAdmin()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">add</span>
+          <span>Register Asset</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -437,21 +635,21 @@
       1. Client Routing &amp; Site Identification
     </div>
     
-    <!-- Toggle: Existing Project vs New Client (EOI) -->
+    <!-- Toggle: Existing Client vs New Client (EOI) -->
     <div class="client-type-switcher" role="radiogroup" aria-label="Client Onboarding Mode">
       <label class="client-type-pill active" id="label-client-existing" onclick="toggleClientType('existing')">
         <input type="radio" name="client_type" id="radio-client-existing" value="existing" checked style="display:none;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Existing Project</span>
+        <span class="material-symbols-outlined" style="font-size: 16px;">business</span>
+        <span>Existing Client</span>
       </label>
       <label class="client-type-pill" id="label-client-new" onclick="toggleClientType('new')">
         <input type="radio" name="client_type" id="radio-client-new" value="new" style="display:none;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
         <span>New Client (EOI)</span>
       </label>
     </div>
 
-    <!-- Cascading Container for Existing Project -->
+    <!-- Cascading Container for Existing Client -->
     <div id="existing-client-section">
       <div class="form-row">
         <div class="form-group">
@@ -461,21 +659,27 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="booking-project-select">Select Job Site</label>
+          <label for="booking-project-select">Select Project</label>
           <select id="booking-project-select" onchange="onProjectSelectChange()">
-            <option value="">-- Choose Job Site --</option>
+            <option value="">-- Choose Project --</option>
           </select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="booking-site-address">Site Address (Auto-filled)</label>
-          <input id="booking-site-address" placeholder="Select project to auto-fill address" type="text"/>
+          <label for="booking-site-select">Select Site Location</label>
+          <select id="booking-site-select" onchange="onSiteSelectChange()">
+            <option value="">-- Choose Site Location --</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="booking-site-contact">Site Contact &amp; Direct Phone</label>
           <input id="booking-site-contact" placeholder="Select project to auto-fill contact" type="text"/>
         </div>
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="booking-site-address">Site Address (Auto-filled)</label>
+        <input id="booking-site-address" placeholder="Select project to auto-fill address" type="text"/>
       </div>
     </div>
 
@@ -487,21 +691,25 @@
           <input id="new-client-name" placeholder="e.g. Pacific Infrastructure Ltd" type="text"/>
         </div>
         <div class="form-group">
-          <label for="new-client-contact">Primary Contact Person *</label>
-          <input id="new-client-contact" placeholder="e.g. Mark Roberts (Project Manager)" type="text"/>
+          <label for="new-client-project">Project Name *</label>
+          <input id="new-client-project" placeholder="e.g. Gateway Overpass Upgrade" type="text"/>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label for="new-client-contact">Primary Contact Person *</label>
+          <input id="new-client-contact" placeholder="e.g. Mark Roberts (Project Manager)" type="text"/>
+        </div>
+        <div class="form-group">
           <label for="new-client-phone">Direct Phone Number *</label>
           <input id="new-client-phone" placeholder="e.g. 0412 345 678" type="tel"/>
         </div>
-        <div class="form-group">
-          <label for="new-client-email">Accounts / Dispatch Email *</label>
-          <input id="new-client-email" placeholder="e.g. mark.r@pacificinfra.com.au" type="email"/>
-        </div>
       </div>
       <div class="form-group">
+        <label for="new-client-email">Accounts / Dispatch Email *</label>
+        <input id="new-client-email" placeholder="e.g. mark.r@pacificinfra.com.au" type="email"/>
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
         <label for="new-client-address">Site / Delivery Address *</label>
         <input id="new-client-address" placeholder="e.g. 100 Kingsford Smith Dr, Hamilton QLD 4007" type="text"/>
       </div>
@@ -655,7 +863,7 @@
 <div class="modal-footer">
   <button class="btn-secondary" id="delete-btn" onclick="deleteBooking()" style="display:none;color:#ef4444;border-color:#ef4444;">Delete Booking</button>
   <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-  <button class="btn-primary smart-submit-btn" id="save-booking-btn" onclick="saveBooking()">Save Booking</button>
+  <button class="btn-primary smart-submit-btn" id="save-booking-btn" onclick="saveBooking()">Create Booking</button>
 </div>
 </div>
 </div>
@@ -910,7 +1118,9 @@
         <span class="drawer-eyebrow" id="drawer-eyebrow">Booking Detail</span>
         <h3 class="drawer-job-title" id="drawer-job-title">Operation Details</h3>
       </div>
-      <button class="drawer-close-btn" onclick="closeBookingDrawer()" title="Close drawer (Esc)">&#x2715;</button>
+      <button class="drawer-close-btn" onclick="closeBookingDrawer()" title="Close drawer (Esc)">
+        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+      </button>
     </div>
     <div class="drawer-scroll-body" id="drawer-scroll-body">
       <!-- Injected dynamically via openBookingDrawer(id) -->

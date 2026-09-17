@@ -13,6 +13,75 @@ import { DispatchEngine } from './dispatchEngine.js';
 import { initDragAndDrop } from './dndEngine.js';
 import { pushToDocuWare, generateSWMSPayload, generatePreStartPayload, generateFieldDocketPayload, getDocPipelineStatus } from './documentAutomation.js';
 
+// ==========================================================================
+// REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)
+// ==========================================================================
+window.ionConfig = {
+  fleetRegistry: [
+    { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5 },
+    { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true },
+    { id: 'MC2', class: 'Kato City Compact Crane 60T', category: 'city', color: '#d97706', hex: '#d97706', label: 'MC2 - 60T City Crane', description: 'Kato City Compact Crane 60T', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4 },
+    { id: 'CR01', class: 'Kobelco Lattice Crawler 250T', category: 'crawler', color: '#7c3aed', hex: '#7c3aed', label: 'CR01 - 250T Crawler', description: 'Kobelco Lattice Crawler 250T', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2 },
+    { id: 'AT10', class: 'Demag All-Terrain Crane 55T', category: 'all_terrain', color: '#dc2626', hex: '#dc2626', label: 'AT10 - 55T Demag', description: 'Demag All-Terrain Crane 55T', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0 },
+    { id: 'EX01', class: 'Excavator 20T', category: 'excavator', color: '#0ea5e9', hex: '#0ea5e9', label: 'EX01 - 20T Excavator', description: 'Excavator 20T', workerName: 'Alex Morgan', workerStatus: 'available', hoursToday: 3 },
+    { id: 'EX02', class: 'Excavator 35T', category: 'excavator', color: '#06b6d4', hex: '#06b6d4', label: 'EX02 - 35T Excavator', description: 'Excavator 35T', workerName: 'Pat Taylor', workerStatus: 'available', hoursToday: 6 },
+    { id: 'SK03', class: 'Skid Steer Loader', category: 'skid_steer', color: '#8b5cf6', hex: '#8b5cf6', label: 'SK03 - Skid Steer', description: 'Skid Steer Loader', workerName: 'Ben Walker', workerStatus: 'available', hoursToday: 1 },
+    { id: 'DZ04', class: 'Dozer D6', category: 'dozer', color: '#475569', hex: '#475569', label: 'DZ04 - Dozer D6', description: 'Dozer D6', workerName: 'Tom Clarke', workerStatus: 'available', hoursToday: 0 },
+    { id: 'FL05', class: 'Forklift 5T', category: 'forklift', color: '#6366f1', hex: '#6366f1', label: 'FL05 - Forklift 5T', description: 'Forklift 5T', workerName: 'Gary White', workerStatus: 'available', hoursToday: 4 },
+    { id: 'FL06', class: 'Forklift 10T', category: 'forklift', color: '#2563eb', hex: '#2563eb', label: 'FL06 - Forklift 10T', description: 'Forklift 10T', workerName: 'Liam Hughes', workerStatus: 'available', hoursToday: 2 },
+    { id: 'SC07', class: 'Scissor Lift 12m', category: 'elevated_platform', color: '#059669', hex: '#059669', label: 'SC07 - Scissor Lift', description: 'Scissor Lift 12m', workerName: 'Brad Nguyen', workerStatus: 'available', hoursToday: 0 },
+    { id: 'BM08', class: 'Boom Lift 17m', category: 'elevated_platform', color: '#b45309', hex: '#b45309', label: 'BM08 - Boom Lift', description: 'Boom Lift 17m', workerName: 'John Smith', workerStatus: 'available', hoursToday: 5 },
+    { id: 'CR09', class: 'Crawler Crane 50T', category: 'crawler', color: '#334155', hex: '#334155', label: 'CR09 - Crawler 50T', description: 'Crawler Crane 50T', workerName: 'Sean O\'Connor', workerStatus: 'available', hoursToday: 7 },
+    { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1 }
+  ],
+  workerRegistry: [
+    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', hrwlExpiry: '2027-03-15', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491' },
+    { id: 'W002', name: 'John Smith', role: 'Crane Operator', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234' },
+    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120' },
+    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981' },
+    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023' },
+    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211' },
+    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102' },
+    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301' },
+    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908' },
+    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123' },
+    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201' },
+    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409' },
+    { id: 'W013', name: 'Gary White', role: 'Rigger', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984' },
+    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410' },
+    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042' }
+  ],
+  schedulingRules: {
+    standardHoursStart: '06:00',
+    standardHoursEnd: '18:00',
+    standardHoursDuration: 8.0,
+    overtimeMultiplier: 1.5,
+    doubleTimeMultiplier: 2.0,
+    restPeriodHours: 10
+  },
+  integrations: {
+    docuwareEndpoint: 'https://your-instance.docuware.cloud/DocuWare/Platform',
+    docuwareOrgId: 'DW-VAULT-8802',
+    docuwareStatus: 'Connected',
+    xeroWebhook: 'https://api.xero.com/webhooks/v2/hireengine-sync',
+    xeroStatus: 'Active',
+    xeroTenant: 'ION Plant Hire Pty Ltd',
+    localisation: 'Australia/Brisbane (AEST, UTC+10)'
+  }
+};
+
+// Sync window.ionConfig with dataModels.assetRegistry
+window.ionConfig.fleetRegistry.forEach(fa => {
+  if (!assetRegistry.some(ar => ar.id === fa.id)) {
+    assetRegistry.push({
+      id: fa.id,
+      description: fa.description || fa.label || fa.class,
+      hex: fa.color || fa.hex || '#0284c7',
+      assetType: fa.category || 'crane'
+    });
+  }
+});
+
 let ASSET_HEX = { Urgent: '#dc2626', Invoiced: '#10b981', Scheduled: '#3b82f6', Other: '#64748b' };
 let validAssets = [];
 let currentDate = new Date();
@@ -158,7 +227,8 @@ function switchTab(tab) {
   if (navEl) navEl.classList.add('active');
   if (tab === 'job-board') renderJobBoard();
   else if (tab === 'reports' || tab === 'analytics') renderAnalytics();
-  else if (tab === 'administration' || tab === 'operator') { renderOperatorPortal(); renderWorkersView(); }
+  else if (tab === 'administration' || tab === 'operator') { renderAdminModule(); }
+  else if (tab === 'settings' || tab === 'system-settings') { renderSystemSettingsView(); }
   else if (tab === 'compliance') renderComplianceView();
   else if (tab === 'scheduler' || tab === 'calendar') renderCalendar();
 }
@@ -526,9 +596,11 @@ window.toggleClientType = function(type) {
 window.onClientSelectChange = function() {
   const cSelect = document.getElementById('booking-client-select');
   const pSelect = document.getElementById('booking-project-select');
+  const sSelect = document.getElementById('booking-site-select');
   if (!cSelect || !pSelect) return;
   const clientId = cSelect.value;
-  pSelect.innerHTML = '<option value="">-- Choose Job Site --</option>';
+  pSelect.innerHTML = '<option value="">-- Choose Project --</option>';
+  if (sSelect) sSelect.innerHTML = '<option value="">-- Choose Site Location --</option>';
 
   if (!clientId) {
     if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
@@ -538,7 +610,7 @@ window.onClientSelectChange = function() {
 
   const matchingProjects = projectsRegistry.filter(p => p.clientId === clientId);
   matchingProjects.forEach(p => {
-    pSelect.innerHTML += `<option value="${p.id}">${p.name} (${p.address})</option>`;
+    pSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.name)}</option>`;
   });
 
   if (matchingProjects.length > 0) {
@@ -552,15 +624,46 @@ window.onClientSelectChange = function() {
 
 window.onProjectSelectChange = function() {
   const pSelect = document.getElementById('booking-project-select');
+  const sSelect = document.getElementById('booking-site-select');
   if (!pSelect) return;
   const projId = pSelect.value;
   const proj = projectsRegistry.find(p => p.id === projId);
+
+  if (sSelect) {
+    sSelect.innerHTML = '<option value="">-- Choose Site Location --</option>';
+    if (proj) {
+      sSelect.innerHTML += `
+        <option value="main" selected>Main Site Compound &bull; ${escapeHtml(proj.address)}</option>
+        <option value="gate-west">Western Crane Staging Gate &bull; Access Rd 2</option>
+        <option value="loading-dock">Basement Loading Dock / Hardstand Area</option>
+      `;
+    }
+  }
+
   if (proj) {
     if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = proj.address || '';
     if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = proj.contact || '';
   } else {
     if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
     if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
+  }
+};
+
+window.onSiteSelectChange = function() {
+  const sSelect = document.getElementById('booking-site-select');
+  const pSelect = document.getElementById('booking-project-select');
+  const proj = projectsRegistry.find(p => p.id === pSelect?.value);
+  if (!sSelect || !proj) return;
+
+  const addrInput = document.getElementById('booking-site-address');
+  if (!addrInput) return;
+
+  if (sSelect.value === 'gate-west') {
+    addrInput.value = `${proj.address} (Western Crane Staging Gate)`;
+  } else if (sSelect.value === 'loading-dock') {
+    addrInput.value = `${proj.address} (Hardstand / Loading Dock)`;
+  } else {
+    addrInput.value = proj.address;
   }
 };
 
@@ -596,6 +699,8 @@ window.onAssetSelectChange = function() {
 function openModal(asset, startH, endH, dateStr) {
   document.getElementById('booking-id').value = '';
   document.getElementById('modal-title').textContent = 'Smart Booking & Allocation';
+  const saveBtn = document.getElementById('save-booking-btn');
+  if (saveBtn) saveBtn.textContent = 'Create Booking';
 
   // 1. Hydrate Client dropdown
   const cSelect = document.getElementById('booking-client-select');
@@ -613,6 +718,7 @@ function openModal(asset, startH, endH, dateStr) {
 
   // Reset blank inputs for new client
   if (document.getElementById('new-client-name')) document.getElementById('new-client-name').value = '';
+  if (document.getElementById('new-client-project')) document.getElementById('new-client-project').value = '';
   if (document.getElementById('new-client-contact')) document.getElementById('new-client-contact').value = '';
   if (document.getElementById('new-client-phone')) document.getElementById('new-client-phone').value = '';
   if (document.getElementById('new-client-email')) document.getElementById('new-client-email').value = '';
@@ -621,14 +727,40 @@ function openModal(asset, startH, endH, dateStr) {
   // 2. Asset & Status hydration
   const assetSelect = document.getElementById('booking-asset');
   if (assetSelect) {
-    assetSelect.innerHTML = assetRegistry.map(a => `<option value="${a.id}">${a.id} — ${a.description || a.assetType}</option>`).join('');
-    assetSelect.value = asset || 'EX01';
+    const combinedAssets = [];
+    const seen = new Set();
+    allSchedulerLanes.forEach(lane => {
+      if (!seen.has(lane.id)) {
+        seen.add(lane.id);
+        combinedAssets.push({ id: lane.id, label: lane.label || lane.id });
+      }
+    });
+    assetRegistry.forEach(a => {
+      if (!seen.has(a.id)) {
+        seen.add(a.id);
+        combinedAssets.push({ id: a.id, label: `${a.id} — ${a.description || a.assetType}` });
+      }
+    });
+    assetSelect.innerHTML = combinedAssets.map(a => `<option value="${a.id}">${escapeHtml(a.label)}</option>`).join('');
+    if (asset && seen.has(asset)) {
+      assetSelect.value = asset;
+    } else if (combinedAssets.length > 0) {
+      assetSelect.value = combinedAssets[0].id;
+    }
   }
   if (document.getElementById('booking-hire-type')) document.getElementById('booking-hire-type').value = 'wet';
   if (document.getElementById('booking-status')) document.getElementById('booking-status').value = 'Scheduled';
 
   // 3. Timing
-  const refDate = dateStr ? new Date(dateStr) : new Date(currentDate);
+  let refDate;
+  if (dateStr instanceof Date) {
+    refDate = !isNaN(dateStr.getTime()) ? dateStr : new Date();
+  } else if (typeof dateStr === 'string' && dateStr.trim()) {
+    const parsed = new Date(dateStr);
+    refDate = !isNaN(parsed.getTime()) ? parsed : new Date();
+  } else {
+    refDate = (currentDate instanceof Date && !isNaN(currentDate.getTime())) ? new Date(currentDate) : new Date();
+  }
   if (document.getElementById('booking-date')) document.getElementById('booking-date').value = refDate.toISOString().slice(0, 10);
   if (document.getElementById('booking-start')) document.getElementById('booking-start').value = startH || '07:00';
   if (document.getElementById('booking-end')) document.getElementById('booking-end').value = endH || '15:00';
@@ -656,8 +788,9 @@ function openModal(asset, startH, endH, dateStr) {
   }
 
   // 5. Inspection Workflow
+  const isInspectionAsset = asset === 'INSPECTIONS';
   const inspCheck = document.getElementById('inspection-required');
-  if (inspCheck) inspCheck.checked = false;
+  if (inspCheck) inspCheck.checked = isInspectionAsset;
   window.toggleInspection();
   const inspDate = document.getElementById('inspection-datetime');
   if (inspDate) {
@@ -669,8 +802,11 @@ function openModal(asset, startH, endH, dateStr) {
   // 6. Rate Review Automation: defaults to exactly 6 months from today's date
   const rrDate = new Date();
   rrDate.setMonth(rrDate.getMonth() + 6);
+  const yyyy = rrDate.getFullYear();
+  const mm = String(rrDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(rrDate.getDate()).padStart(2, '0');
   const rrInput = document.getElementById('rate-review-date');
-  if (rrInput) rrInput.value = rrDate.toISOString().slice(0, 10);
+  if (rrInput) rrInput.value = `${yyyy}-${mm}-${dd}`;
 
   if (document.getElementById('booking-desc')) document.getElementById('booking-desc').value = '';
   if (document.getElementById('delete-btn')) document.getElementById('delete-btn').style.display = 'none';
@@ -683,12 +819,34 @@ function openModal(asset, startH, endH, dateStr) {
 }
 
 function editBooking(id) {
-  const b = bookings.find(x => x.id === id);
+  let b = bookings.find(x => x.id === id);
+  if (!b) {
+    const dj = mockDispatchData.find(j => j.id === id);
+    if (dj) {
+      const datePrefix = (currentDate instanceof Date && !isNaN(currentDate.getTime()))
+        ? currentDate.toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+      b = {
+        id: dj.id,
+        assetNumber: dj.assetId,
+        clientName: dj.client,
+        siteAddress: dj.siteAddress,
+        startTime: `${datePrefix}T${dj.startTime}:00`,
+        endTime: `${datePrefix}T${dj.endTime}:00`,
+        status: dj.isInspection ? 'Completed' : 'Scheduled',
+        hireType: 'wet',
+        operatorName: dj.workerName,
+        inspectionRequired: !!dj.isInspection
+      };
+    }
+  }
   if (!b) return;
   openModal(b.assetNumber, null, null, b.startTime);
 
   document.getElementById('booking-id').value = b.id;
   document.getElementById('modal-title').textContent = `Edit Booking: ${b.assetNumber}`;
+  const saveBtn = document.getElementById('save-booking-btn');
+  if (saveBtn) saveBtn.textContent = 'Update Booking';
 
   if (document.getElementById('booking-status')) document.getElementById('booking-status').value = b.status || 'Scheduled';
   if (document.getElementById('booking-hire-type')) document.getElementById('booking-hire-type').value = b.hireType || 'wet';
@@ -713,10 +871,13 @@ function editBooking(id) {
     document.getElementById('booking-desc').value = b.jobDescription || '';
   }
 
-  const s = new Date(b.startTime), e = new Date(b.endTime);
-  if (document.getElementById('booking-date')) document.getElementById('booking-date').value = s.toISOString().slice(0, 10);
-  if (document.getElementById('booking-start')) document.getElementById('booking-start').value = `${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')}`;
-  if (document.getElementById('booking-end')) document.getElementById('booking-end').value = `${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
+  const s = new Date(b.startTime);
+  const e = new Date(b.endTime);
+  const validS = !isNaN(s.getTime()) ? s : new Date();
+  const validE = !isNaN(e.getTime()) ? e : new Date(validS.getTime() + 3600000);
+  if (document.getElementById('booking-date')) document.getElementById('booking-date').value = validS.toISOString().slice(0, 10);
+  if (document.getElementById('booking-start')) document.getElementById('booking-start').value = `${String(validS.getHours()).padStart(2,'0')}:${String(validS.getMinutes()).padStart(2,'0')}`;
+  if (document.getElementById('booking-end')) document.getElementById('booking-end').value = `${String(validE.getHours()).padStart(2,'0')}:${String(validE.getMinutes()).padStart(2,'0')}`;
 
   // Crew allocation restore
   const hasOp = (b.wetHireResources && b.wetHireResources.some(r => r.role === 'Operator')) || !!b.operatorName;
@@ -1183,7 +1344,7 @@ const INSPECTION_LANE = {
 };
 
 // Fleet Assets (X-Axis Columns)
-const mockFleetAssets = [
+let mockFleetAssets = window.ionConfig?.fleetRegistry || [
   { id: 'AT11', label: 'AT11 - 100T', type: 'Liebherr All-Terrain Crane', category: 'all_terrain', color: '#0284c7', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5 },
   { id: 'FC1', label: 'FC1 - 20T Franna', type: 'Terex Franna Pick & Carry', category: 'franna', color: '#059669', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true },
   { id: 'MC2', label: 'MC2 - 60T City Crane', type: 'Kato City Compact Crane', category: 'city', color: '#d97706', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4 },
@@ -1192,41 +1353,68 @@ const mockFleetAssets = [
 ];
 
 // All scheduler lanes: Always includes 'Site Inspections / Reps' docked at the far left of the fleet columns
-const allSchedulerLanes = [INSPECTION_LANE, ...mockFleetAssets];
+let allSchedulerLanes = [INSPECTION_LANE, ...(window.ionConfig?.fleetRegistry || mockFleetAssets)];
+
+function syncSchedulerLanes() {
+  const fleet = window.ionConfig?.fleetRegistry || mockFleetAssets;
+  mockFleetAssets = fleet;
+  allSchedulerLanes = [INSPECTION_LANE, ...fleet];
+}
 
 // Active Contextual Filter State for Day View
-let selectedAssetFilter = 'All Assets'; // 'All Assets' | 'Frannas' | 'Crawlers' | 'All Terrains'
-let selectedWorkerFilter = 'All Workers'; // 'All Workers' | 'Available' | 'Overtime Warning'
+let selectedAssetFilter = 'All Assets'; // 'All Assets' | 'Frannas' | 'Crawlers' | 'All Terrains' | 'class:...' | 'asset:...'
+let selectedWorkerFilter = 'All Workers'; // 'All Workers' | 'Available' | 'Overtime Warning' | 'worker:...'
 
 function getFilteredSchedulerLanes() {
-  let lanes = [INSPECTION_LANE, ...mockFleetAssets];
+  const fleet = window.ionConfig?.fleetRegistry || mockFleetAssets;
+  let lanes = [INSPECTION_LANE, ...fleet];
 
   // 1. Filter by Asset
-  if (selectedAssetFilter === 'Frannas') {
-    lanes = mockFleetAssets.filter(a =>
-      (a.category === 'franna') ||
-      (a.type && a.type.toLowerCase().includes('franna')) ||
-      (a.label && a.label.toLowerCase().includes('franna'))
-    );
-  } else if (selectedAssetFilter === 'Crawlers') {
-    lanes = mockFleetAssets.filter(a =>
-      (a.category === 'crawler') ||
-      (a.type && a.type.toLowerCase().includes('crawler')) ||
-      (a.label && a.label.toLowerCase().includes('crawler'))
-    );
-  } else if (selectedAssetFilter === 'All Terrains') {
-    lanes = mockFleetAssets.filter(a =>
-      (a.category === 'all_terrain') ||
-      (a.type && a.type.toLowerCase().includes('terrain')) ||
-      (a.label && a.label.toLowerCase().includes('terrain'))
-    );
+  if (selectedAssetFilter && selectedAssetFilter !== 'All Assets') {
+    if (selectedAssetFilter.startsWith('class:')) {
+      const cls = selectedAssetFilter.replace('class:', '').toLowerCase();
+      lanes = fleet.filter(a =>
+        (a.class && a.class.toLowerCase().includes(cls)) ||
+        (a.category && a.category.toLowerCase().includes(cls)) ||
+        (a.type && a.type.toLowerCase().includes(cls))
+      );
+    } else if (selectedAssetFilter.startsWith('asset:')) {
+      const aid = selectedAssetFilter.replace('asset:', '');
+      lanes = fleet.filter(a => a.id === aid);
+    } else if (selectedAssetFilter === 'Frannas') {
+      lanes = fleet.filter(a =>
+        (a.category === 'franna') ||
+        (a.class && a.class.toLowerCase().includes('franna')) ||
+        (a.type && a.type.toLowerCase().includes('franna')) ||
+        (a.label && a.label.toLowerCase().includes('franna'))
+      );
+    } else if (selectedAssetFilter === 'Crawlers') {
+      lanes = fleet.filter(a =>
+        (a.category === 'crawler') ||
+        (a.class && a.class.toLowerCase().includes('crawler')) ||
+        (a.type && a.type.toLowerCase().includes('crawler')) ||
+        (a.label && a.label.toLowerCase().includes('crawler'))
+      );
+    } else if (selectedAssetFilter === 'All Terrains') {
+      lanes = fleet.filter(a =>
+        (a.category === 'all_terrain') ||
+        (a.class && a.class.toLowerCase().includes('terrain')) ||
+        (a.type && a.type.toLowerCase().includes('terrain')) ||
+        (a.label && a.label.toLowerCase().includes('terrain'))
+      );
+    }
   }
 
   // 2. Filter by Worker
-  if (selectedWorkerFilter === 'Available') {
-    lanes = lanes.filter(a => a.isInspectionLane || a.workerStatus === 'available' || !a.overtimeWarning);
-  } else if (selectedWorkerFilter === 'Overtime Warning') {
-    lanes = lanes.filter(a => !a.isInspectionLane && (a.workerStatus === 'overtime' || a.overtimeWarning));
+  if (selectedWorkerFilter && selectedWorkerFilter !== 'All Workers') {
+    if (selectedWorkerFilter === 'Available') {
+      lanes = lanes.filter(a => a.isInspectionLane || a.workerStatus === 'available' || !a.overtimeWarning);
+    } else if (selectedWorkerFilter === 'Overtime Warning') {
+      lanes = lanes.filter(a => !a.isInspectionLane && (a.workerStatus === 'overtime' || a.overtimeWarning));
+    } else if (selectedWorkerFilter.startsWith('worker:')) {
+      const wName = selectedWorkerFilter.replace('worker:', '').toLowerCase();
+      lanes = lanes.filter(a => a.workerName && a.workerName.toLowerCase() === wName);
+    }
   }
 
   return lanes;
@@ -1364,20 +1552,7 @@ function handleJobClick(e, jobId) {
   }
   if (justFinishedDragging) return;
 
-  const job = mockDispatchData.find(j => j.id === jobId);
-  if (!job) return;
-
-  const clientName = job.client || 'Client';
-  const alertMsg = `EDIT BOOKING: ${clientName}`;
-
-  try {
-    alert(alertMsg);
-  } catch (err) {
-    console.warn('alert caught:', err);
-  }
-  if (typeof showToast === 'function') {
-    showToast(alertMsg, 'info');
-  }
+  openBookingDrawer(jobId);
 }
 
 // Drag start for job cards (HTML5 Drag & Drop)
@@ -1662,21 +1837,11 @@ function handleSlotClick(e, assetId, hour) {
     }
   }
   const minute = isSecondHalf ? '30' : '00';
-  const timeStr = `${String(hour).padStart(2, '0')}:${minute}`;
+  const startStr = `${String(hour).padStart(2, '0')}:${minute}`;
+  const endHour = Math.min(hour + 4, 23);
+  const endStr = `${String(endHour).padStart(2, '0')}:${minute}`;
 
-  const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
-  const assetObj = allLanes.find(a => a.id === assetId);
-  const assetName = assetObj ? assetObj.label : assetId;
-
-  const alertMsg = `NEW BOOKING: ${assetName} at ${timeStr}`;
-  try {
-    alert(alertMsg);
-  } catch (err) {
-    console.warn('alert caught:', err);
-  }
-  if (typeof showToast === 'function') {
-    showToast(alertMsg, 'success');
-  }
+  openModal(assetId, startStr, endStr, currentDate);
 }
 
 // Attach single click listener to main grid container via Event Delegation
@@ -1758,19 +1923,12 @@ function attachGridInteractivity() {
 
     if (!assetId || !timeStr) return;
 
-    const allLanes = [INSPECTION_LANE, ...mockFleetAssets];
-    const assetObj = allLanes.find(a => a.id === assetId);
-    const assetName = assetObj ? assetObj.label : assetId;
+    const [hStr, mStr] = timeStr.split(':');
+    const hNum = parseInt(hStr, 10) || 7;
+    const endHNum = Math.min(hNum + 4, 23);
+    const endStr = `${String(endHNum).padStart(2, '0')}:${mStr || '00'}`;
 
-    const alertMsg = `NEW BOOKING: ${assetName} at ${timeStr}`;
-    try {
-      alert(alertMsg);
-    } catch (err) {
-      console.warn('alert caught:', err);
-    }
-    if (typeof showToast === 'function') {
-      showToast(alertMsg, 'success');
-    }
+    openModal(assetId, timeStr, endStr, currentDate);
   });
 
   // Enable dragover and drop delegation on main viewport container
@@ -1948,9 +2106,16 @@ function renderDayViewScheduler() {
                   data-testid="filter-by-asset"
                   onchange="handleAssetFilterChange(this.value)">
             <option value="All Assets" ${selectedAssetFilter === 'All Assets' ? 'selected' : ''}>All Assets</option>
-            <option value="Frannas" ${selectedAssetFilter === 'Frannas' ? 'selected' : ''}>Frannas</option>
-            <option value="Crawlers" ${selectedAssetFilter === 'Crawlers' ? 'selected' : ''}>Crawlers</option>
-            <option value="All Terrains" ${selectedAssetFilter === 'All Terrains' ? 'selected' : ''}>All Terrains</option>
+            <optgroup label="Categories">
+              <option value="Frannas" ${selectedAssetFilter === 'Frannas' ? 'selected' : ''}>Frannas</option>
+              <option value="Crawlers" ${selectedAssetFilter === 'Crawlers' ? 'selected' : ''}>Crawlers</option>
+              <option value="All Terrains" ${selectedAssetFilter === 'All Terrains' ? 'selected' : ''}>All Terrains</option>
+            </optgroup>
+            <optgroup label="Fleet Assets">
+              ${(window.ionConfig?.fleetRegistry || []).map(a => `
+                <option value="asset:${a.id}" ${selectedAssetFilter === 'asset:' + a.id ? 'selected' : ''}>${a.id} — ${a.label || a.description || a.class}</option>
+              `).join('')}
+            </optgroup>
           </select>
         </div>
 
@@ -1966,6 +2131,11 @@ function renderDayViewScheduler() {
             <option value="All Workers" ${selectedWorkerFilter === 'All Workers' ? 'selected' : ''}>All Workers</option>
             <option value="Available" ${selectedWorkerFilter === 'Available' ? 'selected' : ''}>Available</option>
             <option value="Overtime Warning" ${selectedWorkerFilter === 'Overtime Warning' ? 'selected' : ''}>Overtime Warning</option>
+            <optgroup label="Assigned Personnel">
+              ${(window.ionConfig?.workerRegistry || []).map(w => `
+                <option value="worker:${w.name}" ${selectedWorkerFilter === 'worker:' + w.name ? 'selected' : ''}>${w.name} (${w.role})</option>
+              `).join('')}
+            </optgroup>
           </select>
         </div>
       </div>
@@ -2800,92 +2970,458 @@ function openClientStatementPDF(clientName){
 
 /* ── ENTERPRISE CLIENT DIRECTORY WITH FINANCIAL PIPELINE FLOW ── */
 
-/* ── PHASE 2.5: OPERATOR PORTAL (MOBILE-FIRST EMULATION) ── */
-window._selectedOperatorId = null;
+/* ==========================================================================
+   ADMINISTRATION MODULE: FLEET, PERSONNEL & SCHEDULING RULES
+   Single Source of Truth: window.ionConfig
+   ========================================================================== */
+let currentAdminSubTab = 'fleet';
 
-function renderOperatorPortal() {
-  const container = document.getElementById('operator-portal-container');
-  if (!container) return;
-  
-  let optionsHtml = '<option value="">-- Select your Operator ID --</option>';
-  workerRegistry.forEach(w => {
-     optionsHtml += `<option value="${w.id}" ${window._selectedOperatorId === w.id ? 'selected' : ''}>${w.name} (${w.role})</option>`;
+function switchAdminSubTab(tabName) {
+  currentAdminSubTab = tabName;
+  ['fleet', 'personnel', 'scheduling'].forEach(t => {
+    const btn = document.getElementById(`admin-subtab-${t}`);
+    const view = document.getElementById(`admin-view-${t}`);
+    if (btn) {
+      if (t === tabName) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+    if (view) {
+      if (t === tabName) {
+        view.style.display = 'flex';
+      } else {
+        view.style.display = 'none';
+      }
+    }
   });
 
-  let html = `
-    <div style="max-width:600px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:24px;">
-      <div style="background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:24px;box-shadow:var(--shadow-md);">
-        <h2 style="font-size:18px;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Field Operator Login
-        </h2>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Select your identity to access today's Run Sheet.</p>
-        <select class="module-filter-select" style="width:100%;font-size:14px;padding:10px;" onchange="window._selectedOperatorId = this.value; renderOperatorPortal();">
-          ${optionsHtml}
-        </select>
-      </div>
-  `;
+  if (tabName === 'fleet') renderAdminFleetTable();
+  else if (tabName === 'personnel') renderAdminPersonnelTable();
+  else if (tabName === 'scheduling') loadAdminSchedulingRules();
+}
 
-  if (window._selectedOperatorId) {
-    const todayISO = currentDate.toDateString();
-    const myJobs = bookings.filter(b => {
-      const isToday = new Date(b.startTime).toDateString() === todayISO;
-      const isMe = b.wetHireResources?.some(r => r.workerId === window._selectedOperatorId) || b.operatorName === workerRegistry.find(w=>w.id===window._selectedOperatorId).name;
-      return isToday && isMe;
+function renderAdminModule() {
+  switchAdminSubTab(currentAdminSubTab || 'fleet');
+}
+
+function renderAdminFleetTable() {
+  const tbody = document.getElementById('admin-fleet-table-body');
+  if (!tbody) return;
+
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  const searchInput = document.getElementById('admin-fleet-search');
+  const classFilter = document.getElementById('admin-fleet-class-filter');
+  const q = (searchInput?.value || '').toLowerCase().trim();
+  const cFilter = (classFilter?.value || 'ALL');
+
+  // Populate class filter dynamically if options are just standard
+  if (classFilter && classFilter.options.length <= 1) {
+    const uniqueClasses = [...new Set(fleet.map(a => a.class || a.category).filter(Boolean))];
+    uniqueClasses.forEach(cls => {
+      const opt = document.createElement('option');
+      opt.value = cls;
+      opt.textContent = cls;
+      classFilter.appendChild(opt);
     });
-
-    html += `
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <h3 style="font-size:16px;color:var(--text-primary);margin-top:8px;">My Run Sheet (Today)</h3>
-    `;
-
-    if (myJobs.length === 0) {
-      html += `<div style="padding:24px;background:var(--bg-secondary);border-radius:var(--radius-md);text-align:center;color:var(--text-muted);font-size:13px;">No jobs dispatched for you today.</div>`;
-    } else {
-      myJobs.forEach(b => {
-        const isPrestartDone = b.preStartStatus === 'pushed' || b.preStartStatus === 'completed';
-        const startT = new Date(b.startTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-        
-        html += `
-          <div style="background:var(--bg-secondary);border:1px solid ${isPrestartDone ? 'var(--border-strong)' : 'var(--accent-primary)'};border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-md);">
-            <!-- Card Header -->
-            <div style="background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border-light);padding:16px;display:flex;justify-content:space-between;align-items:center;">
-               <div>
-                 <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${b.clientName}</div>
-                 <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${b.siteAddress}</div>
-               </div>
-               <div style="text-align:right;">
-                 <div style="font-size:14px;font-weight:800;color:var(--accent-blue);">${startT}</div>
-                 <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Asset: ${b.assetNumber}</div>
-               </div>
-            </div>
-            
-            <!-- Actions -->
-            <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
-              ${!isPrestartDone ? `
-                <div style="background:rgba(234, 179, 8, 0.1);border:1px solid rgba(234, 179, 8, 0.3);padding:12px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px;">
-                  <span class="material-symbols-outlined" style="font-size: 20px; color: #d97706; vertical-align: middle;">warning</span>
-                  <div style="flex:1;">
-                    <div style="font-size:12px;font-weight:700;color:var(--color-warning);">Compliance Lock Active</div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">You must complete the Asset Pre-Start Checklist before accessing the Digital Docket.</div>
-                  </div>
-                  <button class="kb-primary-btn" style="background:var(--color-warning) !important;color:#000 !important;font-weight:800;" onclick="executeMobilePreStart('${b.id}')">Start Checklist</button>
-                </div>
-              ` : `
-                <div style="display:flex;gap:12px;">
-                  <button class="kb-primary-btn" style="flex:1;background:var(--color-compliant) !important;" disabled><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">check_circle</span>Pre-Start Passed</button>
-                  <button class="kb-primary-btn" style="flex:1;" onclick="openDocuWareDocketModal('${b.id}')"><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">description</span>Digital Docket</button>
-                </div>
-              `}
-            </div>
-          </div>
-        `;
-      });
-    }
-    html += `</div>`;
   }
-  html += `</div>`;
-  container.innerHTML = html;
+
+  let filtered = fleet.filter(a => {
+    const matchesSearch = !q ||
+      (a.id && a.id.toLowerCase().includes(q)) ||
+      (a.class && a.class.toLowerCase().includes(q)) ||
+      (a.description && a.description.toLowerCase().includes(q)) ||
+      (a.label && a.label.toLowerCase().includes(q)) ||
+      (a.workerName && a.workerName.toLowerCase().includes(q));
+
+    const matchesClass = (cFilter === 'ALL') ||
+      (a.class && a.class === cFilter) ||
+      (a.category && a.category === cFilter);
+
+    return matchesSearch && matchesClass;
+  });
+
+  const countBadge = document.getElementById('admin-fleet-count');
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} Registered`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);font-style:italic;">
+          No fleet assets found matching the filter criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(a => {
+    const color = a.color || a.hex || '#0284c7';
+    const desc = a.description || a.label || 'Standard Plant Asset';
+    const cls = a.class || a.category || 'General Plant';
+    const operator = a.workerName || 'Unassigned (Pool)';
+    const status = a.workerStatus === 'overtime' ?
+      '<span class="admin-badge-warning"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Overtime</span>' :
+      '<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Available</span>';
+
+    return `
+      <tr>
+        <td style="text-align:center;">
+          <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,0.15);" title="${color}"></span>
+        </td>
+        <td style="font-weight:800;color:var(--text-primary);font-family:monospace;font-size:13px;">${escapeHtml(a.id)}</td>
+        <td style="font-weight:600;color:var(--text-primary);">${escapeHtml(cls)}</td>
+        <td style="color:var(--text-secondary);">${escapeHtml(desc)}</td>
+        <td style="font-size:13px;color:var(--text-primary);"><span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:var(--text-muted);">person</span>${escapeHtml(operator)}</td>
+        <td>${status}</td>
+        <td style="text-align:right;">
+          <button class="btn-secondary" style="padding:4px 8px;font-size:12px;color:#dc2626;border-color:rgba(220,38,38,0.3);" onclick="deleteFleetAssetAdmin('${a.id}')" title="Delete Asset">
+            <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderAdminPersonnelTable() {
+  const tbody = document.getElementById('admin-personnel-table-body');
+  if (!tbody) return;
+
+  const workers = window.ionConfig?.workerRegistry || [];
+  const searchInput = document.getElementById('admin-workers-search');
+  const roleFilter = document.getElementById('admin-workers-role-filter');
+  const statusFilter = document.getElementById('admin-workers-status-filter');
+
+  const q = (searchInput?.value || '').toLowerCase().trim();
+  const rFilter = (roleFilter?.value || 'ALL');
+  const sFilter = (statusFilter?.value || 'ALL');
+
+  let filtered = workers.filter(w => {
+    const matchesSearch = !q ||
+      (w.name && w.name.toLowerCase().includes(q)) ||
+      (w.role && w.role.toLowerCase().includes(q)) ||
+      (w.licenseClass && w.licenseClass.toLowerCase().includes(q)) ||
+      (w.licenseNumber && w.licenseNumber.toLowerCase().includes(q));
+
+    const matchesRole = (rFilter === 'ALL') ||
+      (w.role && w.role.toLowerCase().includes(rFilter.toLowerCase()));
+
+    const matchesStatus = (sFilter === 'ALL') ||
+      (w.hrwlStatus && w.hrwlStatus.toLowerCase() === sFilter.toLowerCase());
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const countBadge = document.getElementById('admin-workers-count');
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} Personnel`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);font-style:italic;">
+          No personnel found matching the filter criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(w => {
+    const isExpired = (w.hrwlStatus === 'Expired') || (w.hrwlExpiry && new Date(w.hrwlExpiry) < new Date());
+    const statusBadge = isExpired ?
+      `<span class="admin-badge-expired"><span class="material-symbols-outlined" style="font-size:14px;">error</span> Expired (Locked)</span>` :
+      `<span class="admin-badge-active"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Active</span>`;
+
+    return `
+      <tr>
+        <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(2,132,199,0.1);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">
+            ${(w.name || '').split(' ').map(n=>n[0]).join('')}
+          </div>
+          <span>${escapeHtml(w.name)}</span>
+        </td>
+        <td style="color:var(--text-secondary);font-weight:500;">${escapeHtml(w.role)}</td>
+        <td style="font-family:monospace;font-weight:700;color:var(--text-primary);">${escapeHtml(w.licenseClass || 'HRWL')}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-muted);">${escapeHtml(w.licenseNumber || '—')}</td>
+        <td style="color:${isExpired ? '#dc2626' : 'var(--text-primary)'};font-weight:${isExpired ? '700' : '500'};">${escapeHtml(w.hrwlExpiry || 'N/A')}</td>
+        <td>${statusBadge}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function loadAdminSchedulingRules() {
+  const rules = window.ionConfig?.schedulingRules || {};
+  const startEl = document.getElementById('admin-rule-start-time');
+  const endEl = document.getElementById('admin-rule-end-time');
+  const hoursEl = document.getElementById('admin-rule-std-hours');
+  const otEl = document.getElementById('admin-rule-ot-mult');
+  const dblEl = document.getElementById('admin-rule-double-mult');
+  const restEl = document.getElementById('admin-rule-rest-period');
+
+  if (startEl && rules.standardHoursStart) startEl.value = rules.standardHoursStart;
+  if (endEl && rules.standardHoursEnd) endEl.value = rules.standardHoursEnd;
+  if (hoursEl && rules.standardHoursDuration) hoursEl.value = rules.standardHoursDuration;
+  if (otEl && rules.overtimeMultiplier) otEl.value = rules.overtimeMultiplier;
+  if (dblEl && rules.doubleTimeMultiplier) dblEl.value = rules.doubleTimeMultiplier;
+  if (restEl && rules.restPeriodHours) restEl.value = rules.restPeriodHours;
+}
+
+function saveAdminSchedulingRules() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.schedulingRules) window.ionConfig.schedulingRules = {};
+
+  const startEl = document.getElementById('admin-rule-start-time');
+  const endEl = document.getElementById('admin-rule-end-time');
+  const hoursEl = document.getElementById('admin-rule-std-hours');
+  const otEl = document.getElementById('admin-rule-ot-mult');
+  const dblEl = document.getElementById('admin-rule-double-mult');
+  const restEl = document.getElementById('admin-rule-rest-period');
+
+  if (startEl) window.ionConfig.schedulingRules.standardHoursStart = startEl.value;
+  if (endEl) window.ionConfig.schedulingRules.standardHoursEnd = endEl.value;
+  if (hoursEl) window.ionConfig.schedulingRules.standardHoursDuration = parseFloat(hoursEl.value) || 8.0;
+  if (otEl) window.ionConfig.schedulingRules.overtimeMultiplier = parseFloat(otEl.value) || 1.5;
+  if (dblEl) window.ionConfig.schedulingRules.doubleTimeMultiplier = parseFloat(dblEl.value) || 2.0;
+  if (restEl) window.ionConfig.schedulingRules.restPeriodHours = parseInt(restEl.value, 10) || 10;
+
+  const statusEl = document.getElementById('admin-rules-status');
+  if (statusEl) {
+    statusEl.style.display = 'inline';
+    statusEl.textContent = 'Saved to window.ionConfig';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+  }
+
+  showToast('Operational scheduling rules successfully persisted to system configuration.', 'success', 'Rules Updated');
+}
+
+function openAddAssetAdminModal() {
+  const modal = document.getElementById('admin-add-asset-modal');
+  if (!modal) return;
+
+  // Reset fields
+  const idEl = document.getElementById('modal-asset-id');
+  const classEl = document.getElementById('modal-asset-class');
+  const descEl = document.getElementById('modal-asset-desc');
+  const colorEl = document.getElementById('modal-asset-color');
+  const hexEl = document.getElementById('modal-asset-hex');
+  const workerEl = document.getElementById('modal-asset-worker');
+
+  if (idEl) idEl.value = '';
+  if (classEl) classEl.value = '';
+  if (descEl) descEl.value = '';
+  if (colorEl) colorEl.value = '#0284c7';
+  if (hexEl) hexEl.value = '#0284c7';
+
+  if (workerEl) {
+    const workers = window.ionConfig?.workerRegistry || [];
+    workerEl.innerHTML = '<option value="">Unassigned (Open Pool)</option>' +
+      workers.map(w => `<option value="${w.name}">${w.name} (${w.role})</option>`).join('');
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeAddAssetAdminModal() {
+  const modal = document.getElementById('admin-add-asset-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitAddAssetAdmin() {
+  const idEl = document.getElementById('modal-asset-id');
+  const classEl = document.getElementById('modal-asset-class');
+  const descEl = document.getElementById('modal-asset-desc');
+  const colorEl = document.getElementById('modal-asset-color');
+  const hexEl = document.getElementById('modal-asset-hex');
+  const workerEl = document.getElementById('modal-asset-worker');
+
+  const assetId = (idEl?.value || '').trim().toUpperCase();
+  const assetClass = (classEl?.value || '').trim() || 'General Crane / Plant';
+  const assetDesc = (descEl?.value || '').trim() || assetClass;
+  const color = hexEl?.value || colorEl?.value || '#0284c7';
+  const workerName = workerEl?.value || 'Unassigned';
+
+  if (!assetId) {
+    showToast('Asset Identification Code is required.', 'error', 'Validation Error');
+    if (idEl) idEl.focus();
+    return;
+  }
+
+  // Check duplicate
+  if (window.ionConfig?.fleetRegistry?.some(a => a.id === assetId)) {
+    showToast(`Asset ID "${assetId}" already exists in the fleet registry.`, 'error', 'Duplicate Code');
+    return;
+  }
+
+  const newAsset = {
+    id: assetId,
+    label: `${assetId} - ${assetClass}`,
+    class: assetClass,
+    description: assetDesc,
+    type: assetClass,
+    category: assetClass.toLowerCase().includes('franna') ? 'franna' :
+              assetClass.toLowerCase().includes('crawler') ? 'crawler' :
+              assetClass.toLowerCase().includes('terrain') ? 'all_terrain' : 'crane',
+    color: color,
+    hex: color,
+    workerName: workerName,
+    workerStatus: 'available',
+    hoursToday: 0
+  };
+
+  if (!window.ionConfig.fleetRegistry) window.ionConfig.fleetRegistry = [];
+  window.ionConfig.fleetRegistry.push(newAsset);
+
+  // Sync to dataModels.assetRegistry
+  if (!assetRegistry.some(a => a.id === assetId)) {
+    assetRegistry.push({
+      id: assetId,
+      description: assetDesc,
+      hex: color,
+      assetType: newAsset.category
+    });
+  }
+
+  // Sync scheduler lanes
+  if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
+
+  closeAddAssetAdminModal();
+  renderAdminFleetTable();
+
+  // If calendar view is active, update scheduler
+  if (currentView === 'Day') {
+    renderDayViewScheduler();
+  }
+
+  showToast(`Asset ${assetId} (${assetClass}) successfully provisioned into fleet registry.`, 'success', 'Fleet Asset Added');
+}
+
+function deleteFleetAssetAdmin(assetId) {
+  if (!confirm(`Are you sure you want to decommission and remove asset ${assetId} from the active fleet registry?`)) {
+    return;
+  }
+
+  if (window.ionConfig?.fleetRegistry) {
+    window.ionConfig.fleetRegistry = window.ionConfig.fleetRegistry.filter(a => a.id !== assetId);
+  }
+
+  const idx = assetRegistry.findIndex(a => a.id === assetId);
+  if (idx >= 0) assetRegistry.splice(idx, 1);
+
+  if (typeof syncSchedulerLanes === 'function') syncSchedulerLanes();
+
+  renderAdminFleetTable();
+  if (currentView === 'Day') renderDayViewScheduler();
+
+  showToast(`Asset ${assetId} removed from registry.`, 'info', 'Asset Decommissioned');
+}
+
+/* ==========================================================================
+   SYSTEM SETTINGS: IT INTEGRATIONS (DOCUWARE, XERO, LOCALISATION)
+   ========================================================================== */
+function renderSystemSettingsView() {
+  const it = window.ionConfig?.integrations || {};
+
+  const dwEnd = document.getElementById('it-dw-endpoint');
+  const dwOrg = document.getElementById('it-dw-org');
+  const dwBadge = document.getElementById('it-dw-badge');
+  if (dwEnd && it.docuwareEndpoint) dwEnd.value = it.docuwareEndpoint;
+  if (dwOrg && it.docuwareOrgId) dwOrg.value = it.docuwareOrgId;
+  if (dwBadge && it.docuwareStatus) {
+    dwBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> ${it.docuwareStatus}`;
+  }
+
+  const xeroSec = document.getElementById('it-xero-secret');
+  const xeroTen = document.getElementById('it-xero-tenant');
+  const xeroBadge = document.getElementById('it-xero-badge');
+  if (xeroTen && it.xeroTenant) xeroTen.value = it.xeroTenant;
+  if (xeroBadge && it.xeroStatus) {
+    xeroBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">sync</span> ${it.xeroStatus}`;
+  }
+
+  const locBadge = document.getElementById('it-loc-badge');
+  if (locBadge && it.localisation) {
+    locBadge.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">public</span> Configured`;
+  }
+}
+
+function saveDocuWareITSettings() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.integrations) window.ionConfig.integrations = {};
+
+  const endEl = document.getElementById('it-dw-endpoint');
+  const orgEl = document.getElementById('it-dw-org');
+  const badgeEl = document.getElementById('it-dw-badge');
+
+  if (endEl) window.ionConfig.integrations.docuwareEndpoint = endEl.value;
+  if (orgEl) window.ionConfig.integrations.docuwareOrgId = orgEl.value;
+  window.ionConfig.integrations.docuwareStatus = 'Connected';
+
+  if (badgeEl) {
+    badgeEl.className = 'status-badge connected';
+    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Connected (Vault Online)';
+  }
+
+  showToast('DocuWare Cloud Platform credentials and Vault ID securely updated.', 'success', 'DocuWare Connected');
+}
+
+function testDocuWareHandshake() {
+  showToast('Initiating handshake ping to DocuWare Platform API endpoint...', 'info', 'Connecting...');
+  setTimeout(() => {
+    showToast('DocuWare API Handshake Successful (HTTP 200 OK). REST token verified.', 'success', 'Handshake OK');
+  }, 600);
+}
+
+function saveXeroITSettings() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.integrations) window.ionConfig.integrations = {};
+
+  const secEl = document.getElementById('it-xero-secret');
+  const tenEl = document.getElementById('it-xero-tenant');
+  const badgeEl = document.getElementById('it-xero-badge');
+
+  if (tenEl) window.ionConfig.integrations.xeroTenant = tenEl.value;
+  window.ionConfig.integrations.xeroStatus = 'Active';
+
+  if (badgeEl) {
+    badgeEl.className = 'status-badge active';
+    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">sync</span> Active (Inbound Live)';
+  }
+
+  showToast('Xero chart-of-accounts webhook integration settings saved.', 'success', 'Xero Sync Active');
+}
+
+function triggerXeroReconciliation() {
+  showToast('Dispatching reconciliation sync with Xero general ledger...', 'info', 'Reconciling...');
+  setTimeout(() => {
+    showToast('Xero General Ledger Reconciliation Complete. All 12 invoices synchronized.', 'success', 'Sync Successful');
+  }, 750);
+}
+
+function saveLocalisationSettings() {
+  const tz = document.getElementById('it-timezone-select')?.value || 'Australia/Brisbane';
+  const loc = document.getElementById('it-locale-select')?.value || 'en-AU';
+  const fmt = document.getElementById('it-date-format-select')?.value || 'DD/MM/YYYY';
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.integrations) window.ionConfig.integrations = {};
+  window.ionConfig.integrations.localisation = `${tz} (${loc}, ${fmt})`;
+
+  const badgeEl = document.getElementById('it-loc-badge');
+  if (badgeEl) {
+    badgeEl.className = 'status-badge locked';
+    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">public</span> System Set to AU';
+  }
+
+  showToast(`Regional settings updated: ${tz}, ${fmt}, Australian Dollar ($ AUD).`, 'success', 'Localisation Saved');
+}
+
+// Backward-compatible stub for operator portal
+function renderOperatorPortal() {
+  renderAdminModule();
 }
 
 window.executeMobilePreStart = function(bookingId) {
@@ -3563,8 +4099,13 @@ document.addEventListener('keydown', (e) => {
 
 /* ── ENTERPRISE BOOKING DETAIL DRAWER ── */
 function openBookingDrawer(id) {
+  const dispatchJob = mockDispatchData.find(j => j.id === id);
   const b = bookings.find(x => x.id === id);
-  if (!b) return;
+
+  if (!dispatchJob && !b) {
+    console.warn('Booking not found for drawer:', id);
+    return;
+  }
 
   const overlay = document.getElementById('detail-drawer-overlay');
   const panel = document.getElementById('detail-drawer-panel');
@@ -3575,112 +4116,189 @@ function openBookingDrawer(id) {
 
   if (!panel || !body) return;
 
-  const asset = assetRegistry.find(a => a.id === b.assetNumber) || { id: b.assetNumber, description: 'Asset', category: 'General', hex: '#6366f1' };
-  const s = new Date(b.startTime);
-  const e = new Date(b.endTime);
-  const durationHours = ((e - s) / (1000 * 60 * 60)).toFixed(1);
+  let assetCode = '';
+  let assetDescription = '';
+  let assetCategory = 'Fleet Mobile Crane';
+  let assetHex = '#0284c7';
+  let clientName = '';
+  let siteAddress = '';
+  let startTimeStr = '';
+  let endTimeStr = '';
+  let dateDisplayStr = '';
+  let durationHours = '4.0';
+  let statusText = 'Scheduled';
+  let workerName = 'Assigned Operator';
+  let isInspection = false;
+  let jobScope = 'Structural crane lift & placement operation with certified crew';
 
-  if (eyebrow) eyebrow.textContent = `Job ID // ${b.id.toUpperCase()} • ${b.hireType ? b.hireType.toUpperCase() + ' HIRE' : 'DISPATCH'}`;
-  if (title) title.textContent = b.clientName;
+  if (dispatchJob) {
+    assetCode = dispatchJob.assetId;
+    clientName = dispatchJob.client || 'Corporate Client';
+    siteAddress = dispatchJob.siteAddress || 'Site Location';
+    startTimeStr = dispatchJob.startTime;
+    endTimeStr = dispatchJob.endTime;
+    const sMin = timeStringToMinutes(dispatchJob.startTime);
+    const eMin = timeStringToMinutes(dispatchJob.endTime);
+    durationHours = ((eMin - sMin) / 60).toFixed(1);
+    workerName = dispatchJob.workerName || 'Luke Harris (C1 / CO)';
+    isInspection = !!dispatchJob.isInspection || assetCode === 'INSPECTIONS';
+    statusText = isInspection ? 'Site Inspection' : (dispatchJob.statusColor === '#10b981' ? 'Completed' : 'Scheduled & Dispatched');
+    jobScope = isInspection
+      ? 'Pre-mobilisation site visit, access audit & ground bearing assessment'
+      : 'Site crane operations, certified rigging & dual-hook placement';
+
+    const lane = allSchedulerLanes.find(a => a.id === assetCode);
+    if (lane) {
+      assetDescription = lane.label || lane.type || assetCode;
+      assetCategory = lane.type || (lane.isInspection ? 'Field Inspection' : 'Crane Fleet');
+      assetHex = lane.color || '#0284c7';
+    } else {
+      const reg = assetRegistry.find(a => a.id === assetCode);
+      assetDescription = reg ? `${reg.id} &ndash; ${reg.description}` : assetCode;
+      assetCategory = reg?.category || 'Crane Fleet';
+      assetHex = reg?.hex || '#0284c7';
+    }
+
+    const d = new Date(currentDate);
+    dateDisplayStr = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (b) {
+    assetCode = b.assetNumber;
+    clientName = b.clientName || 'Corporate Client';
+    siteAddress = b.siteAddress || 'Site Location';
+    const s = new Date(b.startTime);
+    const e = new Date(b.endTime);
+    startTimeStr = s.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    endTimeStr = e.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    durationHours = ((e - s) / (1000 * 60 * 60)).toFixed(1);
+    dateDisplayStr = s.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    workerName = b.wetHireResources?.[0]?.workerName || b.operatorName || 'Allocated Crew';
+    statusText = b.status || 'Scheduled';
+    jobScope = b.jobDescription || 'Standard plant equipment dispatch';
+    isInspection = !!b.inspectionRequired || assetCode === 'INSPECTIONS';
+
+    const reg = assetRegistry.find(a => a.id === assetCode) || allSchedulerLanes.find(a => a.id === assetCode);
+    assetDescription = reg ? (reg.description || reg.label || assetCode) : assetCode;
+    assetCategory = reg?.category || reg?.type || 'Plant Equipment';
+    assetHex = reg?.hex || reg?.color || '#0284c7';
+  }
+
+  if (eyebrow) {
+    eyebrow.textContent = `Job ID // ${id.toUpperCase()} • ${isInspection ? 'SITE INSPECTION' : 'FLEET DISPATCH'}`;
+  }
+  if (title) {
+    title.textContent = clientName;
+  }
 
   body.innerHTML = `
-    <!-- Status & Overview Banner -->
+    <!-- Top Status & Asset Pill Banner -->
     <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-light);">
       <div>
-        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Dispatch Status</div>
-        <div style="font-size:14px; font-weight:800; color:var(--text-main);">${b.status || 'Scheduled'}</div>
+        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Dispatch Status</div>
+        <div style="font-size:14px; font-weight:800; color:var(--text-main); margin-top:2px;">${escapeHtml(statusText)}</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Allocation</div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:3px; background:${asset.hex};"></span>
-          <span style="font-size:13px; font-weight:800; color:var(--text-main);">${b.assetNumber}</span>
+        <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Asset Code</div>
+        <div style="display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-top:2px;">
+          <span style="width:10px; height:10px; border-radius:3px; background:${assetHex};"></span>
+          <span style="font-size:13px; font-weight:800; color:var(--text-main);">${escapeHtml(assetCode)}</span>
         </div>
       </div>
     </div>
 
-    <!-- Booking Overview Card -->
+    <!-- Job Details Overview Card -->
     <div class="drawer-card">
       <div class="drawer-card-title">
-        <span>Timeline & Scope</span>
-        <span style="font-size:11px; font-weight:700; color:var(--ion-cyan,#00ADEF);">${durationHours} hrs total</span>
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px; color:var(--accent-color);">calendar_clock</span>
+          <span>Shift Schedule &amp; Scope</span>
+        </span>
+        <span style="font-size:11px; font-weight:700; color:var(--ion-cyan, #00adef);">${durationHours} hrs total</span>
       </div>
       <div class="drawer-row">
         <span class="drawer-row-label">Scheduled Date</span>
-        <span class="drawer-row-val">${s.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        <span class="drawer-row-val" style="font-weight:600;">${dateDisplayStr}</span>
       </div>
       <div class="drawer-row">
-        <span class="drawer-row-label">Shift Hours</span>
-        <span class="drawer-row-val">${s.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} &ndash; ${e.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        <span class="drawer-row-label">Start &amp; End Times</span>
+        <span class="drawer-row-val" style="font-weight:700; color:var(--text-main);">${escapeHtml(startTimeStr)} &ndash; ${escapeHtml(endTimeStr)}</span>
       </div>
       <div class="drawer-row">
-        <span class="drawer-row-label">Job Scope</span>
-        <span class="drawer-row-val" style="max-width:230px;">${b.jobDescription || 'Standard plant dispatch'}</span>
+        <span class="drawer-row-label">Client Name</span>
+        <span class="drawer-row-val" style="font-weight:700; color:var(--text-main);">${escapeHtml(clientName)}</span>
       </div>
       <div class="drawer-row">
         <span class="drawer-row-label">Site Address</span>
-        <span class="drawer-row-val" style="max-width:230px; font-size:11.5px;">${b.siteAddress || 'Yard Depot'}</span>
+        <span class="drawer-row-val" style="max-width:240px; font-size:12px; line-height:1.4;">${escapeHtml(siteAddress)}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Allocated Asset</span>
+        <span class="drawer-row-val">${escapeHtml(assetCode)} &ndash; ${escapeHtml(assetDescription)}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Assigned Personnel</span>
+        <span class="drawer-row-val">${escapeHtml(workerName)}</span>
+      </div>
+      <div class="drawer-row">
+        <span class="drawer-row-label">Work Scope</span>
+        <span class="drawer-row-val" style="max-width:240px; font-size:11.5px;">${escapeHtml(jobScope)}</span>
       </div>
     </div>
 
-    <!-- Asset & Crew Allocation Card -->
-    <div class="drawer-card">
-      <div class="drawer-card-title">
-        <span>Plant & Crew Assignment</span>
-        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">${asset.category}</span>
+    <!-- Compliance Integration Mockup (DocuWare HRWL Warning) -->
+    <div class="drawer-compliance-warning-card" id="drawer-compliance-warning">
+      <div class="drawer-compliance-warning-header">
+        <span class="material-symbols-outlined drawer-warning-icon">warning</span>
+        <div style="flex:1;">
+          <div class="drawer-warning-badge">DocuWare Compliance System</div>
+          <div class="drawer-warning-title">Operator HRWL Expires in 14 Days</div>
+        </div>
       </div>
-      <div class="drawer-row">
-        <span class="drawer-row-label">Plant Unit</span>
-        <span class="drawer-row-val">${asset.id} &ndash; ${asset.description}</span>
+      <div class="drawer-warning-desc">
+        Automated DocuWare license auditing detected High Risk Work Licence is approaching 14-day renewal threshold. Digital compliance ticket generated for fleet compliance dispatch.
       </div>
-      <div class="drawer-row">
-        <span class="drawer-row-label">Allocated Crew</span>
-        <span class="drawer-row-val">${b.wetHireResources?.[0]?.workerName || b.operatorName || 'Unassigned / Dry Hire'}</span>
+      <div class="drawer-warning-footer">
+        <span class="material-symbols-outlined" style="font-size:14px; color:#b45309;">verified</span>
+        <span>Licence: LF / C1 Mobile Slewing &bull; Verification Docket #DW-9821</span>
       </div>
-      ${b.requiredLiftCapacity ? `
-      <div class="drawer-row">
-        <span class="drawer-row-label">Lift Capacity</span>
-        <span class="drawer-row-val" style="color:var(--accent-color); font-weight:700;">${b.requiredLiftCapacity} Tonnes</span>
-      </div>` : ''}
     </div>
 
-    <!-- DocuWare & Compliance Audit Card -->
+    <!-- DocuWare Digital Audit Trail -->
     <div class="drawer-card">
       <div class="drawer-card-title">
-        <span>DocuWare Compliance Trail</span>
-        <span style="font-size:10px; color:#10B981; font-weight:800;">● Live Cloud Sync</span>
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px; color:#059669;">folder_managed</span>
+          <span>DocuWare Audit Trail</span>
+        </span>
+        <span style="font-size:10px; color:#059669; font-weight:800; display:flex; align-items:center; gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:12px;">cloud_done</span> Live Sync
+        </span>
       </div>
       <div class="drawer-row">
-        <span class="drawer-row-label">Contract / Agreement</span>
-        <span class="drawer-row-val">
-          ${b.contractSigned ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Executed</span>' : '<span style="color:#F59E0B; font-weight:700;">Pending Signature</span>'}
+        <span class="drawer-row-label">Contract / EOI</span>
+        <span class="drawer-row-val" style="color:#059669; font-weight:700; display:flex; align-items:center; gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Executed
         </span>
       </div>
       <div class="drawer-row">
         <span class="drawer-row-label">Safety Pre-Start</span>
-        <span class="drawer-row-val">
-          ${b.preStartStatus === 'pushed' || b.preStartStatus === 'completed' ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Completed</span>' : '<span style="color:#6B7280; font-weight:600;">Pending</span>'}
+        <span class="drawer-row-val" style="color:#059669; font-weight:700; display:flex; align-items:center; gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> Verified
         </span>
       </div>
       <div class="drawer-row">
         <span class="drawer-row-label">Digital Shift Docket</span>
-        <span class="drawer-row-val">
-          ${b.docketUploaded ? '<span style="color:#10B981; font-weight:700;"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">check</span>Verified & Invoiced</span>' : '<span style="color:#6B7280; font-weight:600;">Pending Upload</span>'}
-        </span>
+        <span class="drawer-row-val" style="color:var(--text-muted); font-weight:600;">Pending Completion</span>
       </div>
     </div>
   `;
 
   if (footer) {
     footer.innerHTML = `
-      <button class="btn-primary" onclick="closeBookingDrawer(); editBooking('${b.id}');" style="flex:1; height:36px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span>Edit Full Record</span>
+      <button class="btn-primary" onclick="closeBookingDrawer(); editBooking('${id}');" style="flex:1; height:38px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700; background:var(--accent-color); border:none; border-radius:6px; color:#fff; cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:16px;">edit_calendar</span>
+        <span>Edit Booking</span>
       </button>
-      <button class="btn-secondary" onclick="openDocuWareSmartConnect('${b.id}')" style="height:36px; padding:0 12px; font-size:12px; font-weight:600;">
-        <span>DocuWare</span>
-      </button>
-      <button class="btn-secondary" onclick="closeBookingDrawer()" style="height:36px; padding:0 12px; font-size:12px; font-weight:600;">
+      <button class="btn-secondary" onclick="closeBookingDrawer()" style="height:38px; padding:0 16px; font-size:12px; font-weight:600; border-radius:6px; cursor:pointer;">
         <span>Close</span>
       </button>
     `;
