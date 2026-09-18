@@ -6624,6 +6624,348 @@ body.dark-mode .toolbelt-search-wrap input::placeholder {
   display: none !important;
 }
 
+/* ==========================================================================
+   DATA CONTAINER RESTORATION & PREMIUM UI ENFORCEMENT
+   1. Subtle Scheduler Grid Lines (rgba(0,0,0,0.05) light, #3D4543 dark)
+   2. Spacious Job Board & Flat Solid Cards
+   3. Compliance Metric Cards & Telemetry
+   4. Table Rows Vertical Padding (16px)
+   5. Brand Typography ('Avenir') & High-Contrast Primary / Muted Secondary
+   ========================================================================== */
+
+/* 1. Global Brand Typography Enforcement */
+body, button, input, select, textarea, table, th, td, h1, h2, h3, h4, h5, h6,
+.module-title, .module-subtitle, .module-breadcrumb,
+.jb-card, .kanban-card, .dispatch-job-card, .compliance-metric-card,
+.admin-table-card, .compliance-table-card, .scheduler-grid {
+  font-family: 'Avenir', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Primary data points: bold & high-contrast */
+.jb-card-id,
+.jb-card-client,
+.jb-card-asset-tag,
+.asset-col-header-title,
+.dispatch-job-client,
+.dispatch-asset-title,
+.admin-asset-id,
+.admin-worker-name,
+.compliance-entity-name,
+table.admin-data-table td:nth-child(2),
+table.compliance-data-table td:first-child,
+.compliance-telemetry-table td:nth-child(2),
+table.admin-data-table td strong,
+table.compliance-data-table td strong {
+  font-weight: 700 !important;
+  color: var(--text-primary, #0f172a) !important;
+}
+
+[data-theme="dark"] .jb-card-id,
+[data-theme="dark"] .jb-card-client,
+[data-theme="dark"] .jb-card-asset-tag,
+[data-theme="dark"] .asset-col-header-title,
+[data-theme="dark"] .dispatch-job-client,
+[data-theme="dark"] .dispatch-asset-title,
+[data-theme="dark"] .admin-asset-id,
+[data-theme="dark"] .admin-worker-name,
+[data-theme="dark"] .compliance-entity-name,
+[data-theme="dark"] table.admin-data-table td:nth-child(2),
+[data-theme="dark"] table.compliance-data-table td:first-child,
+[data-theme="dark"] .compliance-telemetry-table td:nth-child(2),
+[data-theme="dark"] table.admin-data-table td strong,
+[data-theme="dark"] table.compliance-data-table td strong,
+body.dark-mode .jb-card-id,
+body.dark-mode .jb-card-client,
+body.dark-mode .jb-card-asset-tag,
+body.dark-mode .asset-col-header-title,
+body.dark-mode .dispatch-job-client,
+body.dark-mode .dispatch-asset-title,
+body.dark-mode .admin-asset-id,
+body.dark-mode .admin-worker-name,
+body.dark-mode .compliance-entity-name,
+body.dark-mode table.admin-data-table td:nth-child(2),
+body.dark-mode table.compliance-data-table td:first-child,
+body.dark-mode .compliance-telemetry-table td:nth-child(2),
+body.dark-mode table.admin-data-table td strong,
+body.dark-mode table.compliance-data-table td strong {
+  color: #FFFFFF !important;
+}
+
+/* Secondary metadata: softer, legible grey */
+.jb-card-operator,
+.jb-card-datetime,
+.dispatch-job-time,
+.dispatch-job-address,
+.admin-text-secondary,
+.compliance-text-secondary,
+.compliance-subdetail-note,
+.module-subtitle,
+.module-breadcrumb,
+.th-wrap span,
+.dispatch-col-header-sub {
+  font-weight: 400 !important;
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .jb-card-operator,
+[data-theme="dark"] .jb-card-datetime,
+[data-theme="dark"] .dispatch-job-time,
+[data-theme="dark"] .dispatch-job-address,
+[data-theme="dark"] .admin-text-secondary,
+[data-theme="dark"] .compliance-text-secondary,
+[data-theme="dark"] .compliance-subdetail-note,
+[data-theme="dark"] .module-subtitle,
+[data-theme="dark"] .module-breadcrumb,
+[data-theme="dark"] .th-wrap span,
+[data-theme="dark"] .dispatch-col-header-sub,
+body.dark-mode .jb-card-operator,
+body.dark-mode .jb-card-datetime,
+body.dark-mode .dispatch-job-time,
+body.dark-mode .dispatch-job-address,
+body.dark-mode .admin-text-secondary,
+body.dark-mode .compliance-text-secondary,
+body.dark-mode .compliance-subdetail-note,
+body.dark-mode .module-subtitle,
+body.dark-mode .module-breadcrumb,
+body.dark-mode .th-wrap span,
+body.dark-mode .dispatch-col-header-sub {
+  color: #94a3b8 !important;
+}
+
+/* 2. Scheduler Grid Lines: Subtle (rgba(0,0,0,0.05) in light mode, #3D4543 in dark mode) */
+.scheduler-grid,
+.day-scheduler-root {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  background: var(--bg-primary, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+.dispatch-hour-slot,
+.transposed-hour-slot,
+.transposed-row-slot,
+.week-hour-slot,
+.dispatch-asset-col,
+.transposed-asset-row,
+.day-timeline-col,
+.day-timeline-slot {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.dispatch-assets-header-row,
+.dispatch-time-col-header,
+.dispatch-time-label {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="dark"] .scheduler-grid,
+[data-theme="dark"] .day-scheduler-root,
+body.dark-mode .scheduler-grid,
+body.dark-mode .day-scheduler-root {
+  border-color: #3D4543 !important;
+  background: #181B1D !important;
+}
+
+[data-theme="dark"] .dispatch-hour-slot,
+[data-theme="dark"] .transposed-hour-slot,
+[data-theme="dark"] .transposed-row-slot,
+[data-theme="dark"] .week-hour-slot,
+[data-theme="dark"] .dispatch-asset-col,
+[data-theme="dark"] .transposed-asset-row,
+[data-theme="dark"] .day-timeline-col,
+[data-theme="dark"] .day-timeline-slot,
+[data-theme="dark"] .dispatch-assets-header-row,
+[data-theme="dark"] .dispatch-time-col-header,
+[data-theme="dark"] .dispatch-time-label,
+body.dark-mode .dispatch-hour-slot,
+body.dark-mode .transposed-hour-slot,
+body.dark-mode .transposed-row-slot,
+body.dark-mode .week-hour-slot,
+body.dark-mode .dispatch-asset-col,
+body.dark-mode .transposed-asset-row,
+body.dark-mode .day-timeline-col,
+body.dark-mode .day-timeline-slot,
+body.dark-mode .dispatch-assets-header-row,
+body.dark-mode .dispatch-time-col-header,
+body.dark-mode .dispatch-time-label {
+  border-bottom-color: #3D4543 !important;
+  border-right-color: #3D4543 !important;
+}
+
+/* 3. Job Board Container: Generous Padding & Flat Solid Cards (No diffuse shadows/glows) */
+.job-board-container {
+  display: flex !important;
+  gap: 16px !important;
+  padding: 4px 0 20px 0 !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.jb-lane,
+.kanban-col {
+  padding: 16px !important;
+  background: var(--bg-secondary, #F8FAFC) !important;
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08)) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.jb-lane-header,
+.kanban-header {
+  padding: 0 0 12px 0 !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-light, rgba(0, 0, 0, 0.06)) !important;
+}
+
+.jb-lane-cards,
+.kanban-cards {
+  padding: 12px 0 0 0 !important;
+  gap: 12px !important;
+}
+
+.jb-card,
+.kanban-card {
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08)) !important;
+  border-radius: 6px !important;
+  transition: border-color 0.15s ease !important;
+}
+
+.jb-card:hover,
+.kanban-card:hover {
+  box-shadow: none !important;
+  border-color: var(--border-strong, #cbd5e1) !important;
+  transform: none !important;
+}
+
+.jb-card.is-high-priority,
+.kanban-card.is-high-priority {
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  border: 1px solid #f59e0b !important;
+  border-left: 4px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .jb-lane,
+[data-theme="dark"] .kanban-col,
+body.dark-mode .jb-lane,
+body.dark-mode .kanban-col {
+  background: #181B1D !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .jb-card,
+[data-theme="dark"] .kanban-card,
+body.dark-mode .jb-card,
+body.dark-mode .kanban-card {
+  background: #242729 !important;
+  border-color: #3D4543 !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .jb-card.is-high-priority,
+[data-theme="dark"] .kanban-card.is-high-priority,
+body.dark-mode .jb-card.is-high-priority,
+body.dark-mode .kanban-card.is-high-priority {
+  background: #242729 !important;
+  border-color: #f59e0b !important;
+  border-left-color: #f59e0b !important;
+  box-shadow: none !important;
+}
+
+/* 4. Compliance Metric Cards: Subtle Tints / 3px Top Border (No harsh outlines) */
+.compliance-metric-card {
+  background: var(--bg-primary, #ffffff) !important;
+  border: 1px solid var(--border-light, #e2e8f0) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.compliance-metric-card.expiring-card,
+#card-expiring-30d {
+  border: 1px solid var(--border-light, #e2e8f0) !important;
+  border-top: 3px solid #d97706 !important;
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.04) 0%, var(--bg-primary, #ffffff) 35%) !important;
+}
+
+.compliance-metric-card.critical-card,
+#card-critical-compliance {
+  border: 1px solid var(--border-light, #e2e8f0) !important;
+  border-top: 3px solid #dc2626 !important;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.04) 0%, var(--bg-primary, #ffffff) 35%) !important;
+}
+
+.compliance-metric-card.audit-card,
+#card-audit-readiness {
+  border: 1px solid var(--border-light, #e2e8f0) !important;
+  border-top: 3px solid #16a34a !important;
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.04) 0%, var(--bg-primary, #ffffff) 35%) !important;
+}
+
+[data-theme="dark"] .compliance-metric-card,
+body.dark-mode .compliance-metric-card {
+  border: 1px solid #3D4543 !important;
+  background: #181B1D !important;
+}
+
+[data-theme="dark"] .compliance-metric-card.expiring-card,
+[data-theme="dark"] #card-expiring-30d,
+body.dark-mode .compliance-metric-card.expiring-card,
+body.dark-mode #card-expiring-30d {
+  border: 1px solid #3D4543 !important;
+  border-top: 3px solid #d97706 !important;
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.12) 0%, #1A1D1F 35%) !important;
+}
+
+[data-theme="dark"] .compliance-metric-card.critical-card,
+[data-theme="dark"] #card-critical-compliance,
+body.dark-mode .compliance-metric-card.critical-card,
+body.dark-mode #card-critical-compliance {
+  border: 1px solid #3D4543 !important;
+  border-top: 3px solid #dc2626 !important;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.12) 0%, #1A1D1F 35%) !important;
+}
+
+[data-theme="dark"] .compliance-metric-card.audit-card,
+[data-theme="dark"] #card-audit-readiness,
+body.dark-mode .compliance-metric-card.audit-card,
+body.dark-mode #card-audit-readiness {
+  border: 1px solid #3D4543 !important;
+  border-top: 3px solid #16a34a !important;
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.12) 0%, #1A1D1F 35%) !important;
+}
+
+/* 5. Administration & Compliance Data Tables: Generous 16px Vertical Padding */
+table.admin-data-table td,
+table.admin-data-table th,
+table.compliance-data-table td,
+table.compliance-data-table th,
+table.compliance-telemetry-table td,
+table.compliance-telemetry-table th {
+  padding: 16px 14px !important;
+  vertical-align: middle !important;
+}
+
+.admin-table-card,
+.compliance-table-card {
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08)) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  background: var(--bg-primary, #ffffff) !important;
+}
+
+[data-theme="dark"] .admin-table-card,
+[data-theme="dark"] .compliance-table-card,
+body.dark-mode .admin-table-card,
+body.dark-mode .compliance-table-card {
+  border-color: #3D4543 !important;
+  background: #181B1D !important;
+}
+
+
 
 
 

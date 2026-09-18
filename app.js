@@ -2046,13 +2046,6 @@ function renderMonthViewScaffolding() {
     </div>
   `;
 }
-          <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
-          <span>Return to Day View</span>
-        </button>
-      </div>
-    </div>
-  `;
-}
 
 function renderDayViewScheduler() {
   const container = document.getElementById('calendar-body');
@@ -7126,7 +7119,21 @@ Object.assign(window, {
   closeUserProfileDropdown,
   initSchedulingRulesAutoSave,
   hydrateIonConfigFromStorage,
+  renderFleetTable,
+  renderPersonnelTable,
 });
+
+function renderFleetTable() {
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof window.renderComplianceFleetTable === 'function') window.renderComplianceFleetTable();
+}
+window.renderFleetTable = renderFleetTable;
+
+function renderPersonnelTable() {
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof window.renderCompliancePersonnelTable === 'function') window.renderCompliancePersonnelTable();
+}
+window.renderPersonnelTable = renderPersonnelTable;
 
 function initApp() {
   hydrateIonConfigFromStorage();
@@ -7155,11 +7162,30 @@ function initApp() {
   if (typeof renderFilterBar === 'function') renderFilterBar();
   if (typeof renderAssetManager === 'function') renderAssetManager();
 
-  // Always render the scheduler immediately on startup
-  renderCalendar();
+  // 1. Scheduler Immediate Population from window.ionConfig
+  if (typeof renderCalendar === 'function') renderCalendar();
   if (typeof applyDatePreset === 'function') applyDatePreset();
   if (typeof renderWorkersView === 'function') renderWorkersView();
+
+  // 2. Job Board Immediate Population
+  if (typeof renderJobBoard === 'function') renderJobBoard();
+
+  // 3. Administration Tables (Fleet, Personnel, Roles) Immediate Population
   if (typeof initAdminModule === 'function') initAdminModule();
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof renderAdminRolesTable === 'function') renderAdminRolesTable();
+  if (typeof renderFleetTable === 'function') renderFleetTable();
+  if (typeof renderPersonnelTable === 'function') renderPersonnelTable();
+
+  // 4. Compliance Dashboard, Metric Cards, Telemetry & Cert Tables Immediate Population
+  if (typeof initComplianceModule === 'function') initComplianceModule();
+  if (typeof window.renderComplianceDashboard === 'function') window.renderComplianceDashboard();
+  if (typeof window.renderComplianceFleetTable === 'function') window.renderComplianceFleetTable();
+  if (typeof window.renderCompliancePersonnelTable === 'function') window.renderCompliancePersonnelTable();
+  if (typeof window.renderComplianceVault === 'function') window.renderComplianceVault();
+
+  // 5. System Settings
   if (typeof initSettingsSaveButtons === 'function') initSettingsSaveButtons();
 }
 

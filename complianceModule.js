@@ -115,6 +115,9 @@ function ensureIonConfigComplianceData() {
  */
 function initComplianceModule() {
   ensureIonConfigComplianceData();
+  if (typeof renderComplianceDashboard === 'function') {
+    renderComplianceDashboard();
+  }
 }
 window.initComplianceModule = initComplianceModule;
 
