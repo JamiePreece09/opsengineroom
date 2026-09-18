@@ -1385,6 +1385,13 @@ function syncSchedulerLanes() {
 // Active Contextual Filter State for Day View
 let selectedAssetFilter = 'All Assets'; // 'All Assets' | 'Frannas' | 'Crawlers' | 'All Terrains' | 'class:...' | 'asset:...'
 let selectedWorkerFilter = 'All Workers'; // 'All Workers' | 'Available' | 'Overtime Warning' | 'worker:...'
+let schedulerSearchQuery = '';
+
+function handleSchedulerSearch(query) {
+  schedulerSearchQuery = (query !== undefined ? query : (document.getElementById('scheduler-search')?.value || document.getElementById('sched-search')?.value || '')).toLowerCase().trim();
+  renderDayViewScheduler();
+}
+window.handleSchedulerSearch = handleSchedulerSearch;
 
 function getFilteredSchedulerLanes() {
   const fleet = window.ionConfig?.fleetRegistry || mockFleetAssets;
@@ -1438,6 +1445,18 @@ function getFilteredSchedulerLanes() {
     }
   }
 
+  // 3. Filter by Search Query
+  if (schedulerSearchQuery) {
+    lanes = lanes.filter(a => {
+      if (a.isInspectionLane) return 'inspections'.includes(schedulerSearchQuery);
+      const idMatch = (a.id || '').toLowerCase().includes(schedulerSearchQuery);
+      const nameMatch = (a.label || a.description || '').toLowerCase().includes(schedulerSearchQuery);
+      const classMatch = (a.class || a.category || '').toLowerCase().includes(schedulerSearchQuery);
+      const workerMatch = (a.workerName || '').toLowerCase().includes(schedulerSearchQuery);
+      return idMatch || nameMatch || classMatch || workerMatch;
+    });
+  }
+
   return lanes;
 }
 
@@ -1454,6 +1473,19 @@ function handleWorkerFilterChange(val) {
 function resetSchedulerFilters() {
   selectedAssetFilter = 'All Assets';
   selectedWorkerFilter = 'All Workers';
+  schedulerSearchQuery = '';
+  ['scheduler-search', 'sched-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['day-filter-asset', 'sched-asset-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 'All Assets';
+  });
+  ['day-filter-worker', 'sched-worker-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 'All Workers';
+  });
   renderDayViewScheduler();
 }
 
@@ -1976,31 +2008,6 @@ function renderWeekViewScaffolding() {
   if (!container) return;
 
   container.innerHTML = `
-    <!-- Top Toolbar -->
-    <div class="day-scheduler-toolbar">
-      <div class="day-scheduler-toolbar-left">
-        <div class="day-scheduler-icon-badge" style="background: var(--ion-cyan, #00adef);">
-          <span class="material-symbols-outlined" style="font-size: 20px;">view_week</span>
-        </div>
-        <div>
-          <h2 class="day-scheduler-title">Weekly Fleet Schedule</h2>
-          <div class="day-scheduler-subtitle">Manage multi-day asset bookings and availability</div>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-center">
-        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
-          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-right">
-        <div class="scaffolding-badge" style="margin-bottom:0;">7-Day Rolling Fleet Schedule</div>
-      </div>
-    </div>
-
     <!-- Scaffolding Placeholder Content -->
     <div class="scheduler-scaffolding-root">
       <div class="scheduler-scaffolding-card">
@@ -2023,31 +2030,6 @@ function renderMonthViewScaffolding() {
   if (!container) return;
 
   container.innerHTML = `
-    <!-- Top Toolbar -->
-    <div class="day-scheduler-toolbar">
-      <div class="day-scheduler-toolbar-left">
-        <div class="day-scheduler-icon-badge" style="background: #7c3aed;">
-          <span class="material-symbols-outlined" style="font-size: 20px;">calendar_month</span>
-        </div>
-        <div>
-          <h2 class="day-scheduler-title">Monthly Fleet Schedule</h2>
-          <div class="day-scheduler-subtitle">Review long-term fleet allocations and maintenance windows</div>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-center">
-        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
-          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-right">
-        <div class="scaffolding-badge" style="margin-bottom:0; background: rgba(124, 58, 237, 0.1); color: #7c3aed;">30-Day Fleet Outlook</div>
-      </div>
-    </div>
-
     <!-- Scaffolding Placeholder Content -->
     <div class="scheduler-scaffolding-root">
       <div class="scheduler-scaffolding-card">
@@ -2057,6 +2039,13 @@ function renderMonthViewScaffolding() {
         <h3 class="scaffolding-title">Month View Scaffolding</h3>
         <p class="scaffolding-desc">Monthly asset utilization heatmaps, project reservations, and recurring service windows staged for implementation.</p>
         <button class="day-view-transpose-btn" onclick="setCalendarView('Day')" style="margin-top: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
+          <span>Return to Day View</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
           <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
           <span>Return to Day View</span>
         </button>
@@ -2090,89 +2079,8 @@ function renderDayViewScheduler() {
     </div>
   `;
 
-  // Build Shared Contextual Toolbar HTML
-  const toolbarHtml = `
-    <div class="day-scheduler-toolbar">
-      <div class="day-scheduler-toolbar-left">
-        <div class="day-scheduler-icon-badge">
-          <span class="material-symbols-outlined" style="font-size: 20px;">calendar_view_day</span>
-        </div>
-        <div>
-          <h2 class="day-scheduler-title">Daily Dispatch</h2>
-          <div class="day-scheduler-subtitle">Manage day allocations and 24-hour equipment availability</div>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-center">
-        <!-- View Toggle (Day / Week / Month) -->
-        <div class="scheduler-view-segmented" id="scheduler-view-mode-toggle">
-          <button class="scheduler-view-segmented-btn ${currentView === 'Day' ? 'active' : ''}" onclick="setCalendarView('Day')">Day</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Week' ? 'active' : ''}" onclick="setCalendarView('Week')">Week</button>
-          <button class="scheduler-view-segmented-btn ${currentView === 'Month' ? 'active' : ''}" onclick="setCalendarView('Month')">Month</button>
-        </div>
-
-        <!-- Transpose View Toggle Button -->
-        <button class="day-view-transpose-btn ${dayTransposed ? 'active' : ''}" id="day-transpose-btn" onclick="toggleDayTranspose()" title="Transpose Grid Axes (Flip Time & Assets)">
-          <span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span>
-          <span id="transpose-btn-label">${dayTransposed ? 'Axis: Transposed (Y-Asset / X-Time)' : 'Transpose View'}</span>
-        </button>
-
-        <!-- Dropdown 1: Filter by Asset -->
-        <div class="scheduler-filter-wrapper" title="Filter by Asset">
-          <select id="day-filter-asset"
-                  name="Filter by Asset"
-                  class="scheduler-filter-select"
-                  aria-label="Filter by Asset"
-                  title="Filter by Asset"
-                  data-testid="filter-by-asset"
-                  onchange="handleAssetFilterChange(this.value)">
-            <option value="All Assets" ${selectedAssetFilter === 'All Assets' ? 'selected' : ''}>All Assets</option>
-            <optgroup label="Categories">
-              <option value="Frannas" ${selectedAssetFilter === 'Frannas' ? 'selected' : ''}>Frannas</option>
-              <option value="Crawlers" ${selectedAssetFilter === 'Crawlers' ? 'selected' : ''}>Crawlers</option>
-              <option value="All Terrains" ${selectedAssetFilter === 'All Terrains' ? 'selected' : ''}>All Terrains</option>
-            </optgroup>
-            <optgroup label="Fleet Assets">
-              ${(window.ionConfig?.fleetRegistry || []).map(a => `
-                <option value="asset:${a.id}" ${selectedAssetFilter === 'asset:' + a.id ? 'selected' : ''}>${a.id} — ${a.label || a.description || a.class}</option>
-              `).join('')}
-            </optgroup>
-          </select>
-        </div>
-
-        <!-- Dropdown 2: Filter by Worker -->
-        <div class="scheduler-filter-wrapper" title="Filter by Worker">
-          <select id="day-filter-worker"
-                  name="Filter by Worker"
-                  class="scheduler-filter-select"
-                  aria-label="Filter by Worker"
-                  title="Filter by Worker"
-                  data-testid="filter-by-worker"
-                  onchange="handleWorkerFilterChange(this.value)">
-            <option value="All Workers" ${selectedWorkerFilter === 'All Workers' ? 'selected' : ''}>All Workers</option>
-            <option value="Available" ${selectedWorkerFilter === 'Available' ? 'selected' : ''}>Available</option>
-            <option value="Overtime Warning" ${selectedWorkerFilter === 'Overtime Warning' ? 'selected' : ''}>Overtime Warning</option>
-            <optgroup label="Assigned Personnel">
-              ${(window.ionConfig?.workerRegistry || []).map(w => `
-                <option value="worker:${w.name}" ${selectedWorkerFilter === 'worker:' + w.name ? 'selected' : ''}>${w.name} (${w.role})</option>
-              `).join('')}
-            </optgroup>
-          </select>
-        </div>
-      </div>
-
-      <div class="day-scheduler-toolbar-right">
-        <div class="day-legend-item">
-          <span class="day-legend-dot working"></span>
-          <span>Working Hours (06:00 – 18:00)</span>
-        </div>
-        <div class="day-legend-item">
-          <span class="day-legend-dot shaded"></span>
-          <span>Shaded (24h Bookable)</span>
-        </div>
-      </div>
-    </div>
-  `;
+  // Build Shared Contextual Toolbar HTML (Suppressed in favor of Tier 2/3 headers)
+  const toolbarHtml = '';
 
   const visibleLanes = getFilteredSchedulerLanes();
 
@@ -3094,12 +3002,48 @@ window.sortJobBoardCards = function(customSortOption) {
   });
 };
 
+function filterJobBoardTab(stage) {
+  const stageSelect = document.getElementById('jb-stage-filter');
+  if (stageSelect) {
+    stageSelect.value = stage;
+  }
+  const tabs = [
+    { id: 'jb-subtab-all', val: 'ALL' },
+    { id: 'jb-subtab-active', val: 'ACTIVE_ON_SITE' },
+    { id: 'jb-subtab-docket', val: 'PENDING_DOCKET' },
+    { id: 'jb-subtab-invoice', val: 'READY_FOR_INVOICE' }
+  ];
+  tabs.forEach(t => {
+    const btn = document.getElementById(t.id);
+    if (btn) {
+      if (t.val === stage) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+  renderJobBoard();
+}
+window.filterJobBoardTab = filterJobBoardTab;
+
 function renderJobBoard() {
   const container = document.getElementById('job-board-container');
   if (!container) return;
 
   const searchQuery = (document.getElementById('jb-search')?.value || '').toLowerCase().trim();
   const stageFilter = document.getElementById('jb-stage-filter')?.value || 'ALL';
+
+  const tabs = [
+    { id: 'jb-subtab-all', val: 'ALL' },
+    { id: 'jb-subtab-active', val: 'ACTIVE_ON_SITE' },
+    { id: 'jb-subtab-docket', val: 'PENDING_DOCKET' },
+    { id: 'jb-subtab-invoice', val: 'READY_FOR_INVOICE' }
+  ];
+  tabs.forEach(t => {
+    const btn = document.getElementById(t.id);
+    if (btn) {
+      if (t.val === stageFilter) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
 
   let filteredBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
   if (searchQuery) {
@@ -3506,6 +3450,34 @@ function switchAdminSubTab(tabName) {
       }
     }
   });
+
+  // Update Tier 2 Context Action Button
+  const primaryBtn = document.getElementById('admin-tier2-primary-btn');
+  if (primaryBtn) {
+    if (tabName === 'fleet') {
+      primaryBtn.style.display = 'inline-flex';
+      primaryBtn.onclick = () => window.openAddAssetAdminModal();
+      primaryBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">add</span><span id="admin-tier2-btn-label">Add Asset</span>';
+    } else if (tabName === 'personnel') {
+      primaryBtn.style.display = 'inline-flex';
+      primaryBtn.onclick = () => window.openAddPersonnelAdminModal();
+      primaryBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">person_add</span><span id="admin-tier2-btn-label">Add Personnel</span>';
+    } else if (tabName === 'roles') {
+      primaryBtn.style.display = 'inline-flex';
+      primaryBtn.onclick = () => {
+        const titleInput = document.getElementById('admin-new-role-title');
+        if (titleInput) {
+          titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          titleInput.focus();
+        }
+      };
+      primaryBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">add_circle</span><span id="admin-tier2-btn-label">Add Role</span>';
+    } else if (tabName === 'scheduling') {
+      primaryBtn.style.display = 'inline-flex';
+      primaryBtn.onclick = () => window.saveAdminSchedulingRules();
+      primaryBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">save</span><span id="admin-tier2-btn-label">Save Rules</span>';
+    }
+  }
 
   if (tabName === 'fleet') renderAdminFleetTable();
   else if (tabName === 'personnel') renderAdminPersonnelTable();

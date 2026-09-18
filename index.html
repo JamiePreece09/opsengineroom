@@ -207,114 +207,220 @@
     <!-- MAIN CONTENT -->
     <main class="gcal-main-content">
       <div class="view-container active" id="calendar-view">
-        <div class="module-header" id="scheduler-module-header">
-          <div class="module-header-content">
-            <div class="module-breadcrumb">OPERATIONS // DISPATCH</div>
-            <h1 class="module-title">Scheduler</h1>
-            <div class="module-subtitle">Manage fleet availability and dispatch operations</div>
+        <div class="module-viewport-containment">
+          <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+          <div class="module-header" id="scheduler-module-header">
+            <div class="module-header-content">
+              <div class="module-breadcrumb">OPERATIONS // DISPATCH</div>
+              <h1 class="module-title">Scheduler</h1>
+              <div class="module-subtitle">Manage fleet availability and dispatch operations</div>
+            </div>
           </div>
+
+          <!-- Tier 2: Navigation / Action Row (Left: Segmented View Toggle | Right: Actions) -->
+          <div class="module-tier2-nav-row" id="scheduler-tier2-nav">
+            <div class="module-nav-tabs">
+              <button class="module-subnav-btn active" id="view-btn-day" onclick="setCalendarView('Day')">
+                <span class="material-symbols-outlined">calendar_view_day</span>
+                <span>Day</span>
+              </button>
+              <button class="module-subnav-btn" id="view-btn-week" onclick="setCalendarView('Week')">
+                <span class="material-symbols-outlined">calendar_view_week</span>
+                <span>Week</span>
+              </button>
+              <button class="module-subnav-btn" id="view-btn-month" onclick="setCalendarView('Month')">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span>Month</span>
+              </button>
+            </div>
+            <div class="module-nav-actions">
+              <button class="btn-secondary" id="day-transpose-btn" onclick="toggleDayTranspose()" title="Transpose Grid Axes (Flip Time &amp; Assets)" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span>
+                <span id="transpose-label">Transpose View</span>
+              </button>
+              <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                <span>New Booking</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tier 3: The Toolbelt (Full Width, Soft Solid Background, Borderless Search + Filters) -->
+          <div class="module-tier3-toolbelt" id="scheduler-toolbelt">
+            <div class="toolbelt-search-wrap">
+              <span class="material-symbols-outlined">search</span>
+              <input id="scheduler-search" oninput="handleSchedulerSearch(this.value)" placeholder="Search fleet assets, operators..." type="text"/>
+            </div>
+            <div class="toolbelt-filters-wrap">
+              <div class="scheduler-filter-wrapper" title="Filter by Asset">
+                <select id="day-filter-asset" class="scheduler-filter-select" onchange="handleAssetFilterChange(this.value)">
+                  <option value="All Assets">All Assets</option>
+                  <optgroup label="Categories">
+                    <option value="Frannas">Frannas</option>
+                    <option value="Crawlers">Crawlers</option>
+                    <option value="All Terrains">All Terrains</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="scheduler-filter-wrapper" title="Filter by Worker">
+                <select id="day-filter-worker" class="scheduler-filter-select" onchange="handleWorkerFilterChange(this.value)">
+                  <option value="All Workers">All Workers</option>
+                  <option value="Available">Available</option>
+                  <option value="Overtime Warning">Overtime Warning</option>
+                </select>
+              </div>
+              <div class="day-legend-item" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);margin-left:6px;">
+                <span class="day-legend-dot working" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+                <span>06:00 – 18:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rebuilt Scheduler Module Root (Clean Slate Container) -->
+          <div id="calendar-body" class="day-scheduler-root" style="min-height:650px;"></div>
         </div>
-        <!-- Rebuilt Scheduler Module Root (Clean Slate Container) -->
-        <div id="calendar-body" class="day-scheduler-root"></div>
       </div><div class="view-container" id="job-board-view">
-        <div class="module-header" id="jobboard-module-header">
-          <div class="module-header-content">
-            <div class="module-breadcrumb">OPERATIONS // DISPATCH PIPELINE</div>
-            <h1 class="module-title">Job Board</h1>
-            <div class="module-subtitle">Track job lifecycles and move bookings through dispatch stages</div>
+        <div class="module-viewport-containment">
+          <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+          <div class="module-header" id="jobboard-module-header">
+            <div class="module-header-content">
+              <div class="module-breadcrumb">OPERATIONS // DISPATCH PIPELINE</div>
+              <h1 class="module-title">Job Board</h1>
+              <div class="module-subtitle">Track job lifecycles and move bookings through dispatch stages</div>
+            </div>
           </div>
-        </div>
-        <div class="jb-toolbar-container">
-          <div class="module-filter-bar jb-filter-bar">
-            <div class="search-input-wrap" style="flex:1;min-width:240px;max-width:380px;">
-              <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
+
+          <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Action Buttons) -->
+          <div class="module-tier2-nav-row" id="jobboard-tier2-nav">
+            <div class="module-nav-tabs">
+              <button class="module-subnav-btn active" id="jb-subtab-all" onclick="filterJobBoardTab('ALL')">
+                <span class="material-symbols-outlined">view_kanban</span>
+                <span>All Stages</span>
+              </button>
+              <button class="module-subnav-btn" id="jb-subtab-active" onclick="filterJobBoardTab('Active On-Site')">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Active On-Site</span>
+              </button>
+              <button class="module-subnav-btn" id="jb-subtab-docket" onclick="filterJobBoardTab('Pending Docket')">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span>Pending Docket</span>
+              </button>
+              <button class="module-subnav-btn" id="jb-subtab-invoiced" onclick="filterJobBoardTab('Ready for Invoicing')">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>Ready for Invoicing</span>
+              </button>
+            </div>
+            <div class="module-nav-actions">
+              <button class="btn-secondary" onclick="exportCsv()" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+                <span>Export Board</span>
+              </button>
+              <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                <span>New Booking</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tier 3: The Toolbelt (Full Width, Soft Solid Background, Borderless Search + Filters) -->
+          <div class="module-tier3-toolbelt" id="jobboard-toolbelt">
+            <div class="toolbelt-search-wrap">
+              <span class="material-symbols-outlined">search</span>
               <input id="jb-search" oninput="renderJobBoard()" placeholder="Search by Job ID, client, asset, operator..." type="text"/>
             </div>
-            <select class="module-filter-select" id="jb-stage-filter" onchange="renderJobBoard()">
-              <option value="ALL">All Lifecycle Stages (5 Lanes)</option>
-              <option value="EOI / Pending">EOI / Pending</option>
-              <option value="Scheduled / Dispatched">Scheduled / Dispatched</option>
-              <option value="Active On-Site">Active On-Site</option>
-              <option value="Pending Docket">Pending Docket</option>
-              <option value="Ready for Invoicing">Ready for Invoicing</option>
-            </select>
-            <div class="jb-sort-wrap">
-              <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);">sort</span>
-              <select class="module-filter-select" id="jb-sort-by" onchange="window.sortJobBoardCards()">
-                <option value="date-asc">Date Ascending</option>
-                <option value="date-desc">Date Descending</option>
-                <option value="priority-first">Priority First</option>
+            <div class="toolbelt-filters-wrap">
+              <select class="module-filter-select" id="jb-stage-filter" onchange="renderJobBoard()">
+                <option value="ALL">All Lifecycle Stages (5 Lanes)</option>
+                <option value="EOI / Pending">EOI / Pending</option>
+                <option value="Scheduled / Dispatched">Scheduled / Dispatched</option>
+                <option value="Active On-Site">Active On-Site</option>
+                <option value="Pending Docket">Pending Docket</option>
+                <option value="Ready for Invoicing">Ready for Invoicing</option>
               </select>
+              <div class="jb-sort-wrap" style="display:inline-flex;align-items:center;gap:4px;">
+                <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);">sort</span>
+                <select class="module-filter-select" id="jb-sort-by" onchange="window.sortJobBoardCards()">
+                  <option value="date-asc">Date Ascending</option>
+                  <option value="date-desc">Date Descending</option>
+                  <option value="priority-first">Priority First</option>
+                </select>
+              </div>
+              <button class="btn-secondary" onclick="document.getElementById('jb-search').value='';document.getElementById('jb-stage-filter').value='ALL';document.getElementById('jb-sort-by').value='date-asc';renderJobBoard();" style="display:inline-flex;align-items:center;gap:4px;height:36px;padding:0 12px;" title="Reset Filters">
+                <span class="material-symbols-outlined" style="font-size:16px;">filter_alt_off</span>
+                <span>Reset</span>
+              </button>
             </div>
-            <button class="btn-secondary" onclick="document.getElementById('jb-search').value='';document.getElementById('jb-stage-filter').value='ALL';document.getElementById('jb-sort-by').value='date-asc';renderJobBoard();" style="display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 14px;" title="Reset Filters">
-              <span class="material-symbols-outlined" style="font-size:16px;">filter_alt_off</span>
-              <span>Reset</span>
-            </button>
           </div>
+
+          <div id="job-board-container" class="job-board-container" ondragover="window.handleJobBoardContainerDragOver(event)" style="flex:1;overflow-x:auto;"></div>
         </div>
-        <div id="job-board-container" class="job-board-container" ondragover="window.handleJobBoardContainerDragOver(event)" style="flex:1;overflow-x:auto;"></div>
       </div><div class="view-container" id="operator-view">
-  <div class="module-header" id="admin-module-header">
-    <div class="module-header-content">
-      <div class="module-breadcrumb">OPERATIONS MANAGEMENT // ADMINISTRATION</div>
-      <h1 class="module-title">Administration</h1>
-      <div class="module-subtitle">Manage fleet assets, workforce licensing, and operational scheduling rules</div>
-    </div>
-  </div>
-
-  <!-- Horizontal Sub-Navigation -->
-  <div class="admin-subnav" id="admin-subnav">
-    <button class="admin-subnav-btn active" id="admin-subtab-fleet" onclick="switchAdminSubTab('fleet')">
-      <span class="material-symbols-outlined">local_shipping</span>
-      <span>Fleet</span>
-    </button>
-    <button class="admin-subnav-btn" id="admin-subtab-personnel" onclick="switchAdminSubTab('personnel')">
-      <span class="material-symbols-outlined">badge</span>
-      <span>Personnel</span>
-    </button>
-    <button class="admin-subnav-btn" id="admin-subtab-roles" onclick="switchAdminSubTab('roles')">
-      <span class="material-symbols-outlined">admin_panel_settings</span>
-      <span>Manage Roles</span>
-    </button>
-    <button class="admin-subnav-btn" id="admin-subtab-scheduling" onclick="switchAdminSubTab('scheduling')">
-      <span class="material-symbols-outlined">schedule</span>
-      <span>Scheduling Rules</span>
-    </button>
-  </div>
-
-  <!-- Subview 1: Fleet View -->
-  <div class="admin-subview" id="admin-view-fleet" style="display:flex;flex-direction:column;gap:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:720px;flex-wrap:wrap;">
-        <div class="search-input-wrap" style="flex:1;min-width:240px;">
-          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
-          <input id="admin-fleet-search" oninput="renderAdminFleetTable()" placeholder="Search fleet by ID, name, role, status..." type="text" style="width:100%;"/>
-        </div>
-        <select class="module-filter-select" id="admin-fleet-class-filter" onchange="renderAdminFleetTable()">
-          <option value="ALL">All Fleet Classes</option>
-        </select>
-        <select class="module-filter-select" id="admin-fleet-status-filter" onchange="renderAdminFleetTable()">
-          <option value="ALL">All Statuses</option>
-          <option value="Active">Active</option>
-          <option value="Expired">Expired</option>
-        </select>
-        <span class="badge" id="admin-fleet-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+  <div class="module-viewport-containment">
+    <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+    <div class="module-header" id="admin-module-header">
+      <div class="module-header-content">
+        <div class="module-breadcrumb">OPERATIONS MANAGEMENT // ADMINISTRATION</div>
+        <h1 class="module-title">Administration</h1>
+        <div class="module-subtitle">Manage fleet assets, workforce licensing, and operational scheduling rules</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn-secondary" id="admin-export-fleet-csv-btn" onclick="exportAdminFleetCSV()" title="Export Fleet Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:17px;">download</span>
-          <span>Export to CSV</span>
+    </div>
+
+    <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Context Action Button) -->
+    <div class="module-tier2-nav-row" id="admin-tier2-nav">
+      <div class="admin-subnav" id="admin-subnav">
+        <button class="admin-subnav-btn active" id="admin-subtab-fleet" onclick="switchAdminSubTab('fleet')">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <span>Fleet</span>
         </button>
-        <button class="btn-secondary" id="admin-bulk-import-fleet-btn" onclick="openBulkImportAdminModal('fleet')" title="Bulk Import Fleet Assets from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:17px;">upload_file</span>
-          <span>Bulk Import</span>
+        <button class="admin-subnav-btn" id="admin-subtab-personnel" onclick="switchAdminSubTab('personnel')">
+          <span class="material-symbols-outlined">badge</span>
+          <span>Personnel</span>
         </button>
-        <button class="btn-primary" id="admin-add-asset-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="admin-subnav-btn" id="admin-subtab-roles" onclick="switchAdminSubTab('roles')">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <span>Manage Roles</span>
+        </button>
+        <button class="admin-subnav-btn" id="admin-subtab-scheduling" onclick="switchAdminSubTab('scheduling')">
+          <span class="material-symbols-outlined">schedule</span>
+          <span>Scheduling Rules</span>
+        </button>
+      </div>
+      <div class="module-nav-actions" id="admin-tier2-actions">
+        <button class="btn-primary" id="admin-tier2-primary-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-          <span>Add Asset</span>
+          <span id="admin-tier2-btn-label">Add Asset</span>
         </button>
       </div>
     </div>
+
+    <!-- Subview 1: Fleet View -->
+    <div class="admin-subview" id="admin-view-fleet" style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Tier 3: Fleet Toolbelt -->
+      <div class="module-tier3-toolbelt" id="admin-fleet-toolbelt">
+        <div class="toolbelt-search-wrap">
+          <span class="material-symbols-outlined">search</span>
+          <input id="admin-fleet-search" oninput="renderAdminFleetTable()" placeholder="Search fleet by ID, name, role, status..." type="text"/>
+        </div>
+        <div class="toolbelt-filters-wrap">
+          <select class="module-filter-select" id="admin-fleet-class-filter" onchange="renderAdminFleetTable()">
+            <option value="ALL">All Fleet Classes</option>
+          </select>
+          <select class="module-filter-select" id="admin-fleet-status-filter" onchange="renderAdminFleetTable()">
+            <option value="ALL">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Expired">Expired</option>
+          </select>
+          <span class="badge" id="admin-fleet-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
+          <button class="btn-secondary" id="admin-export-fleet-csv-btn" onclick="exportAdminFleetCSV()" title="Export Fleet Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
+            <span class="material-symbols-outlined" style="font-size:17px;">download</span>
+            <span>Export CSV</span>
+          </button>
+          <button class="btn-secondary" id="admin-bulk-import-fleet-btn" onclick="openBulkImportAdminModal('fleet')" title="Bulk Import Fleet Assets from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
+            <span class="material-symbols-outlined" style="font-size:17px;">upload_file</span>
+            <span>Bulk Import</span>
+          </button>
+        </div>
+      </div>
 
     <!-- Clean, scalable HTML Data Table pulling from window.ionConfig.fleetRegistry -->
     <div class="admin-table-card">
@@ -350,13 +456,14 @@
   </div>
 
   <!-- Subview 2: Personnel View -->
-  <div class="admin-subview" id="admin-view-personnel" style="display:none;flex-direction:column;gap:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:720px;flex-wrap:wrap;">
-        <div class="search-input-wrap" style="flex:1;min-width:240px;">
-          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
-          <input id="admin-workers-search" oninput="renderAdminPersonnelTable()" placeholder="Search personnel by name, role, status..." type="text" style="width:100%;"/>
-        </div>
+  <div class="admin-subview" id="admin-view-personnel" style="display:none;flex-direction:column;gap:12px;">
+    <!-- Tier 3: Personnel Toolbelt -->
+    <div class="module-tier3-toolbelt" id="admin-personnel-toolbelt">
+      <div class="toolbelt-search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="admin-workers-search" oninput="renderAdminPersonnelTable()" placeholder="Search personnel by name, role, status..." type="text"/>
+      </div>
+      <div class="toolbelt-filters-wrap">
         <select class="module-filter-select" id="admin-workers-role-filter" onchange="renderAdminPersonnelTable()">
           <option value="ALL">All Roles &amp; Depts</option>
         </select>
@@ -366,23 +473,13 @@
           <option value="Expired">Expired</option>
         </select>
         <span class="badge" id="admin-workers-count" style="font-size:12px;font-weight:700;padding:4px 10px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:20px;color:var(--text-secondary);white-space:nowrap;"></span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn-secondary" id="admin-export-personnel-csv-btn" onclick="exportAdminPersonnelCSV()" title="Export Personnel Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" id="admin-export-personnel-csv-btn" onclick="exportAdminPersonnelCSV()" title="Export Personnel Registry to CSV" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
           <span class="material-symbols-outlined" style="font-size:17px;">download</span>
-          <span>Export to CSV</span>
+          <span>Export CSV</span>
         </button>
-        <button class="btn-secondary" id="admin-bulk-import-personnel-btn" onclick="openBulkImportAdminModal('personnel')" title="Bulk Import Personnel from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" id="admin-bulk-import-personnel-btn" onclick="openBulkImportAdminModal('personnel')" title="Bulk Import Personnel from CSV or JSON" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
           <span class="material-symbols-outlined" style="font-size:17px;">upload_file</span>
           <span>Bulk Import</span>
-        </button>
-        <button class="btn-secondary" id="admin-goto-roles-btn" onclick="switchAdminSubTab('roles')" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:18px;">admin_panel_settings</span>
-          <span>Manage Roles</span>
-        </button>
-        <button class="btn-primary" id="admin-add-worker-btn" onclick="openAddPersonnelAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
-          <span>Add Personnel</span>
         </button>
       </div>
     </div>
@@ -472,12 +569,12 @@
     </div>
 
     <!-- Role Filter & Table -->
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;gap:10px;align-items:center;flex:1;max-width:640px;flex-wrap:wrap;">
-        <div class="search-input-wrap" style="flex:1;min-width:240px;">
-          <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);margin-right:6px;">search</span>
-          <input id="admin-roles-search" oninput="renderAdminRolesTable()" placeholder="Search roles by title, department, or standard..." type="text" style="width:100%;"/>
-        </div>
+    <div class="module-tier3-toolbelt" id="admin-roles-toolbelt">
+      <div class="toolbelt-search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="admin-roles-search" oninput="renderAdminRolesTable()" placeholder="Search roles by title, department, or standard..." type="text"/>
+      </div>
+      <div class="toolbelt-filters-wrap">
         <select class="module-filter-select" id="admin-roles-dept-filter" onchange="renderAdminRolesTable()">
           <option value="ALL">All Departments</option>
           <option value="Administration">Administration</option>
@@ -570,44 +667,47 @@
     </div>
   </div>
 </div><div class="view-container" id="compliance-view">
-  <!-- Standardized Module Header -->
-  <div class="module-header" id="compliance-module-header">
-    <div class="module-header-content">
-      <div class="module-breadcrumb">SAFETY &amp; HSEQ // COMPLIANCE VAULT</div>
-      <h1 class="module-title">Compliance &amp; Safety</h1>
-      <div class="module-subtitle">Manage asset certifications, personnel licences, and HSEQ documentation</div>
+  <div class="module-viewport-containment">
+    <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+    <div class="module-header" id="compliance-module-header">
+      <div class="module-header-content">
+        <div class="module-breadcrumb">SAFETY &amp; HSEQ // COMPLIANCE VAULT</div>
+        <h1 class="module-title">Compliance &amp; Safety</h1>
+        <div class="module-subtitle">Manage asset certifications, personnel licences, and HSEQ documentation</div>
+      </div>
     </div>
-    <div class="module-header-actions">
-      <button class="btn-secondary" onclick="exportComplianceAuditReport()" style="display:inline-flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
-        <span>Audit Report</span>
-      </button>
-      <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
-        <span>Upload Document</span>
-      </button>
-    </div>
-  </div>
 
-  <!-- Horizontal Sub-Navigation Menu -->
-  <div class="compliance-subnav" id="compliance-subnav">
-    <button class="compliance-subnav-btn active" id="compliance-subtab-dashboard" onclick="switchComplianceSubTab('dashboard')">
-      <span class="material-symbols-outlined">dashboard</span>
-      <span>Compliance Dashboard</span>
-    </button>
-    <button class="compliance-subnav-btn" id="compliance-subtab-fleet" onclick="switchComplianceSubTab('fleet')">
-      <span class="material-symbols-outlined">precision_manufacturing</span>
-      <span>Fleet Certifications</span>
-    </button>
-    <button class="compliance-subnav-btn" id="compliance-subtab-personnel" onclick="switchComplianceSubTab('personnel')">
-      <span class="material-symbols-outlined">badge</span>
-      <span>Personnel Licences</span>
-    </button>
-    <button class="compliance-subnav-btn" id="compliance-subtab-vault" onclick="switchComplianceSubTab('vault')">
-      <span class="material-symbols-outlined">folder_special</span>
-      <span>Document Vault</span>
-    </button>
-  </div>
+    <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Action Buttons) -->
+    <div class="module-tier2-nav-row" id="compliance-tier2-nav">
+      <div class="compliance-subnav" id="compliance-subnav">
+        <button class="compliance-subnav-btn active" id="compliance-subtab-dashboard" onclick="switchComplianceSubTab('dashboard')">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Compliance Dashboard</span>
+        </button>
+        <button class="compliance-subnav-btn" id="compliance-subtab-fleet" onclick="switchComplianceSubTab('fleet')">
+          <span class="material-symbols-outlined">precision_manufacturing</span>
+          <span>Fleet Certifications</span>
+        </button>
+        <button class="compliance-subnav-btn" id="compliance-subtab-personnel" onclick="switchComplianceSubTab('personnel')">
+          <span class="material-symbols-outlined">badge</span>
+          <span>Personnel Licences</span>
+        </button>
+        <button class="compliance-subnav-btn" id="compliance-subtab-vault" onclick="switchComplianceSubTab('vault')">
+          <span class="material-symbols-outlined">folder_special</span>
+          <span>Document Vault</span>
+        </button>
+      </div>
+      <div class="module-nav-actions" id="compliance-tier2-actions">
+        <button class="btn-secondary" onclick="exportComplianceAuditReport()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+          <span>Audit Report</span>
+        </button>
+        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+          <span>Upload Document</span>
+        </button>
+      </div>
+    </div>
 
   <!-- Subview 1: Compliance Dashboard (Active Monitoring) -->
   <div class="compliance-subview" id="compliance-view-dashboard" style="display:flex;flex-direction:column;gap:20px;">
@@ -745,23 +845,21 @@
 
   <!-- Subview 2: Fleet Certifications (Data Table) -->
   <div class="compliance-subview" id="compliance-view-fleet" style="display:none;flex-direction:column;gap:14px;">
-    <!-- Filter & Search Toolbar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
-        <div class="search-input-wrap" style="flex:1;">
-          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-          <input id="compliance-fleet-search" oninput="filterComplianceFleetTable()" placeholder="Search asset ID, class, or registration..." type="text"/>
-        </div>
+    <!-- Tier 3: Fleet Certifications Toolbelt -->
+    <div class="module-tier3-toolbelt" id="compliance-fleet-toolbelt">
+      <div class="toolbelt-search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="compliance-fleet-search" oninput="filterComplianceFleetTable()" placeholder="Search asset ID, class, or registration..." type="text"/>
+      </div>
+      <div class="toolbelt-filters-wrap">
         <select class="module-filter-select" id="compliance-fleet-status-filter" onchange="filterComplianceFleetTable()" style="min-width:180px;">
           <option value="ALL">All Statuses</option>
           <option value="Valid">Valid Only</option>
           <option value="Expiring Soon">Expiring Soon (30d)</option>
           <option value="Expired">Expired (Locked)</option>
         </select>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
         <span class="badge badge-neutral" id="compliance-fleet-count" style="font-weight:700;">15 Assets</span>
-        <button class="btn-secondary" onclick="exportComplianceFleetCSV()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" onclick="exportComplianceFleetCSV()" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
           <span class="material-symbols-outlined" style="font-size:16px;">file_download</span>
           <span>Export CSV</span>
         </button>
@@ -816,23 +914,21 @@
 
   <!-- Subview 3: Personnel Licences (Data Table) -->
   <div class="compliance-subview" id="compliance-view-personnel" style="display:none;flex-direction:column;gap:14px;">
-    <!-- Filter & Search Toolbar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
-        <div class="search-input-wrap" style="flex:1;">
-          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-          <input id="compliance-worker-search" oninput="filterComplianceWorkerTable()" placeholder="Search worker name, role, or licence class..." type="text"/>
-        </div>
+    <!-- Tier 3: Personnel Licences Toolbelt -->
+    <div class="module-tier3-toolbelt" id="compliance-personnel-toolbelt">
+      <div class="toolbelt-search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="compliance-worker-search" oninput="filterComplianceWorkerTable()" placeholder="Search worker name, role, or licence class..." type="text"/>
+      </div>
+      <div class="toolbelt-filters-wrap">
         <select class="module-filter-select" id="compliance-worker-status-filter" onchange="filterComplianceWorkerTable()" style="min-width:180px;">
           <option value="ALL">All Statuses</option>
           <option value="Valid">Valid Only</option>
           <option value="Expiring Soon">Expiring Soon (30d)</option>
           <option value="Expired">Expired</option>
         </select>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
         <span class="badge badge-neutral" id="compliance-worker-count" style="font-weight:700;">21 Personnel</span>
-        <button class="btn-secondary" onclick="exportComplianceWorkerCSV()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-secondary" onclick="exportComplianceWorkerCSV()" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
           <span class="material-symbols-outlined" style="font-size:16px;">file_download</span>
           <span>Export CSV</span>
         </button>
@@ -887,13 +983,13 @@
 
   <!-- Subview 4: Document Vault -->
   <div class="compliance-subview" id="compliance-view-vault" style="display:none;flex-direction:column;gap:14px;">
-    <!-- Filter & Search Toolbar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
-        <div class="search-input-wrap" style="flex:1;">
-          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-          <input id="compliance-vault-search" oninput="filterComplianceVaultTable()" placeholder="Search document title, entity, or reference..." type="text"/>
-        </div>
+    <!-- Tier 3: Document Vault Toolbelt -->
+    <div class="module-tier3-toolbelt" id="compliance-vault-toolbelt">
+      <div class="toolbelt-search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="compliance-vault-search" oninput="filterComplianceVaultTable()" placeholder="Search document title, entity, or reference..." type="text"/>
+      </div>
+      <div class="toolbelt-filters-wrap">
         <select class="module-filter-select" id="compliance-vault-category-filter" onchange="filterComplianceVaultTable()" style="min-width:180px;">
           <option value="ALL">All Categories</option>
           <option value="SWMS">SWMS</option>
@@ -903,10 +999,8 @@
           <option value="Insurance">Insurance</option>
           <option value="Registration">Road Registration</option>
         </select>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
         <span class="badge badge-neutral" id="compliance-vault-count" style="font-weight:700;">8 Documents</span>
-        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;height:36px;">
           <span class="material-symbols-outlined" style="font-size:16px;">upload_file</span>
           <span>Upload File</span>
         </button>
@@ -931,6 +1025,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 </div><div class="view-container" id="analytics-view">
 <div class="page-header">

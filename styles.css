@@ -2550,7 +2550,7 @@ tr.expired-row td {
 .btn-secondary:hover { background: var(--bg-tertiary); }
 .kpi-card, .chart-card { background: var(--bg-secondary); border: 1px solid var(--border-light); }
 .module-filter-bar { background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); }
-.search-input-wrap input { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-light); }
+.search-input-wrap input { background: transparent !important; color: var(--text-primary); border: none !important; outline: none !important; box-shadow: none !important; }
 .module-filter-select { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-light); }
 .am-header { background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); color: var(--text-muted); }
 .am-row { border-bottom: 1px solid var(--border-light); }
@@ -6335,6 +6335,295 @@ body.dark-mode .compliance-pill-badge.pill-danger {
   color: #fee2e2 !important;
   border: 1px solid #ef4444 !important;
 }
+
+/* ==========================================================================
+   GLOBAL VIEWPORT CONTAINMENT & UNIVERSAL 3-TIER ARCHITECTURE
+   ========================================================================== */
+
+/* 1. Viewport Containment: Generous Breathing Room (max-width 1600px, 32px 48px padding) */
+.gcal-main-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.view-container {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
+
+.view-container.active {
+  display: flex !important;
+  flex: 1;
+  min-height: 0;
+}
+
+.module-viewport-containment {
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .module-viewport-containment {
+    padding: 20px 24px;
+  }
+}
+
+/* 2. Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) */
+.module-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 0 0 6px 0 !important;
+  background: transparent !important;
+  border-bottom: none !important;
+  margin: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.module-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.module-breadcrumb {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-copper, #c2410c);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.module-title {
+  font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.module-subtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* 3. Tier 2: Navigation / Action Row (Flexbox: Sub-Nav Left, Primary Actions Right) */
+.module-tier2-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 0 12px 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 4px;
+}
+
+.module-nav-tabs,
+.admin-subnav,
+.compliance-subnav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.module-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Standardized Sub-Nav Tab Buttons across all modules */
+.module-subnav-btn,
+.compliance-subnav-btn,
+.admin-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.module-subnav-btn:hover,
+.compliance-subnav-btn:hover,
+.admin-subnav-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card, #ffffff);
+  border-color: var(--border-strong);
+}
+
+.module-subnav-btn.active,
+.compliance-subnav-btn.active,
+.admin-subnav-btn.active {
+  color: #ffffff !important;
+  background: var(--accent-copper, #c2410c) !important;
+  border-color: var(--accent-copper, #c2410c) !important;
+}
+
+.module-subnav-btn .material-symbols-outlined,
+.compliance-subnav-btn .material-symbols-outlined,
+.admin-subnav-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* 4. Tier 3: The Toolbelt (Unified Filter Bar - Full Width with Soft Solid Background) */
+.module-tier3-toolbelt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #F8FAFC;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* Toolbelt Search on Left: Transparent Input + Magnifying Glass, Zero Ugly Borders */
+.toolbelt-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 260px;
+  max-width: 480px;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.toolbelt-search-wrap .material-symbols-outlined,
+.toolbelt-search-wrap svg {
+  color: var(--text-muted, #94a3b8);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toolbelt-search-wrap input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  width: 100%;
+  padding: 6px 0;
+}
+
+.toolbelt-search-wrap input::placeholder {
+  color: var(--text-muted, #94a3b8);
+  opacity: 0.85;
+}
+
+/* Toolbelt Filters on Right */
+.toolbelt-filters-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.toolbelt-filters-wrap select.module-filter-select,
+.toolbelt-filters-wrap select.scheduler-filter-select {
+  height: 36px;
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+/* Universal suppression of ugly HTML borders on all search inputs */
+.search-input-wrap input,
+.toolbelt-search-wrap input,
+input[type="search"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Dark Mode Theme Support for 3-Tier Architecture */
+[data-theme="dark"] .module-tier3-toolbelt,
+body.dark-mode .module-tier3-toolbelt {
+  background: #242729 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .module-subnav-btn,
+body.dark-mode .module-subnav-btn {
+  background: #181B1D;
+  border-color: #3D4543;
+  color: #B0B8C1;
+}
+
+[data-theme="dark"] .module-subnav-btn:hover,
+body.dark-mode .module-subnav-btn:hover {
+  background: #242729;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .module-subnav-btn.active,
+body.dark-mode .module-subnav-btn.active {
+  background: var(--accent-copper, #c2410c) !important;
+  border-color: var(--accent-copper, #c2410c) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .toolbelt-search-wrap input,
+body.dark-mode .toolbelt-search-wrap input {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .toolbelt-search-wrap input::placeholder,
+body.dark-mode .toolbelt-search-wrap input::placeholder {
+  color: #64748b !important;
+}
+
+/* Hide legacy redundant toolbar inside calendar body */
+.day-scheduler-root > .day-scheduler-toolbar {
+  display: none !important;
+}
+
 
 
 
