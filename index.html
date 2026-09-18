@@ -7,7 +7,7 @@
   <meta name="description" content="ELEVAT.ion — Smart scheduling and dispatch command platform for heavy plant and mobile cranes.">
   <meta property="og:title" content="ELEVAT.ion">
   <meta property="og:description" content="ELEVAT.ion — Smart scheduling and dispatch command platform for heavy plant and mobile cranes.">
-  <link rel="icon" type="image/png" href="ion-crane-badge.png">
+  <link rel="icon" type="image/png" href="ion-cad-plant-transparent.png">
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Google Material Symbols & Icons CDN -->
@@ -83,6 +83,7 @@
 
       const targetViewId = viewMap[tab] || 'scheduler-view';
       const targetNavId = navMap[tab] || 'nav-scheduler';
+      window.currentActiveModule = tab;
 
       const viewEl = document.getElementById(targetViewId);
       const navEl = document.getElementById(targetNavId);
@@ -93,6 +94,13 @@
       }
       if (navEl) {
         navEl.classList.add('active');
+      }
+
+      const drawer = document.getElementById('control-drawer');
+      if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open'))) {
+        if (typeof window.renderDrawerContext === 'function') {
+          window.renderDrawerContext(tab);
+        }
       }
 
       if (typeof window._appSwitchTab === 'function') {
@@ -109,36 +117,9 @@
       <button class="gcal-icon-btn" onclick="toggleSidebarRail()" title="Toggle Navigation Rail">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;" title="ELEVAT.ion — Smart Scheduling for Construction & Cranes">
-        <div class="elevation-crane-icon">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- 3-Axle All-Terrain Crane Wheels -->
-            <circle cx="8" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
-            <circle cx="8" cy="25" r="1" fill="#FFFFFF"/>
-            <circle cx="15" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
-            <circle cx="15" cy="25" r="1" fill="#FFFFFF"/>
-            <circle cx="22" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
-            <circle cx="22" cy="25" r="1" fill="#FFFFFF"/>
-            
-            <!-- Carrier Chassis Deck -->
-            <path d="M4 21h22l2-3.5H9L6 21H4z" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.25" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linejoin="round"/>
-            
-            <!-- Front Driver Cab & Windshield -->
-            <path d="M19 17.5v-4h4.5l2.5 4H19z" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.4" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M21 14.5l1.8 3h-3.8v-3h2z" fill="#FFFFFF" fill-opacity="0.7"/>
-
-            <!-- Slew Turret / Counterweight -->
-            <rect x="5.5" y="15" width="4.5" height="4" rx="1" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.2"/>
-
-            <!-- Angled Telescopic Boom with Highlight -->
-            <line x1="9" y1="16.5" x2="25" y2="5.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="2.8" stroke-linecap="round"/>
-            <line x1="12" y1="14.2" x2="25" y2="5.5" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity="0.9"/>
-            
-            <!-- Sheave Head, Cable & Crane Hook -->
-            <circle cx="25" cy="5.5" r="1.8" fill="var(--ion-cyan, #00ADEF)"/>
-            <line x1="25" y1="7.3" x2="25" y2="13" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.4"/>
-            <path d="M23.5 13h3a1.5 1.5 0 0 1 1.5 1.5c0 1.2-1 2-2 2s-1.8-.8-1.8-1.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-          </svg>
+      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;display:flex;align-items:center;gap:10px;" title="ELEVAT.ion — Smart Scheduling for Construction & Cranes">
+        <div class="elevation-crane-icon" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(0,173,239,0.08);flex-shrink:0;">
+          <img src="ion-cad-plant-transparent.png" alt="ELEVAT.ion" class="elevation-brand-img" style="width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));" referrerPolicy="no-referrer">
         </div>
         <span class="elevation-brand-name">
           <span class="brand-elevat">ELEVAT</span><span class="brand-dot">.</span><span class="brand-ion">ion</span>
@@ -1485,14 +1466,15 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="booking-modal">
+<div class="modal-overlay" id="new-booking-modal">
 <div class="modal-box smart-booking-modal-box">
+<form id="booking-form" style="display:flex;flex-direction:column;max-height:90vh;height:100%;overflow:hidden;margin:0;">
 <div class="modal-header">
   <div>
     <div class="modal-eyebrow">SCHEDULER // DISPATCH ENGINE</div>
     <h2 id="modal-title">Smart Booking &amp; Allocation</h2>
   </div>
-  <button class="modal-close" onclick="closeModal()" aria-label="Close modal"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>
+  <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close modal"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>
 </div>
 <input id="booking-id" type="hidden"/>
 
@@ -1533,33 +1515,49 @@
     <div id="existing-client-section">
       <div class="form-row">
         <div class="form-group">
-          <label for="booking-client-select">Select Client</label>
+          <label for="booking-client-name">Client Name *</label>
+          <input id="booking-client-name" name="clientName" list="client-datalist" placeholder="e.g. Multiplex" type="text" autocomplete="off" required />
+          <datalist id="client-datalist">
+            <option value="Multiplex">Multiplex</option>
+            <option value="Multiplex Constructions">Multiplex Constructions</option>
+            <option value="ADCO Constructions">ADCO Constructions</option>
+            <option value="CPB Contractors">CPB Contractors</option>
+            <option value="Lendlease Group">Lendlease Group</option>
+            <option value="Downer Group">Downer Group</option>
+            <option value="Fulton Hogan">Fulton Hogan</option>
+            <option value="Hutchinson Builders">Hutchinson Builders</option>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label for="booking-client-select">Or Quick Select Existing Client</label>
           <select id="booking-client-select" onchange="onClientSelectChange()">
             <option value="">-- Choose Corporate Client --</option>
           </select>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label for="booking-project-select">Select Project</label>
           <select id="booking-project-select" onchange="onProjectSelectChange()">
             <option value="">-- Choose Project --</option>
           </select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label for="booking-site-select">Select Site Location</label>
           <select id="booking-site-select" onchange="onSiteSelectChange()">
             <option value="">-- Choose Site Location --</option>
           </select>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label for="booking-site-contact">Site Contact &amp; Direct Phone</label>
           <input id="booking-site-contact" placeholder="Select project to auto-fill contact" type="text"/>
         </div>
-      </div>
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="booking-site-address">Site Address (Auto-filled)</label>
-        <input id="booking-site-address" placeholder="Select project to auto-fill address" type="text"/>
+        <div class="form-group">
+          <label for="booking-site-address">Site Address (Auto-filled)</label>
+          <input id="booking-site-address" placeholder="Select project to auto-fill address" type="text"/>
+        </div>
       </div>
     </div>
 
@@ -1605,7 +1603,7 @@
     <div class="form-row">
       <div class="form-group">
         <label for="booking-asset">Asset Selection</label>
-        <select id="booking-asset" onchange="onAssetSelectChange()"><!-- populated by JS --></select>
+        <select id="booking-asset" name="assetId" onchange="onAssetSelectChange()"><!-- populated by JS --></select>
       </div>
       <div class="form-group">
         <label for="booking-hire-type">Hire Type</label>
@@ -1639,18 +1637,18 @@
       </div>
       <div class="form-group">
         <label for="booking-date">Job Date</label>
-        <input id="booking-date" type="date"/>
+        <input id="booking-date" name="date" type="date" required />
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label for="booking-start">Start Time</label>
-        <input id="booking-start" type="time" value="07:00"/>
+        <input id="booking-start" name="startTime" type="time" value="07:00" required />
       </div>
       <div class="form-group">
         <label for="booking-end">Finish Time</label>
-        <input id="booking-end" type="time" value="15:00"/>
+        <input id="booking-end" name="endTime" type="time" value="15:00" required />
       </div>
     </div>
 
@@ -1671,7 +1669,7 @@
       <div class="form-row" id="crew-selectors-row" style="margin-top:10px;">
         <div class="form-group" id="operator-select-group">
           <label for="booking-wet-operator">Allocated Crane Operator (HRWL)</label>
-          <select id="booking-wet-operator">
+          <select id="booking-wet-operator" name="operatorId">
             <option value="">-- Select Operator --</option>
           </select>
         </div>
@@ -1746,10 +1744,11 @@
 </div>
 
 <div class="modal-footer">
-  <button class="btn-secondary" id="delete-btn" onclick="deleteBooking()" style="display:none;color:#ef4444;border-color:#ef4444;">Delete Booking</button>
-  <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-  <button class="btn-primary smart-submit-btn" id="save-booking-btn" onclick="saveBooking()">Create Booking</button>
+  <button type="button" class="btn-secondary" id="delete-btn" onclick="deleteBooking()" style="display:none;color:#ef4444;border-color:#ef4444;">Delete Booking</button>
+  <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+  <button type="submit" class="btn-primary smart-submit-btn" id="save-booking-btn">Create Booking</button>
 </div>
+</form>
 </div>
 </div>
 <div class="modal-overlay" id="client-ledger-modal">
@@ -2130,8 +2129,8 @@
   <!-- Drawer Header -->
   <div class="control-drawer-header">
     <div class="control-drawer-title-wrap">
-      <span class="material-symbols-outlined control-drawer-icon">tune</span>
-      <h3 class="control-drawer-title">Controls &amp; Filters</h3>
+      <span class="material-symbols-outlined control-drawer-icon" id="control-drawer-icon">tune</span>
+      <h3 class="control-drawer-title" id="control-drawer-title">Controls &amp; Filters</h3>
     </div>
     <button class="control-drawer-close" id="control-drawer-close" data-action="close-controls-drawer" onclick="closeControlDrawer()" title="Close Controls Drawer (Esc)" aria-label="Close">
       <span class="material-symbols-outlined">close</span>
@@ -2139,7 +2138,7 @@
   </div>
 
   <!-- Drawer Body: Vertically Stacked Controls with Clear Labels -->
-  <div class="control-drawer-body">
+  <div class="control-drawer-body" id="control-drawer-body">
 
     <!-- 1. Grid Zoom Control Group (At Top of Drawer) -->
     <div class="drawer-section">

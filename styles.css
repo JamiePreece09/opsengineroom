@@ -7466,7 +7466,8 @@ body.dark-mode .drawer-search-wrap input {
 /* ==========================================================================
    DYNAMIC CSS VARIABLE GRID ZOOM LOGIC
    ========================================================================== */
-:root {
+:root,
+.scheduler-grid {
   --grid-hour-height: 80px;
 }
 

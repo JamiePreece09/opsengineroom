@@ -16,7 +16,12 @@ window.complianceState = window.complianceState || {
   vaultSort: { column: 'title', direction: 'asc' },
   fleetFilter: { query: '', status: 'ALL' },
   workerFilter: { query: '', status: 'ALL' },
-  vaultFilter: { query: '', category: 'ALL' }
+  vaultFilter: { query: '', category: 'ALL' },
+  auditScope: 'ALL', // 'ALL' or 'CRITICAL'
+  craneSafeDue: 'ALL', // 'ALL', 'EXPIRED', '30_DAYS', '60_DAYS', '90_DAYS', 'VALID'
+  regoDue: 'ALL', // 'ALL', 'EXPIRED', '30_DAYS', '90_DAYS', 'VALID'
+  hrwlClass: 'ALL', // 'ALL', 'C1', 'C6', 'C2', 'CN', 'CO', 'DG', 'RIGGING'
+  verificationStatus: 'ALL' // 'ALL', 'Valid', 'Expiring Soon', 'Expired'
 };
 
 // Default Australian Compliance Dates Reference (Current Baseline: September 2026)
@@ -430,7 +435,13 @@ function renderComplianceFleetTable() {
 
   const fleet = window.ionConfig.fleetRegistry || [];
   const q = (window.complianceState.fleetFilter.query || '').toLowerCase().trim();
-  const filterStatus = window.complianceState.fleetFilter.status || 'ALL';
+  const filterStatus = window.complianceState.verificationStatus !== 'ALL' 
+    ? window.complianceState.verificationStatus 
+    : (window.complianceState.fleetFilter.status || 'ALL');
+  const auditScope = window.complianceState.auditScope || 'ALL';
+  const craneSafeFilter = window.complianceState.craneSafeDue || 'ALL';
+  const regoFilter = window.complianceState.regoDue || 'ALL';
+  const today = new Date('2026-09-18');
 
   let filtered = fleet.filter(item => {
     const id = (item.id || '').toLowerCase();
@@ -443,6 +454,32 @@ function renderComplianceFleetTable() {
     let matchesStatus = true;
     if (filterStatus !== 'ALL') {
       matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    // Audit Scope
+    if (auditScope === 'CRITICAL') {
+      if (status !== 'Expired' && status !== 'Expiring Soon') return false;
+    }
+
+    // CraneSafe Filter
+    if (craneSafeFilter !== 'ALL' && item.craneSafeDue && item.craneSafeDue !== 'N/A') {
+      const csDate = new Date(item.craneSafeDue);
+      const diffDays = Math.ceil((csDate - today) / (1000 * 60 * 60 * 24));
+      if (craneSafeFilter === 'EXPIRED' && diffDays >= 0) return false;
+      if (craneSafeFilter === '30_DAYS' && (diffDays < 0 || diffDays > 30)) return false;
+      if (craneSafeFilter === '60_DAYS' && (diffDays < 0 || diffDays > 60)) return false;
+      if (craneSafeFilter === '90_DAYS' && (diffDays < 0 || diffDays > 90)) return false;
+      if (craneSafeFilter === 'VALID' && diffDays <= 90) return false;
+    }
+
+    // Road Registration Filter
+    if (regoFilter !== 'ALL' && item.roadRegoExpiry && !item.roadRegoExpiry.includes('N/A')) {
+      const rDate = new Date(item.roadRegoExpiry);
+      const diffDays = Math.ceil((rDate - today) / (1000 * 60 * 60 * 24));
+      if (regoFilter === 'EXPIRED' && diffDays >= 0) return false;
+      if (regoFilter === '30_DAYS' && (diffDays < 0 || diffDays > 30)) return false;
+      if (regoFilter === '90_DAYS' && (diffDays < 0 || diffDays > 90)) return false;
+      if (regoFilter === 'VALID' && diffDays <= 30) return false;
     }
 
     return matchesSearch && matchesStatus;
@@ -549,12 +586,17 @@ function renderCompliancePersonnelTable() {
 
   const workers = window.ionConfig.workerRegistry || [];
   const q = (window.complianceState.workerFilter.query || '').toLowerCase().trim();
-  const filterStatus = window.complianceState.workerFilter.status || 'ALL';
+  const filterStatus = window.complianceState.verificationStatus !== 'ALL'
+    ? window.complianceState.verificationStatus
+    : (window.complianceState.workerFilter.status || 'ALL');
+  const auditScope = window.complianceState.auditScope || 'ALL';
+  const hrwlFilter = window.complianceState.hrwlClass || 'ALL';
 
   let filtered = workers.filter(worker => {
     const name = (worker.name || '').toLowerCase();
     const role = (worker.role || '').toLowerCase();
-    const hrwl = (worker.licenseClass || worker.hrwlClass || '').toLowerCase();
+    const rawHrwl = (worker.licenseClass || worker.hrwlClass || '');
+    const hrwl = rawHrwl.toLowerCase();
 
     const matchesSearch = !q || name.includes(q) || role.includes(q) || hrwl.includes(q);
 
@@ -562,6 +604,21 @@ function renderCompliancePersonnelTable() {
     let matchesStatus = true;
     if (filterStatus !== 'ALL') {
       matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    // Audit Scope Filter
+    if (auditScope === 'CRITICAL') {
+      if (status !== 'Expired' && status !== 'Expiring Soon') return false;
+    }
+
+    // HRWL Licence Class Filter
+    if (hrwlFilter !== 'ALL') {
+      if (hrwlFilter === 'RIGGING') {
+        const isRigging = rawHrwl.includes('RB') || rawHrwl.includes('RI') || rawHrwl.includes('RA') || hrwl.includes('rigg');
+        if (!isRigging) return false;
+      } else {
+        if (!rawHrwl.includes(hrwlFilter)) return false;
+      }
     }
 
     return matchesSearch && matchesStatus;
@@ -880,6 +937,11 @@ function auditAssetPrompt(assetId) {
   renderComplianceFleetTable();
   // Also re-render Dashboard to update counters, cards, and telemetry table
   renderComplianceDashboard();
+  if (typeof window.renderAllViews === 'function') {
+    window.renderAllViews();
+  } else if (typeof window.renderExecutiveDashboard === 'function') {
+    window.renderExecutiveDashboard();
+  }
 }
 window.auditAssetPrompt = auditAssetPrompt;
 
@@ -913,6 +975,11 @@ function verifyWorkerPrompt(workerId) {
     renderCompliancePersonnelTable();
     // Also re-render Dashboard to update counters, cards, and telemetry table
     renderComplianceDashboard();
+    if (typeof window.renderAllViews === 'function') {
+      window.renderAllViews();
+    } else if (typeof window.renderExecutiveDashboard === 'function') {
+      window.renderExecutiveDashboard();
+    }
   }
 }
 window.verifyWorkerPrompt = verifyWorkerPrompt;

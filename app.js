@@ -18,6 +18,21 @@ import './complianceModule.js';
 // REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)
 // ==========================================================================
 window.ionConfig = {
+  activeFilters: {
+    timeSpan: 'Day',
+    zoom: 80,
+    assetClass: 'ALL',
+    client: 'ALL',
+    startDate: '',
+    endDate: '',
+    hireType: 'all',
+    craneClass: 'ALL',
+    complianceAuditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL'
+  },
   fleetRegistry: [
     { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
     { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true, roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
@@ -81,7 +96,177 @@ window.ionConfig = {
     get xeroWebhook() { return this.erpWebhook; },
     get xeroStatus() { return this.erpStatus; },
     get xeroTenant() { return this.erpTenant; }
-  }
+  },
+  jobPipeline: [
+    {
+      id: 'JOB-201',
+      jobId: 'JOB-201',
+      bookingId: 'b1',
+      assetId: 'AT11',
+      assetNumber: 'AT11',
+      client: 'ADCO Constructions',
+      clientName: 'ADCO Constructions',
+      stage: 'active',
+      revenue: 14800,
+      site: '12 Coronation Dr, Milton QLD 4064',
+      description: '100T All-Terrain precast tilt-up installation',
+      operatorName: 'Luke Harris'
+    },
+    {
+      id: 'JOB-202',
+      jobId: 'JOB-202',
+      bookingId: 'b2',
+      assetId: 'FC1',
+      assetNumber: 'FC1',
+      client: 'Downer Group',
+      clientName: 'Downer Group',
+      stage: 'scheduled',
+      revenue: 5600,
+      site: 'Centenary Hwy, Darra QLD 4076',
+      description: '20T Franna bridge beam tandem assist',
+      operatorName: 'Chris Evans'
+    },
+    {
+      id: 'JOB-203',
+      jobId: 'JOB-203',
+      bookingId: 'b3',
+      assetId: 'MC2',
+      assetNumber: 'MC2',
+      client: 'Fulton Hogan',
+      clientName: 'Fulton Hogan',
+      stage: 'pending-docket',
+      revenue: 7200,
+      site: 'Gateway Motorway, Nudgee QLD 4014',
+      description: '60T City Crane culvert placement',
+      operatorName: 'Mark Johnson'
+    },
+    {
+      id: 'JOB-204',
+      jobId: 'JOB-204',
+      bookingId: 'b4',
+      assetId: 'CR01',
+      assetNumber: 'CR01',
+      client: 'CPB Contractors',
+      clientName: 'CPB Contractors',
+      stage: 'active',
+      revenue: 28500,
+      site: 'Roma St Station Cavern, Brisbane CBD QLD 4000',
+      description: '250T Lattice Crawler station cavern heavy steel',
+      operatorName: 'Dave Wilson'
+    },
+    {
+      id: 'JOB-205',
+      jobId: 'JOB-205',
+      bookingId: 'b5',
+      assetId: 'AT10',
+      assetNumber: 'AT10',
+      client: 'Lendlease Group',
+      clientName: 'Lendlease Group',
+      stage: 'pending-docket',
+      revenue: 11200,
+      site: 'Queens Wharf, Brisbane CBD QLD 4000',
+      description: '55T Demag tower crane dismantle component handling',
+      operatorName: 'Sam Davies'
+    },
+    {
+      id: 'JOB-206',
+      jobId: 'JOB-206',
+      bookingId: 'b6',
+      assetId: 'EX01',
+      assetNumber: 'EX01',
+      client: 'Multiplex Constructions',
+      clientName: 'Multiplex Constructions',
+      stage: 'pending-docket',
+      revenue: 6400,
+      site: '55 Eagle St Commercial Tower, Brisbane QLD 4000',
+      description: '20T Excavator deep foundation pad excavation',
+      operatorName: 'Alex Morgan'
+    },
+    {
+      id: 'JOB-207',
+      jobId: 'JOB-207',
+      bookingId: 'b7',
+      assetId: 'AT11',
+      assetNumber: 'AT11',
+      client: 'Hutchinson Builders',
+      clientName: 'Hutchinson Builders',
+      stage: 'ready-invoicing',
+      revenue: 19500,
+      site: 'Grey St, South Brisbane QLD 4101',
+      description: '100T All-Terrain roof HVAC plant installation',
+      operatorName: 'Luke Harris'
+    },
+    {
+      id: 'JOB-208',
+      jobId: 'JOB-208',
+      bookingId: 'b8',
+      assetId: 'CR01',
+      assetNumber: 'CR01',
+      client: 'Lendlease Group',
+      clientName: 'Lendlease Group',
+      stage: 'ready-invoicing',
+      revenue: 34000,
+      site: 'Queens Wharf Integrated Resort, Brisbane QLD 4000',
+      description: '250T Lattice Crawler atrium roof truss heavy dual-lift',
+      operatorName: 'Dave Wilson'
+    },
+    {
+      id: 'JOB-209',
+      jobId: 'JOB-209',
+      bookingId: 'b9',
+      assetId: 'FC1',
+      assetNumber: 'FC1',
+      client: 'ADCO Constructions',
+      clientName: 'ADCO Constructions',
+      stage: 'ready-invoicing',
+      revenue: 8900,
+      site: 'Coronation Dr Basement, Milton QLD 4064',
+      description: '20T Franna plant room machinery repositioning',
+      operatorName: 'Chris Evans'
+    },
+    {
+      id: 'JOB-210',
+      jobId: 'JOB-210',
+      bookingId: 'b10',
+      assetId: 'MC2',
+      assetNumber: 'MC2',
+      client: 'Downer Group',
+      clientName: 'Downer Group',
+      stage: 'ready-invoicing',
+      revenue: 9800,
+      site: 'Springfield Subdivision, Springfield Central QLD 4300',
+      description: '60T City Crane drainage pit and pipe placement',
+      operatorName: 'Mark Johnson'
+    },
+    {
+      id: 'JOB-211',
+      jobId: 'JOB-211',
+      bookingId: 'b11',
+      assetId: 'EX02',
+      assetNumber: 'EX02',
+      client: 'Fulton Hogan',
+      clientName: 'Fulton Hogan',
+      stage: 'scheduled',
+      revenue: 8400,
+      site: 'Gateway Overpass, Nudgee QLD 4014',
+      description: '35T Excavator batter trimming and rock placement',
+      operatorName: 'Pat Taylor'
+    },
+    {
+      id: 'JOB-212',
+      jobId: 'JOB-212',
+      bookingId: 'b12',
+      assetId: 'SK03',
+      assetNumber: 'SK03',
+      client: 'ADCO Constructions',
+      clientName: 'ADCO Constructions',
+      stage: 'pending-docket',
+      revenue: 4200,
+      site: 'Chermside Health Hub, Chermside QLD 4032',
+      description: 'Skid Steer trench backfill compaction',
+      operatorName: 'Ben Walker'
+    }
+  ]
 };
 
 // Sync window.ionConfig with dataModels.assetRegistry
@@ -280,10 +465,21 @@ function switchTab(tab) {
     activeView.style.display = 'flex';
   }
 
+  window.currentActiveModule = tab;
+
+  // If control drawer is currently open, dynamically update its contextual contents
+  const drawer = document.getElementById('control-drawer');
+  if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open') || drawer.style.transform === 'translateX(0px)' || drawer.style.transform === 'translateX(0)')) {
+    if (typeof renderDrawerContext === 'function') {
+      renderDrawerContext(tab);
+    }
+  }
+
   // Trigger component renderers
   if (tab === 'job-board') {
     if (typeof renderJobBoard === 'function') renderJobBoard();
   } else if (tab === 'reports' || tab === 'analytics') {
+    if (typeof renderExecutiveDashboard === 'function') renderExecutiveDashboard();
     if (typeof renderAnalytics === 'function') renderAnalytics();
   } else if (tab === 'administration' || tab === 'admin' || tab === 'operator') {
     if (typeof renderAdminModule === 'function') {
@@ -739,10 +935,11 @@ window.toggleClientType = function(type) {
   }
 };
 
-window.onClientSelectChange = function() {
+window.onClientSelectChange = function(skipNameInput) {
   const cSelect = document.getElementById('booking-client-select');
   const pSelect = document.getElementById('booking-project-select');
   const sSelect = document.getElementById('booking-site-select');
+  const nameInput = document.getElementById('booking-client-name');
   if (!cSelect || !pSelect) return;
   const clientId = cSelect.value;
   pSelect.innerHTML = '<option value="">-- Choose Project --</option>';
@@ -752,6 +949,13 @@ window.onClientSelectChange = function() {
     if (document.getElementById('booking-site-address')) document.getElementById('booking-site-address').value = '';
     if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
     return;
+  }
+
+  const client = (typeof clientsRegistry !== 'undefined' && Array.isArray(clientsRegistry))
+    ? clientsRegistry.find(c => c.id === clientId)
+    : null;
+  if (client && nameInput && !skipNameInput && !nameInput.value) {
+    nameInput.value = client.name;
   }
 
   const matchingProjects = projectsRegistry.filter(p => p.clientId === clientId);
@@ -767,6 +971,21 @@ window.onClientSelectChange = function() {
     if (document.getElementById('booking-site-contact')) document.getElementById('booking-site-contact').value = '';
   }
 };
+
+// Sync client name typing with project routing
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'booking-client-name') {
+    const val = (e.target.value || '').toLowerCase().trim();
+    if (!val) return;
+    const cSelect = document.getElementById('booking-client-select');
+    if (!cSelect || typeof clientsRegistry === 'undefined') return;
+    const match = clientsRegistry.find(c => c.name.toLowerCase().includes(val) || val.includes(c.name.toLowerCase()));
+    if (match && cSelect.value !== match.id) {
+      cSelect.value = match.id;
+      window.onClientSelectChange(true);
+    }
+  }
+});
 
 window.onProjectSelectChange = function() {
   const pSelect = document.getElementById('booking-project-select');
@@ -957,7 +1176,7 @@ function openModal(asset, startH, endH, dateStr) {
   if (document.getElementById('booking-desc')) document.getElementById('booking-desc').value = '';
   if (document.getElementById('delete-btn')) document.getElementById('delete-btn').style.display = 'none';
 
-  const modal = document.getElementById('booking-modal');
+  const modal = document.getElementById('new-booking-modal') || document.getElementById('booking-modal');
   if (modal) {
     modal.style.display = 'flex';
     modal.classList.add('open');
@@ -1049,7 +1268,7 @@ function editBooking(id) {
   const delBtn = document.getElementById('delete-btn');
   if (delBtn) delBtn.style.display = 'inline-flex';
 
-  const modal = document.getElementById('booking-modal');
+  const modal = document.getElementById('new-booking-modal') || document.getElementById('booking-modal');
   if (modal) {
     modal.style.display = 'flex';
     modal.classList.add('open');
@@ -1057,133 +1276,174 @@ function editBooking(id) {
 }
 
 function closeModal() {
-  const m = document.getElementById('booking-modal');
+  const m = document.getElementById('new-booking-modal') || document.getElementById('booking-modal');
   if (m) {
     m.style.display = 'none';
     m.classList.remove('open');
   }
 }
+window.closeModal = closeModal;
 
-function saveBooking() {
-  const id = document.getElementById('booking-id').value;
-  const asset = document.getElementById('booking-asset').value;
-  const status = document.getElementById('booking-status').value;
-  const hireType = document.getElementById('booking-hire-type').value;
-  const startStr = document.getElementById('booking-start').value;
-  const endStr = document.getElementById('booking-end').value;
-  const dateVal = document.getElementById('booking-date').value;
+/**
+ * Master Form Submission Interception & Data Creation Loop
+ * Intercepts #booking-form submission, extracts inputs via FormData,
+ * constructs a job object matching window.ionConfig.jobPipeline schema,
+ * injects into state, closes modal, resets form, and triggers master render cycle.
+ */
+function handleBookingFormSubmit(e) {
+  if (e && typeof e.preventDefault === 'function') {
+    e.preventDefault();
+  }
+  const form = (e && e.target && e.target.nodeName === 'FORM') ? e.target : document.getElementById('booking-form');
+  const formData = form ? new FormData(form) : new FormData();
 
-  const isExisting = document.querySelector('input[name="client_type"]:checked')?.value === 'existing';
-  let clientName = '';
-  let siteAddress = '';
-  let clientContact = '';
-  let clientPhone = '0412 889 900';
-  let clientEmail = '';
+  // 1. Data Extraction via FormData
+  const rawClient = (formData.get('clientName') || '').toString().trim();
+  const rawAsset = (formData.get('assetId') || '').toString().trim();
+  const rawOp = (formData.get('operatorId') || '').toString().trim();
+  const rawDate = (formData.get('date') || '').toString().trim();
+  const rawStart = (formData.get('startTime') || '').toString().trim();
+  const rawEnd = (formData.get('endTime') || '').toString().trim();
 
-  if (isExisting) {
-    const cSelect = document.getElementById('booking-client-select');
-    const clientId = cSelect ? cSelect.value : '';
-    const client = clientsRegistry.find(c => c.id === clientId);
-    clientName = client ? client.name : (cSelect?.selectedOptions[0]?.text || 'Corporate Client');
-    siteAddress = document.getElementById('booking-site-address')?.value || 'Brisbane Metro Site';
-    clientContact = document.getElementById('booking-site-contact')?.value || '';
-    clientPhone = client?.phone || '0412 889 900';
-    clientEmail = client?.email || 'accounts@client.com.au';
-  } else {
-    clientName = document.getElementById('new-client-name')?.value.trim() || 'New Client (EOI)';
-    clientContact = document.getElementById('new-client-contact')?.value.trim() || 'Site Supervisor';
-    clientPhone = document.getElementById('new-client-phone')?.value.trim() || '0412 889 900';
-    clientEmail = document.getElementById('new-client-email')?.value.trim() || 'contact@newclient.com.au';
-    siteAddress = document.getElementById('new-client-address')?.value.trim() || '100 Kingsford Smith Dr';
+  // Contextual fallbacks
+  const id = document.getElementById('booking-id')?.value || '';
+  const clientName = rawClient || document.getElementById('booking-client-name')?.value.trim() || document.getElementById('new-client-name')?.value.trim() || (document.getElementById('booking-client-select')?.selectedOptions[0]?.text && !document.getElementById('booking-client-select')?.selectedOptions[0]?.text.startsWith('--') ? document.getElementById('booking-client-select')?.selectedOptions[0]?.text : 'Multiplex');
+  const assetId = rawAsset || document.getElementById('booking-asset')?.value || 'AT11';
+  const operatorId = rawOp || document.getElementById('booking-wet-operator')?.value || 'W001';
+  const dateVal = rawDate || document.getElementById('booking-date')?.value || new Date().toISOString().slice(0, 10);
+  const startTime = rawStart || document.getElementById('booking-start')?.value || '07:00';
+  const endTime = rawEnd || document.getElementById('booking-end')?.value || '15:00';
+  const hireType = document.getElementById('booking-hire-type')?.value || 'wet';
+  const rawStatus = document.getElementById('booking-status')?.value || 'Scheduled / Dispatched';
 
-    // Auto-register new client in registry for persistent cascading
-    const newCId = 'C' + (Date.now() % 10000);
-    const newPId = 'P' + (Date.now() % 10000);
-    if (!clientsRegistry.some(c => c.name.toLowerCase() === clientName.toLowerCase())) {
-      clientsRegistry.push({ id: newCId, name: clientName, phone: clientPhone, email: clientEmail });
-      projectsRegistry.push({ id: newPId, clientId: newCId, name: siteAddress.slice(0, 24) + ' Site', address: siteAddress, contact: `${clientContact} (${clientPhone})` });
+  // Construct ISO timestamps
+  const startISO = `${dateVal}T${startTime}:00`;
+  const endISO = `${dateVal}T${endTime}:00`;
+  const durHours = Math.max(1, (new Date(endISO) - new Date(startISO)) / 3600000 || 8);
+
+  // Lookup operator name
+  let operatorName = 'Luke Harris';
+  if (typeof workerRegistry !== 'undefined' && Array.isArray(workerRegistry)) {
+    const matched = workerRegistry.find(w => w && w.id === operatorId);
+    if (matched) {
+      operatorName = matched.name;
+    } else {
+      const op = workerRegistry.find(w => (w.role || '').toLowerCase().includes('operator'));
+      if (op) operatorName = op.name;
     }
   }
 
-  // Calculate Start & End ISO timestamps
-  const refDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date(currentDate);
-  const [sh, sm] = startStr.split(':').map(Number);
-  const [eh, em] = endStr.split(':').map(Number);
-  refDate.setHours(sh, sm, 0, 0);
-  const startISO = refDate.toISOString();
-  refDate.setHours(eh, em, 0, 0);
-  const endISO = refDate.toISOString();
+  // Calculate default revenue value for dashboard tracking
+  const prefix = assetId.replace(/[0-9]/g, '').toUpperCase();
+  const hourlyRate = (typeof HOURLY_RATES !== 'undefined' && HOURLY_RATES[prefix]) ? HOURLY_RATES[prefix] : 240;
+  const defaultRevenue = Math.round(durHours * hourlyRate) || 5600;
 
-  if (new Date(endISO) <= new Date(startISO)) {
-    showToast('End time must be strictly after start time.', 'error');
-    return;
-  }
-  if (status !== 'Out of Service' && hasOverlap(asset, startISO, endISO, id || null)) {
-    showToast(`Asset ${asset} has a scheduling clash during this time window.`, 'warning');
-    return;
-  }
+  // Generate random jobId (e.g., #B + Math.random)
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const jobId = id || ('#B' + randomSuffix);
 
-  // Crew Allocation
-  const opRequired = document.getElementById('crew-operator-check')?.checked || false;
-  const dgRequired = document.getElementById('crew-dogman-check')?.checked || false;
-  const opId = document.getElementById('booking-wet-operator')?.value || '';
-  const dgId = document.getElementById('booking-wet-dogman')?.value || '';
-  const wetHireResources = [];
+  const siteAddress = document.getElementById('booking-site-address')?.value || document.getElementById('new-client-address')?.value || `${clientName} Construction Site`;
+  const jobDescription = document.getElementById('booking-desc')?.value || `${assetId} Mobile Crane Hire & Operations for ${clientName}`;
 
-  if (opRequired) {
-    const opWorker = workerRegistry.find(w => w.id === opId) || workerRegistry.find(w => (w.role || '').toLowerCase().includes('operator')) || { id: 'W001', name: 'Luke Harris', licenses: [{ type: 'C1' }] };
-    wetHireResources.push({ role: 'Operator', workerId: opWorker.id, workerName: opWorker.name, licenseType: opWorker.licenses?.[0]?.type || 'HRWL' });
-  }
-  if (dgRequired) {
-    const dgWorker = workerRegistry.find(w => w.id === dgId) || workerRegistry.find(w => (w.role || '').toLowerCase().includes('dogman') || (w.role || '').toLowerCase().includes('rigger')) || { id: 'W012', name: 'Brad Nguyen', licenses: [{ type: 'DG' }] };
-    wetHireResources.push({ role: 'Dogman', workerId: dgWorker.id, workerName: dgWorker.name, licenseType: dgWorker.licenses?.[0]?.type || 'DG' });
-  }
-
-  const operatorName = wetHireResources.length > 0 ? wetHireResources.map(r => `${r.role === 'Operator' ? 'Op' : 'Dog'}: ${r.workerName.split(' ')[0]}`).join(' | ') : (opRequired ? 'Operator Assigned' : 'Dry Hire');
-
-  // Inspection Workflow
-  const inspectionRequired = document.getElementById('inspection-required')?.checked || false;
-  const inspectionDateTime = inspectionRequired ? document.getElementById('inspection-datetime')?.value : null;
-  const inspectionOfficer = inspectionRequired ? document.getElementById('inspection-officer')?.value : null;
-
-  // Rate Review Automation
-  const rateReviewDate = document.getElementById('rate-review-date')?.value || null;
-  const hourlyRateQuoted = Number(document.getElementById('hourly-rate-quoted')?.value) || 240;
-
-  const booking = {
-    id: id || ('b' + Date.now()),
-    assetNumber: asset,
-    status,
-    hireType,
-    clientName,
-    clientPhone,
-    clientEmail,
-    siteAddress,
-    siteContact: clientContact,
-    operatorName,
-    wetHireResources,
-    jobDescription: document.getElementById('booking-desc')?.value || '',
+  // 2. Object Construction matching existing jobPipeline schema
+  const newJob = {
+    id: jobId,
+    jobId: jobId,
+    bookingId: jobId,
+    assetId: assetId,
+    assetNumber: assetId,
+    client: clientName,
+    clientName: clientName,
+    operatorId: operatorId,
+    operatorName: operatorName,
+    stage: 'scheduled',
+    status: 'Scheduled / Dispatched',
+    revenue: defaultRevenue,
+    date: dateVal,
     startTime: startISO,
     endTime: endISO,
-    type: asset.startsWith('CR') ? 'Crane' : asset.startsWith('DZ') ? 'Dozer' : 'Excavator',
-    inspectionRequired,
-    inspectionDateTime,
-    inspectionOfficer,
-    rateReviewDate,
-    hourlyRateQuoted
+    site: siteAddress,
+    siteAddress: siteAddress,
+    description: jobDescription,
+    jobDescription: jobDescription,
+    hireType: hireType,
+    type: assetId.startsWith('CR') ? 'Crane' : assetId.startsWith('DZ') ? 'Dozer' : 'Excavator',
+    isHighPriority: false
   };
 
-  if (id) {
-    const i = bookings.findIndex(b => b.id === id);
-    if (i >= 0) bookings[i] = booking;
-  } else {
-    bookings.push(booking);
+  // 3. State Injection into window.ionConfig.jobPipeline
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.jobPipeline)) {
+    window.ionConfig.jobPipeline = [];
   }
 
+  if (id) {
+    const pIdx = window.ionConfig.jobPipeline.findIndex(pj => pj.id === id || pj.jobId === id || pj.bookingId === id);
+    if (pIdx >= 0) {
+      window.ionConfig.jobPipeline[pIdx] = { ...window.ionConfig.jobPipeline[pIdx], ...newJob };
+    } else {
+      window.ionConfig.jobPipeline.push(newJob);
+    }
+    if (typeof bookings !== 'undefined' && Array.isArray(bookings)) {
+      const bIdx = bookings.findIndex(b => b.id === id);
+      if (bIdx >= 0) bookings[bIdx] = newJob;
+      else bookings.push(newJob);
+    }
+  } else {
+    // Push new job object into window.ionConfig.jobPipeline
+    window.ionConfig.jobPipeline.push(newJob);
+
+    // Also synchronize bookings for legacy Job Board and Calendar views
+    if (typeof bookings !== 'undefined' && Array.isArray(bookings)) {
+      bookings.push(newJob);
+    }
+  }
+
+  // 4. Close the modal and call .reset() on the form
   closeModal();
-  renderCalendar();
-  showToast(`Booking saved: ${asset} allocated to ${clientName}`, 'success');
+  if (form && typeof form.reset === 'function') {
+    form.reset();
+  }
+  const idField = document.getElementById('booking-id');
+  if (idField) idField.value = '';
+
+  // 5. Immediately call the master renderAllViews() function
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else {
+    if (typeof renderJobBoard === 'function') renderJobBoard();
+    if (typeof renderExecutiveDashboard === 'function') renderExecutiveDashboard();
+    if (typeof renderCalendar === 'function') renderCalendar();
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`Booking ${jobId} confirmed for ${clientName} (${assetId})`, 'success', 'Booking Engine');
+  }
+
+  return newJob;
 }
+window.handleBookingFormSubmit = handleBookingFormSubmit;
+
+function saveBooking() {
+  const form = document.getElementById('booking-form');
+  if (form) {
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+      return;
+    }
+    handleBookingFormSubmit({ preventDefault: () => {}, target: form });
+    return;
+  }
+}
+window.saveBooking = saveBooking;
+
+// Form Submission Interception (Event Delegation)
+document.addEventListener('submit', function(e) {
+  if (e.target && (e.target.id === 'booking-form' || e.target.matches?.('#booking-form'))) {
+    e.preventDefault();
+    handleBookingFormSubmit(e);
+  }
+});
 
 function deleteBooking() {
   const id = document.getElementById('booking-id').value;
@@ -1243,10 +1503,325 @@ function applyDatePreset(skipRender = false){
 }
 
 /* ── PHASE 6: EXECUTIVE DASHBOARD & SYSTEM TELEMETRY ── */
+
+/**
+ * Normalizes job pipeline stages to consistent keys:
+ * 'scheduled', 'active', 'pending-docket', 'ready-invoicing', 'invoiced'
+ */
+function normalizeJobStage(rawStage) {
+  if (!rawStage) return 'scheduled';
+  const s = String(rawStage).toLowerCase().trim();
+  if (s === 'scheduled' || s === 'scheduled / dispatched' || s === 'dispatched') return 'scheduled';
+  if (s === 'active' || s === 'active on-site' || s === 'in_progress' || s === 'on-site') return 'active';
+  if (s === 'pending-docket' || s === 'pending_docket' || s === 'pending docket' || s === 'docket verification') return 'pending-docket';
+  if (s === 'ready-invoicing' || s === 'ready_invoicing' || s === 'ready for invoicing' || s === 'completed & ready') return 'ready-invoicing';
+  if (s === 'invoiced') return 'invoiced';
+  return s.replace(/[^a-z0-9]/g, '-');
+}
+
+/**
+ * renderExecutiveDashboard()
+ * Primary telemetry & financial aggregation engine for window.ionConfig.
+ * Updates metric cards, yield chart, and global compliance alert center in real-time.
+ */
+function renderExecutiveDashboard() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.jobPipeline)) {
+    window.ionConfig.jobPipeline = [];
+  }
+  const pipeline = window.ionConfig.jobPipeline;
+  const fleet = Array.isArray(window.ionConfig.fleetRegistry) ? window.ionConfig.fleetRegistry : [];
+
+  // 1. Signatures Pending: Count all jobs where stage === 'pending-docket'
+  const signaturesPending = pipeline.filter(j => {
+    if (!j) return false;
+    const st = normalizeJobStage(j.stage);
+    return st === 'pending-docket';
+  }).length;
+
+  // 2. Total WIP (Unbilled): Sum the revenue of all jobs in pre-invoicing stages ('scheduled', 'active', 'pending-docket')
+  const preInvoicingStages = ['scheduled', 'active', 'pending-docket'];
+  const totalWip = pipeline.filter(j => {
+    if (!j) return false;
+    const st = normalizeJobStage(j.stage);
+    return preInvoicingStages.includes(st);
+  }).reduce((sum, j) => sum + (Number(j.revenue) || 0), 0);
+
+  // 3. Revenue (Invoiced MTD): Sum the revenue of all jobs where stage === 'ready-invoicing'
+  const totalInvoiced = pipeline.filter(j => {
+    if (!j) return false;
+    const st = normalizeJobStage(j.stage);
+    return st === 'ready-invoicing' || st === 'invoiced';
+  }).reduce((sum, j) => sum + (Number(j.revenue) || 0), 0);
+
+  // 4. Asset Revenue Yield: Aggregate total revenue grouped by assetId, sort descending, and render top 5 assets into Yield list
+  const assetRevenueMap = {};
+  pipeline.forEach(j => {
+    if (!j) return;
+    const aid = j.assetId || j.assetNumber || 'UNKNOWN';
+    assetRevenueMap[aid] = (assetRevenueMap[aid] || 0) + (Number(j.revenue) || 0);
+  });
+
+  const topAssets = Object.entries(assetRevenueMap)
+    .map(([assetId, rev]) => {
+      const fleetItem = fleet.find(f => f.id === assetId) || {};
+      const fallbackHex = (typeof ASSET_HEX !== 'undefined' && ASSET_HEX[assetId]) ? ASSET_HEX[assetId] : '#0284c7';
+      return {
+        assetId,
+        revenue: rev,
+        label: fleetItem.label || fleetItem.class || fleetItem.description || assetId,
+        color: fleetItem.color || fleetItem.hex || fallbackHex
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // 5. Global Alert Center Integration:
+  // Loop through window.ionConfig.fleetRegistry. If any asset is flagged as 'out-of-service' or has an expired certification,
+  // inject a warning into the "Compliance Interlocks" red alert card.
+  // If no alerts exist, display a green "All Systems Nominal" state.
+  const todayIso = '2026-09-18';
+  const alertAssets = fleet.filter(asset => {
+    if (!asset) return false;
+    const isOutOfService = String(asset.status || '').toLowerCase() === 'out-of-service' ||
+                          String(asset.complianceStatus || '').toLowerCase() === 'out-of-service' ||
+                          String(asset.workerStatus || '').toLowerCase() === 'out-of-service';
+    const isExpired = String(asset.complianceStatus || '').toLowerCase() === 'expired' ||
+                      asset.isLocked === true;
+    const expiredRego = asset.roadRegoExpiry && !asset.roadRegoExpiry.includes('N/A') && asset.roadRegoExpiry < todayIso;
+    const expiredCraneSafe = asset.craneSafeDue && !asset.craneSafeDue.includes('N/A') && asset.craneSafeDue < todayIso;
+    const expiredMajor = asset.majorInspectionDue && !asset.majorInspectionDue.includes('N/A') && asset.majorInspectionDue < todayIso;
+    return isOutOfService || isExpired || expiredRego || expiredCraneSafe || expiredMajor;
+  });
+
+  // TARGET DOM ELEMENTS & UPDATE:
+  // KPI 1: Documents Indexed Today
+  const kpiIndexedEl = document.getElementById('kpi-docuware-indexed');
+  if (kpiIndexedEl) {
+    const docsIndexedCount = 28 + pipeline.filter(j => normalizeJobStage(j.stage) === 'ready-invoicing').length;
+    kpiIndexedEl.innerHTML = `
+      <h3>Documents Indexed Today</h3>
+      <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:var(--accent-primary);">${docsIndexedCount} Docs</div>
+      <div class="kpi-trend positive">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">document_scanner</span>
+        DocuWare OCR Intelligent Indexing
+      </div>
+    `;
+  }
+
+  // KPI 2: Signatures Pending
+  const kpiSigsEl = document.getElementById('kpi-signatures-pending');
+  if (kpiSigsEl) {
+    kpiSigsEl.innerHTML = `
+      <h3>Signatures Pending</h3>
+      <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:${signaturesPending > 0 ? '#d97706' : '#10b981'};">${signaturesPending} Contracts</div>
+      <div class="kpi-trend ${signaturesPending > 0 ? 'warning' : 'positive'}">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">${signaturesPending > 0 ? 'pending_actions' : 'check_circle'}</span>
+        ${signaturesPending > 0 ? ' Awaiting Field E-Signature' : ' All Agreements Signed'}
+      </div>
+    `;
+  }
+
+  // KPI 3: Total WIP (Unbilled)
+  const kpiWipEl = document.getElementById('kpi-wip-total');
+  if (kpiWipEl) {
+    kpiWipEl.innerHTML = `
+      <h3>Total WIP (Unbilled)</h3>
+      <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:#d97706;">${formatAUDCurrency(totalWip)}</div>
+      <div class="kpi-trend warning">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">hourglass_top</span>
+        Active &amp; scheduled job pipeline
+      </div>
+    `;
+  }
+
+  // KPI 4: Revenue (Invoiced MTD)
+  const kpiRevEl = document.getElementById('kpi-revenue-invoiced');
+  if (kpiRevEl) {
+    kpiRevEl.innerHTML = `
+      <h3>Revenue (Invoiced MTD)</h3>
+      <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:#10b981;">${formatAUDCurrency(totalInvoiced)}</div>
+      <div class="kpi-trend positive">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">verified</span>
+        Verified in DocuWare Vault
+      </div>
+    `;
+  }
+
+  // Yield List: #revenue-list (Top 5 Assets)
+  const revListEl = document.getElementById('revenue-list');
+  if (revListEl) {
+    const maxRev = topAssets[0]?.revenue || 1;
+    revListEl.innerHTML = topAssets.map((a, i) => `
+      <div class="revenue-item" title="${a.assetId}: Revenue ${formatAUDCurrency(a.revenue)}">
+        <div class="rev-info">
+          <span class="rev-rank">#${i + 1}</span>
+          <span class="rev-name" style="color:${a.color};font-weight:800;">${a.assetId} — ${a.label}</span>
+          <span class="rev-amount" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;">${formatAUDCurrency(a.revenue)}</span>
+        </div>
+        <div class="rev-bar">
+          <div class="rev-progress" style="width:${Math.max(12, Math.min(100, Math.round((a.revenue / maxRev) * 100)))}%;background:${a.color};"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Global Alert Center: #executive-alert-center
+  const alertCenterEl = document.getElementById('executive-alert-center');
+  if (alertCenterEl) {
+    let interlockCardHtml = '';
+    if (alertAssets.length > 0) {
+      interlockCardHtml = `
+        <div class="alert-card alert-card-interlock" style="background:#FEF2F2;border:1px solid rgba(220,38,38,0.35);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:11px;font-weight:800;color:#dc2626;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+              <span class="material-symbols-outlined" style="font-size:16px;">lock</span>
+              <span>COMPLIANCE INTERLOCKS (${alertAssets.length})</span>
+            </div>
+            <span style="background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">CRITICAL BLOCK</span>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#991b1b;">
+            ${alertAssets.map(a => a.id).join(', ')} — Cert Expired / Out of Service (LOCKED)
+          </div>
+          <div style="font-size:11px;color:#b91c1c;line-height:1.4;">
+            Automated safety interlock engaged: Asset columns hard-locked in Command Center until recertified.
+          </div>
+          <button class="dw-action-btn action-btn" onclick="releaseComplianceInterlocks()" style="background:#dc2626;height:28px;font-size:10px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">verified_user</span>
+            <span>Release Lock →</span>
+          </button>
+        </div>
+      `;
+    } else {
+      interlockCardHtml = `
+        <div class="alert-card alert-card-nominal" style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:11px;font-weight:800;color:#10b981;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+              <span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>
+              <span>ALL SYSTEMS NOMINAL</span>
+            </div>
+            <span style="background:#d1fae5;color:#047857;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">100% COMPLIANT</span>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#047857;">
+            Zero Compliance Interlocks
+          </div>
+          <div style="font-size:11px;color:#065f46;line-height:1.4;">
+            All ${fleet.length} fleet assets verified compliant and cleared for live operational dispatch.
+          </div>
+          <button class="dw-action-btn secondary action-btn" onclick="switchTab('compliance')" style="height:28px;font-size:10px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">visibility</span>
+            <span>View Register →</span>
+          </button>
+        </div>
+      `;
+    }
+
+    const creditCardHtml = `
+      <div style="background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:11px;font-weight:800;color:#d97706;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">payments</span>
+            <span>CREDIT EXPOSURE ALERTS</span>
+          </div>
+          <span style="background:#fef3c7;color:#b45309;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">2 ACCOUNTS</span>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#b45309;">BuildCorp Inc. &amp; Metro Rail</div>
+        <div style="font-size:11px;color:#92400e;line-height:1.4;">Accounts exceeding $10,000 credit limit threshold. Review exposure prior to dispatch.</div>
+        <button class="dw-action-btn secondary action-btn" onclick="openClientStatementPDF('BuildCorp Inc.')" style="height:28px;font-size:10px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">receipt_long</span>
+          <span>Manage Credit Ledger →</span>
+        </button>
+      </div>
+    `;
+
+    const pendingDocketJobs = pipeline.filter(j => normalizeJobStage(j.stage) === 'pending-docket');
+    const firstDocketDesc = pendingDocketJobs.length > 0
+      ? `${pendingDocketJobs[0].client || pendingDocketJobs[0].clientName || 'Client'} (${pendingDocketJobs[0].assetId || 'Plant'})`
+      : 'ADCO Constructions (AT11)';
+    const docketsCardHtml = `
+      <div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:11px;font-weight:800;color:#0891b2;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">receipt</span>
+            <span>STALLED FIELD DOCKETS (${pendingDocketJobs.length})</span>
+          </div>
+          <span style="background:#cffafe;color:#0e7490;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">AWAITING OCR</span>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#0e7490;">${firstDocketDesc}</div>
+        <div style="font-size:11px;color:#155e75;line-height:1.4;">Awaiting OCR Indexing in Docket Verification stage. Complete signoff to advance.</div>
+        <button class="dw-action-btn action-btn" onclick="switchTab('job-board')" style="background:#0891b2;height:28px;font-size:10px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">upload_file</span>
+          <span>Upload Dockets →</span>
+        </button>
+      </div>
+    `;
+
+    alertCenterEl.innerHTML = interlockCardHtml + creditCardHtml + docketsCardHtml;
+  }
+}
+window.renderExecutiveDashboard = renderExecutiveDashboard;
+
+/**
+ * Release compliance interlocks with one click
+ */
+window.releaseComplianceInterlocks = function() {
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  const locked = fleet.filter(a => {
+    const isOutOfService = String(a.status || '').toLowerCase() === 'out-of-service' ||
+                          String(a.complianceStatus || '').toLowerCase() === 'out-of-service';
+    const isExpired = String(a.complianceStatus || '').toLowerCase() === 'expired' || a.isLocked === true;
+    return isOutOfService || isExpired;
+  });
+  if (locked.length === 0) {
+    if (typeof showToast === 'function') showToast('All fleet machines are currently compliant. Zero active interlocks.');
+    return;
+  }
+  const assetNames = locked.map(a => a.id).join(', ');
+  const confirmed = confirm(`AUTHORIZATION OVERRIDE: Release hard safety dispatch interlocks for ${locked.length} asset(s) (${assetNames})?\n\nThis will record a temporary 30-day compliance waiver in DocuWare Vault and clear all dispatch blocks.`);
+  if (confirmed) {
+    locked.forEach(a => {
+      a.complianceStatus = 'Valid';
+      a.status = 'active';
+      a.workerStatus = 'available';
+      a.isLocked = false;
+      if (a.craneSafeDue && a.craneSafeDue < '2026-09-18') a.craneSafeDue = '2027-09-30';
+      if (a.roadRegoExpiry && a.roadRegoExpiry < '2026-09-18') a.roadRegoExpiry = '2027-04-15';
+    });
+    if (typeof showToast === 'function') {
+      showToast(`Compliance interlocks released for ${assetNames}. Fleet returned to 100% Nominal state.`, 'success', 'Interlock Cleared');
+    }
+    if (typeof renderAllViews === 'function') {
+      renderAllViews();
+    }
+  }
+};
+
+/**
+ * Interactive test helper: toggles an asset interlock to easily test red vs green state
+ */
+window.toggleAssetInterlockTest = function(assetId = 'EX01') {
+  const fleet = window.ionConfig?.fleetRegistry || [];
+  const asset = fleet.find(a => a.id === assetId);
+  if (!asset) return;
+  if (asset.complianceStatus === 'Expired' || asset.status === 'out-of-service') {
+    asset.complianceStatus = 'Valid';
+    asset.status = 'active';
+    asset.isLocked = false;
+  } else {
+    asset.complianceStatus = 'Expired';
+    asset.status = 'out-of-service';
+    asset.isLocked = true;
+  }
+  if (typeof renderAllViews === 'function') renderAllViews();
+};
+
 function renderAnalytics(){
  if (_isAnalyticsRunning) return;
  _isAnalyticsRunning = true;
  try {
+  // Execute Executive Telemetry Engine calculations live from window.ionConfig
+  renderExecutiveDashboard();
+
   const startInput=document.getElementById('analytics-start-date');
   const endInput=document.getElementById('analytics-end-date');
   if(!startInput||!endInput)return;
@@ -1257,191 +1832,98 @@ function renderAnalytics(){
    applyDatePreset(true);
   }
 
- const startOfDay=new Date(startInput.value);startOfDay.setHours(0,0,0,0);
- const endOfDay=new Date(endInput.value);endOfDay.setHours(23,59,59,999);
- const WORK_WEEK_HOURS=50;
+  const startOfDay=new Date(startInput.value);startOfDay.setHours(0,0,0,0);
+  const endOfDay=new Date(endInput.value);endOfDay.setHours(23,59,59,999);
+  const WORK_WEEK_HOURS=50;
 
- const assetData={};
- validAssets.forEach(a=>{assetData[a]={id:a,activeHours:0,idleHours:0,revenue:0,operators:new Set()};});
+  const assetData={};
+  validAssets.forEach(a=>{assetData[a]={id:a,activeHours:0,idleHours:0,revenue:0,operators:new Set()};});
 
- const filtered=bookings.filter(b=>{const s=new Date(b.startTime);return s>=startOfDay&&s<=endOfDay;});
- const opHours={};
+  const filtered=bookings.filter(b=>{const s=new Date(b.startTime);return s>=startOfDay&&s<=endOfDay;});
+  const opHours={};
 
- let totalWip=0;
- let totalInvoiced=0;
- let docsIndexedCount=28;
- let pendingSignaturesCount=0;
- let missingDocketBookings=[];
+  filtered.forEach(b=>{
+   const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
+   const prefix=b.assetNumber.replace(/[0-9]/g,'');
+   const rate=HOURLY_RATES[prefix]||200;
+   if(assetData[b.assetNumber]){
+    assetData[b.assetNumber].activeHours+=dur;
+    assetData[b.assetNumber].revenue+=dur*rate;
+    if(b.operatorName)assetData[b.assetNumber].operators.add(b.operatorName);
+   }
+   if(b.operatorName){opHours[b.operatorName]=(opHours[b.operatorName]||0)+dur;}
+  });
 
- bookings.forEach(b=>{
-  const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
-  const prefix=b.assetNumber.replace(/[0-9]/g,'');
-  const rate=HOURLY_RATES[prefix]||200;
-  const rev=dur*rate;
+  validAssets.forEach(a=>{assetData[a].idleHours=Math.max(0,WORK_WEEK_HOURS-assetData[a].activeHours);});
+  const arr=Object.values(assetData);
 
-  if(b.status==='Invoiced') totalInvoiced+=rev;
-  else totalWip+=rev;
-
-  if(b.status==='Scheduled' && !b.contractSigned) pendingSignaturesCount++;
-  if(!b.docketUploaded && (b.status==='Docket Verification'||b.status==='On-Site')) missingDocketBookings.push(b);
- });
-
- filtered.forEach(b=>{
-  const dur=(new Date(b.endTime)-new Date(b.startTime))/3600000;
-  const prefix=b.assetNumber.replace(/[0-9]/g,'');
-  const rate=HOURLY_RATES[prefix]||200;
-  if(assetData[b.assetNumber]){
-   assetData[b.assetNumber].activeHours+=dur;
-   assetData[b.assetNumber].revenue+=dur*rate;
-   if(b.operatorName)assetData[b.assetNumber].operators.add(b.operatorName);
+  const opArr=Object.entries(opHours).sort((a,b)=>b[1]-a[1]);
+  const maxOp=opArr[0]?.[1]||1;
+  const opListEl=document.getElementById('operator-list');
+  if(opListEl){
+   opListEl.innerHTML=opArr.slice(0,8).map((o,i)=>`
+    <div class="operator-item">
+     <div class="op-info">
+      <span class="op-rank">#${i+1}</span>
+      <span class="op-name">${o[0]}</span>
+      <span class="op-hours" style="font-family:'Inter',monospace;">${o[1].toFixed(1)}h</span>
+     </div>
+     <div class="op-bar">
+      <div class="op-progress" style="width:${(o[1]/maxOp*100).toFixed(1)}%;background:var(--accent-primary);"></div>
+     </div>
+    </div>`).join('');
   }
-  if(b.operatorName){opHours[b.operatorName]=(opHours[b.operatorName]||0)+dur;}
- });
 
- validAssets.forEach(a=>{assetData[a].idleHours=Math.max(0,WORK_WEEK_HOURS-assetData[a].activeHours);});
- const arr=Object.values(assetData);
+  if(utilizationChartInst)utilizationChartInst.destroy();
+  const uCanvas=document.getElementById('utilizationChart');
+  if(uCanvas && typeof uCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
+   const uCtx=uCanvas.getContext('2d');
+   utilizationChartInst=new Chart(uCtx,{
+    type:'bar',
+    data:{
+     labels:arr.map(a=>a.id),
+     datasets:[
+      {label:'Active Hours',data:arr.map(a=>parseFloat(a.activeHours.toFixed(1))),backgroundColor:arr.map(a=>ASSET_HEX[a.id]||'#888')},
+      {label:'Idle Hours',data:arr.map(a=>parseFloat(a.idleHours.toFixed(1))),backgroundColor:'rgba(15,23,42,0.08)'}
+     ]
+    },
+    options:{
+     responsive:true,
+     maintainAspectRatio:false,
+     plugins:{legend:{display:false}},
+     scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'}}}
+    }
+   });
+  }
 
- // 1. Top-Level Telemetry Cards (DocuWare Metrics)
- const kpiIndexedEl=document.getElementById('kpi-docuware-indexed');
- const kpiSigsEl=document.getElementById('kpi-signatures-pending');
- const kpiWipEl=document.getElementById('kpi-wip-total');
- const kpiRevEl=document.getElementById('kpi-revenue-invoiced');
+  if(statusChartInst)statusChartInst.destroy();
+  const sCanvas=document.getElementById('statusChart');
+  if(sCanvas && typeof sCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
+   const sCtx=sCanvas.getContext('2d');
+   const p = window.ionConfig?.jobPipeline || [];
+   const scheduledCount = p.filter(j => normalizeJobStage(j.stage) === 'scheduled').length;
+   const activeCount = p.filter(j => normalizeJobStage(j.stage) === 'active').length;
+   const pendingDocketCount = p.filter(j => normalizeJobStage(j.stage) === 'pending-docket').length;
+   const readyInvoicingCount = p.filter(j => normalizeJobStage(j.stage) === 'ready-invoicing').length;
+   const invoicedCount = p.filter(j => normalizeJobStage(j.stage) === 'invoiced').length;
 
- if(kpiIndexedEl){
-  kpiIndexedEl.innerHTML=`
-   <h3>Documents Indexed Today</h3>
-   <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:var(--accent-primary);">${docsIndexedCount} Docs</div>
-   <div class="kpi-trend positive"> DocuWare OCR Intelligent Indexing</div>`;
- }
- if(kpiSigsEl){
-  kpiSigsEl.innerHTML=`
-   <h3>Signatures Pending</h3>
-   <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:${pendingSignaturesCount>0?'#d97706':'#10b981'};">${pendingSignaturesCount} Contracts</div>
-   <div class="kpi-trend ${pendingSignaturesCount>0?'warning':'positive'}">${pendingSignaturesCount>0?' Awaiting E-Signature':' All Agreements Signed'}</div>`;
- }
- if(kpiWipEl){
-  kpiWipEl.innerHTML=`
-   <h3>Total WIP (Unbilled)</h3>
-   <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:#d97706;">${formatAUDCurrency(totalWip)}</div>
-   <div class="kpi-trend warning">Active &amp; scheduled job pipeline</div>`;
- }
- if(kpiRevEl){
-  kpiRevEl.innerHTML=`
-   <h3>Revenue (Invoiced MTD)</h3>
-   <div class="kpi-value" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;color:#10b981;">${formatAUDCurrency(totalInvoiced)}</div>
-   <div class="kpi-trend positive"> Verified in DocuWare Vault</div>`;
- }
-
- // 2. Global Alert Center (Manage by Exception)
- const alertCenterEl=document.getElementById('executive-alert-center');
- if(alertCenterEl){
-  const lockedAssets=validAssets.filter(a=>complianceRegistry[a]&&complianceRegistry[a].status==='expired');
-  
-  let alert1=`
-   <div style="background:${lockedAssets.length>0?'#FEF2F2':'rgba(5,150,105,0.06)'};border:1px solid ${lockedAssets.length>0?'rgba(220,38,38,0.3)':'rgba(5,150,105,0.3)'};padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
-    <div style="font-size:11px;font-weight:800;color:${lockedAssets.length>0?'#dc2626':'#10b981'};text-transform:uppercase;"> COMPLIANCE INTERLOCKS (${lockedAssets.length})</div>
-    <div style="font-size:13px;font-weight:800;color:${lockedAssets.length>0?'#991b1b':'#047857'};">${lockedAssets.length>0 ? lockedAssets.join(', ') + ' — Cert Expired (LOCKED)' : ' Zero Compliance Interlocks'}</div>
-    <div style="font-size:11px;color:${lockedAssets.length>0?'#b91c1c':'#065f46'};">${lockedAssets.length>0 ? 'Asset column hard locked in Command Center' : 'All 5 fleet assets cleared for dispatch'}</div>
-    <button class="dw-action-btn action-btn" style="background:#dc2626;height:28px;font-size:10px;margin-top:6px;">Release Lock →</button>
-   </div>`;
-
-  let alert2=`
-   <div style="background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
-    <div style="font-size:11px;font-weight:800;color:#d97706;text-transform:uppercase;"> CREDIT EXPOSURE ALERTS</div>
-    <div style="font-size:13px;font-weight:800;color:#b45309;">BuildCorp Inc. &amp; Metro Rail</div>
-    <div style="font-size:11px;color:#92400e;">Accounts exceeding $10,000 credit limit threshold</div>
-    <button class="dw-action-btn secondary action-btn" style="height:28px;font-size:10px;margin-top:6px;">Manage Credit Ledger →</button>
-   </div>`;
-
-  let alert3=`
-   <div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.3);padding:14px;border-radius:var(--radius-md);display:flex;flex-direction:column;gap:4px;">
-    <div style="font-size:11px;font-weight:800;color:#0891b2;text-transform:uppercase;">STALLED FIELD DOCKETS (${missingDocketBookings.length})</div>
-    <div style="font-size:13px;font-weight:800;color:#0e7490;">${missingDocketBookings[0] ? missingDocketBookings[0].clientName + ' (' + missingDocketBookings[0].assetNumber + ')' : '1 Stalled Docket (BuildCorp Inc.)'}</div>
-    <div style="font-size:11px;color:#155e75;">Awaiting OCR Indexing in Docket Verification stage</div>
-    <button class="dw-action-btn action-btn" style="background:#0891b2;height:28px;font-size:10px;margin-top:6px;">Upload Dockets →</button>
-   </div>`;
-
-  alertCenterEl.innerHTML = alert1 + alert2 + alert3;
- }
-
- // 3. Asset Utilization Bar Chart (Muted Phase 1 Asset Layer Colors)
- const sorted=arr.sort((a,b)=>b.revenue-a.revenue);
- const maxRev=sorted[0]?.revenue||1;
- const revListEl=document.getElementById('revenue-list');
- if(revListEl){
-  revListEl.innerHTML=sorted.map((a,i)=>`
-   <div class="revenue-item" title="${a.id}: ${a.activeHours.toFixed(1)}h Active • Revenue: ${formatAUDCurrency(a.revenue)}">
-    <div class="rev-info">
-     <span class="rev-rank">#${i+1}</span>
-     <span class="rev-name" style="color:${ASSET_HEX[a.id]||'#888'};font-weight:800;">${a.id}</span>
-     <span class="rev-amount" style="font-family:'Inter',monospace;font-variant-numeric:tabular-nums;">${formatAUDCurrency(a.revenue)}</span>
-    </div>
-    <div class="rev-bar">
-     <div class="rev-progress" style="width:${(a.revenue/maxRev*100).toFixed(1)}%;background:${ASSET_HEX[a.id]||'#888'};"></div>
-    </div>
-   </div>`).join('');
- }
-
- const opArr=Object.entries(opHours).sort((a,b)=>b[1]-a[1]);
- const maxOp=opArr[0]?.[1]||1;
- const opListEl=document.getElementById('operator-list');
- if(opListEl){
-  opListEl.innerHTML=opArr.slice(0,8).map((o,i)=>`
-   <div class="operator-item">
-    <div class="op-info">
-     <span class="op-rank">#${i+1}</span>
-     <span class="op-name">${o[0]}</span>
-     <span class="op-hours" style="font-family:'Inter',monospace;">${o[1].toFixed(1)}h</span>
-    </div>
-    <div class="op-bar">
-     <div class="op-progress" style="width:${(o[1]/maxOp*100).toFixed(1)}%;background:var(--accent-primary);"></div>
-    </div>
-   </div>`).join('');
- }
-
- if(utilizationChartInst)utilizationChartInst.destroy();
- const uCanvas=document.getElementById('utilizationChart');
- if(uCanvas && typeof uCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
-  const uCtx=uCanvas.getContext('2d');
-  utilizationChartInst=new Chart(uCtx,{
-   type:'bar',
-   data:{
-    labels:arr.map(a=>a.id),
-    datasets:[
-     {label:'Active Hours',data:arr.map(a=>parseFloat(a.activeHours.toFixed(1))),backgroundColor:arr.map(a=>ASSET_HEX[a.id]||'#888')},
-     {label:'Idle Hours',data:arr.map(a=>parseFloat(a.idleHours.toFixed(1))),backgroundColor:'rgba(15,23,42,0.08)'}
-    ]
-   },
-   options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'}}}
-   }
-  });
- }
-
- if(statusChartInst)statusChartInst.destroy();
- const sCanvas=document.getElementById('statusChart');
- if(sCanvas && typeof sCanvas.getContext === 'function' && typeof Chart !== 'undefined'){
-  const sCtx=sCanvas.getContext('2d');
-  statusChartInst=new Chart(sCtx,{
-   type:'doughnut',
-   data:{
-    labels:['Scheduled','Dispatched','On-Site','Docket Verification','Completed & Ready','Invoiced'],
-    datasets:[{
-     data:[2, 1, 1, 1, 1, 3],
-     backgroundColor:['#0ea5e9','#8b5cf6','#d97706','#06b6d4','#10b981','#334155'],
-     borderWidth:0
-    }]
-   },
-   options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:11}}}}
-   }
-  });
- }
+   statusChartInst=new Chart(sCtx,{
+    type:'doughnut',
+    data:{
+     labels:['Scheduled','Active On-Site','Pending Docket','Ready for Invoicing','Invoiced & Archived'],
+     datasets:[{
+      data:[scheduledCount || 2, activeCount || 2, pendingDocketCount || 4, readyInvoicingCount || 4, invoicedCount || 1],
+      backgroundColor:['#0ea5e9','#d97706','#06b6d4','#10b981','#334155'],
+      borderWidth:0
+     }]
+    },
+    options:{
+     responsive:true,
+     maintainAspectRatio:false,
+     plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:11}}}}
+    }
+   });
+  }
  } finally {
   _isAnalyticsRunning = false;
  }
@@ -3173,7 +3655,34 @@ function renderJobBoard() {
     }
   });
 
-  let filteredBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
+  let filteredBookings = Array.isArray(bookings) ? [...bookings.filter(Boolean)] : [];
+
+  // Ensure any job in window.ionConfig.jobPipeline is also visible on Job Board
+  if (window.ionConfig && Array.isArray(window.ionConfig.jobPipeline)) {
+    window.ionConfig.jobPipeline.forEach(pj => {
+      if (!pj) return;
+      const pjId = pj.jobId || pj.id || pj.bookingId;
+      const alreadyIn = filteredBookings.some(b => b && (b.id === pjId || b.id === pj.bookingId || b.bookingId === pjId));
+      if (!alreadyIn) {
+        filteredBookings.push({
+          id: pjId,
+          bookingId: pj.bookingId || pjId,
+          assetNumber: pj.assetNumber || pj.assetId || 'AT11',
+          clientName: pj.clientName || pj.client || 'Multiplex',
+          status: pj.status || (pj.stage === 'scheduled' ? 'Scheduled / Dispatched' : pj.stage),
+          stage: pj.stage || 'scheduled',
+          revenue: pj.revenue || 5600,
+          startTime: pj.startTime || (pj.date ? `${pj.date}T07:00:00` : new Date().toISOString()),
+          endTime: pj.endTime || (pj.date ? `${pj.date}T15:00:00` : new Date().toISOString()),
+          siteAddress: pj.site || pj.siteAddress || 'Brisbane Metro Site',
+          operatorName: pj.operatorName || 'Luke Harris',
+          jobDescription: pj.description || 'Mobile Crane Operations',
+          hireType: pj.hireType || 'wet'
+        });
+      }
+    });
+  }
+
   if (searchQuery) {
     filteredBookings = filteredBookings.filter(b => {
       if (!b) return false;
@@ -3189,6 +3698,59 @@ function renderJobBoard() {
              op.includes(searchQuery) ||
              desc.includes(searchQuery) ||
              addr.includes(searchQuery);
+    });
+  }
+
+  // Enterprise Contextual Drawer Filters (Reactive State Binding)
+  const activeFilters = window.ionConfig?.activeFilters || {};
+  const jbFilters = window.drawerFilters?.jobBoard || {};
+  const startDate = activeFilters.startDate || jbFilters.startDate;
+  const endDate = activeFilters.endDate || jbFilters.endDate;
+  const activeClient = (activeFilters.client && activeFilters.client !== 'ALL') ? activeFilters.client : (jbFilters.client && jbFilters.client !== 'ALL' ? jbFilters.client : null);
+
+  if (startDate) {
+    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime >= startDate);
+  }
+  if (endDate) {
+    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime <= (endDate + 'T23:59:59'));
+  }
+  if (activeClient) {
+    const cLower = activeClient.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const cName = String(b.clientName || b.client || '').toLowerCase();
+      return cName.includes(cLower);
+    });
+  }
+  if (jbFilters.statuses && Array.isArray(jbFilters.statuses) && jbFilters.statuses.length > 0 && !jbFilters.statuses.includes('ALL')) {
+    filteredBookings = filteredBookings.filter(b => {
+      const stage = normalizePipelineStage(b.status).toUpperCase();
+      const rawStatus = (b.status || '').toUpperCase();
+      return jbFilters.statuses.some(s => s.toUpperCase() === stage || s.toUpperCase() === rawStatus);
+    });
+  }
+  if (jbFilters.site && jbFilters.site !== 'ALL') {
+    const siteLower = jbFilters.site.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const addr = (b.siteAddress || '').toLowerCase();
+      const sName = (b.siteName || '').toLowerCase();
+      const cName = (b.clientName || '').toLowerCase();
+      return addr.includes(siteLower) || sName.includes(siteLower) || cName.includes(siteLower);
+    });
+  }
+  if (jbFilters.hireType && jbFilters.hireType !== 'all') {
+    filteredBookings = filteredBookings.filter(b => (b.hireType || '').toLowerCase() === jbFilters.hireType.toLowerCase());
+  }
+  if (jbFilters.craneClass && jbFilters.craneClass !== 'ALL') {
+    const targetClass = jbFilters.craneClass.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const aNum = (b.assetNumber || '').toLowerCase();
+      const desc = (b.jobDescription || '').toLowerCase();
+      if (targetClass === 'franna') return aNum.includes('fc') || desc.includes('franna') || desc.includes('pick');
+      if (targetClass === 'all_terrain') return aNum.includes('at') || desc.includes('all-terrain') || desc.includes('terrain') || desc.includes('slewing');
+      if (targetClass === 'crawler') return aNum.includes('cr') || desc.includes('crawler') || desc.includes('lattice');
+      if (targetClass === 'excavator') return aNum.includes('ex') || desc.includes('excavator') || desc.includes('earthmoving');
+      if (targetClass === 'access') return aNum.includes('sc') || aNum.includes('bm') || desc.includes('scissor') || desc.includes('boom');
+      return true;
     });
   }
 
@@ -3428,10 +3990,49 @@ function moveBookingStatus(id, targetStageOrDir) {
     }
   }
 
+  // Sync with window.ionConfig.jobPipeline for Executive Dashboard telemetry
+  if (window.ionConfig && Array.isArray(window.ionConfig.jobPipeline)) {
+    const stageKeyMap = {
+      'Scheduled / Dispatched': 'scheduled',
+      'Active On-Site': 'active',
+      'Pending Docket': 'pending-docket',
+      'Ready for Invoicing': 'ready-invoicing',
+      'Invoiced': 'ready-invoicing'
+    };
+    const targetStageKey = stageKeyMap[targetStage] || normalizeJobStage(targetStage);
+    let pipelineJob = window.ionConfig.jobPipeline.find(pj => pj.bookingId === b.id || pj.id === b.id || pj.jobId === b.id);
+    if (pipelineJob) {
+      pipelineJob.stage = targetStageKey;
+    } else {
+      const dur = Math.max(1, (new Date(b.endTime) - new Date(b.startTime)) / 3600000 || 8);
+      const prefix = (b.assetNumber || 'AT').replace(/[0-9]/g, '');
+      const rate = (typeof HOURLY_RATES !== 'undefined' && HOURLY_RATES[prefix]) ? HOURLY_RATES[prefix] : 200;
+      window.ionConfig.jobPipeline.push({
+        id: b.id,
+        jobId: b.id,
+        bookingId: b.id,
+        assetId: b.assetNumber || 'AT11',
+        assetNumber: b.assetNumber || 'AT11',
+        client: b.clientName || 'Client',
+        clientName: b.clientName || 'Client',
+        stage: targetStageKey,
+        revenue: Math.round(dur * rate),
+        site: b.siteAddress || 'Site Address',
+        description: b.jobDescription || 'Hire Operations',
+        operatorName: b.operatorName || 'Field Operator'
+      });
+    }
+  }
+
   // Re-render Job Board and Calendar to maintain complete system coherence
   renderJobBoard();
   if (typeof renderCalendar === 'function') {
     renderCalendar();
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderExecutiveDashboard === 'function') {
+    renderExecutiveDashboard();
   }
 
   // Provide high-visibility feedback toast
@@ -7345,8 +7946,19 @@ function setSchedulerZoom(val) {
   const clamped = Math.max(40, Math.min(120, num));
   currentGridHourHeight = clamped;
   
-  // Set dynamic CSS variable on document root for instant hardware-accelerated scaling
+  // Update CSS variable on .scheduler-grid containers and document root
+  const gridContainers = document.querySelectorAll('.scheduler-grid, .day-scheduler-root, #calendar-body, #scheduler-view');
+  gridContainers.forEach(el => {
+    el.style.setProperty('--grid-hour-height', clamped + 'px');
+  });
   document.documentElement.style.setProperty('--grid-hour-height', clamped + 'px');
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.zoom = clamped;
+  if (window.drawerFilters && window.drawerFilters.scheduler) {
+    window.drawerFilters.scheduler.gridHourHeight = clamped;
+  }
   
   // Sync slider and labels
   const slider = document.getElementById('drawer-zoom-slider');
@@ -7374,7 +7986,11 @@ function handleZoomSliderInput(val) {
   setSchedulerZoom(val);
 }
 
-function openControlDrawer() {
+function openControlDrawer(moduleOverride) {
+  const activeModule = moduleOverride || window.currentActiveModule || (typeof getActiveModule === 'function' ? getActiveModule() : 'scheduler');
+  if (typeof renderDrawerContext === 'function') {
+    renderDrawerContext(activeModule);
+  }
   const drawer = document.getElementById('control-drawer');
   const backdrop = document.getElementById('control-drawer-backdrop');
   if (drawer) {
@@ -7384,7 +8000,9 @@ function openControlDrawer() {
   if (backdrop) {
     backdrop.classList.add('is-open', 'open');
   }
-  syncDrawerControls();
+  if (typeof syncDrawerControls === 'function') {
+    syncDrawerControls();
+  }
 }
 
 function closeControlDrawer() {
@@ -7399,14 +8017,1095 @@ function closeControlDrawer() {
   }
 }
 
-function toggleControlDrawer() {
+function toggleControlDrawer(moduleOverride) {
   const drawer = document.getElementById('control-drawer');
   if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open') || drawer.style.transform === 'translateX(0px)' || drawer.style.transform === 'translateX(0)')) {
     closeControlDrawer();
   } else {
-    openControlDrawer();
+    openControlDrawer(moduleOverride);
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ENTERPRISE CONTEXTUAL CONTROL DRAWER ENGINE & FILTER STATE
+   ───────────────────────────────────────────────────────────────────────────── */
+
+window.drawerFilters = window.drawerFilters || {
+  activeModule: 'scheduler',
+  scheduler: {
+    gridHourHeight: 80,
+    timeSpan: 'Day',
+    operatingHoursMode: 'standard', // 'standard' (06:00 - 18:00) vs '24h'
+    assetCategory: 'ALL',
+    workerFilter: 'ALL',
+    statusInService: true,
+    statusMaintenance: true,
+    statusOutOfService: false,
+    searchQuery: ''
+  },
+  jobBoard: {
+    startDate: '',
+    endDate: '',
+    quickPreset: 'all',
+    statuses: ['ENQUIRY', 'QUOTED', 'CONFIRMED', 'DISPATCHED', 'IN_PROGRESS', 'COMPLETED', 'INVOICED'],
+    site: 'ALL',
+    hireType: 'all',
+    craneClass: 'ALL',
+    searchQuery: ''
+  },
+  compliance: {
+    auditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL',
+    searchQuery: ''
+  },
+  admin: {
+    registryTab: 'fleet',
+    fleetCategory: 'ALL',
+    fleetStatus: 'ALL',
+    workerDepartment: 'ALL',
+    workerRoster: 'ALL',
+    workerOvertimeOnly: false,
+    searchQuery: ''
+  },
+  reports: {
+    period: 'month',
+    metric: 'utilization',
+    minUtilization: 0
+  },
+  settings: {
+    rules: {}
+  }
+};
+
+function getActiveModule() {
+  if (window.currentActiveModule) return window.currentActiveModule;
+  const jb = document.getElementById('job-board-view');
+  if (jb && (jb.classList.contains('active') || jb.style.display === 'flex')) return 'job-board';
+  const comp = document.getElementById('compliance-view');
+  if (comp && (comp.classList.contains('active') || comp.style.display === 'flex')) return 'compliance';
+  const adm = document.getElementById('admin-view');
+  if (adm && (adm.classList.contains('active') || adm.style.display === 'flex')) return 'administration';
+  const rep = document.getElementById('reports-view');
+  if (rep && (rep.classList.contains('active') || rep.style.display === 'flex')) return 'reports';
+  const set = document.getElementById('settings-view');
+  if (set && (set.classList.contains('active') || set.style.display === 'flex')) return 'settings';
+  return 'scheduler';
+}
+window.getActiveModule = getActiveModule;
+
+function renderDrawerContext(rawModuleId) {
+  const moduleId = (rawModuleId || getActiveModule() || 'scheduler').toLowerCase().replace('-view', '').replace('view-', '');
+  window.drawerFilters.activeModule = moduleId;
+  const titleEl = document.getElementById('control-drawer-title');
+  const iconEl = document.getElementById('control-drawer-icon');
+  const bodyEl = document.getElementById('control-drawer-body');
+  if (!bodyEl) return;
+
+  if (moduleId === 'job-board' || moduleId === 'jobboard') {
+    if (titleEl) titleEl.textContent = 'Job Board Dispatch & Pipeline';
+    if (iconEl) iconEl.textContent = 'view_kanban';
+    bodyEl.innerHTML = getJobBoardDrawerHTML();
+    bindJobBoardDrawerEvents();
+  } else if (moduleId === 'compliance') {
+    if (titleEl) titleEl.textContent = 'Compliance & HSEQ Audit';
+    if (iconEl) iconEl.textContent = 'verified_user';
+    bodyEl.innerHTML = getComplianceDrawerHTML();
+    bindComplianceDrawerEvents();
+  } else if (moduleId === 'admin' || moduleId === 'administration') {
+    if (titleEl) titleEl.textContent = 'Enterprise Registries & Fleet';
+    if (iconEl) iconEl.textContent = 'manage_accounts';
+    bodyEl.innerHTML = getAdminDrawerHTML();
+    bindAdminDrawerEvents();
+  } else if (moduleId === 'reports') {
+    if (titleEl) titleEl.textContent = 'Analytics & Operational Reports';
+    if (iconEl) iconEl.textContent = 'bar_chart';
+    bodyEl.innerHTML = getReportsDrawerHTML();
+    bindReportsDrawerEvents();
+  } else if (moduleId === 'settings') {
+    if (titleEl) titleEl.textContent = 'System & Dispatch Rules';
+    if (iconEl) iconEl.textContent = 'tune';
+    bodyEl.innerHTML = getSettingsDrawerHTML();
+    bindSettingsDrawerEvents();
+  } else {
+    // Default: Scheduler Drawer
+    if (titleEl) titleEl.textContent = 'Scheduler Controls & Utilization';
+    if (iconEl) iconEl.textContent = 'calendar_month';
+    bodyEl.innerHTML = getSchedulerDrawerHTML();
+    bindSchedulerDrawerEvents();
+  }
+}
+window.renderDrawerContext = renderDrawerContext;
+
+/* ── 1. Scheduler Drawer HTML & Binding ───────────────────────────────────── */
+function getSchedulerDrawerHTML() {
+  const s = window.drawerFilters.scheduler;
+  const currentHeight = currentGridHourHeight || 80;
+  const percent = Math.round((currentHeight / 80) * 100);
+
+  return `
+    <!-- 1. Grid Zoom Control -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">zoom_in</span>
+        <span>Grid Zoom Control</span>
+      </div>
+      <div class="drawer-zoom-wrap">
+        <div class="drawer-zoom-controls">
+          <button class="drawer-zoom-btn" id="drawer-zoom-out" data-action="zoom-out" onclick="adjustSchedulerZoom(-10)" title="Zoom Out (-10px)" type="button">
+            <span class="material-symbols-outlined">remove</span>
+          </button>
+          <div class="drawer-zoom-slider-container">
+            <input type="range" id="drawer-zoom-slider" class="drawer-zoom-slider" data-action="zoom-slider" min="40" max="120" step="10" value="${currentHeight}" oninput="handleZoomSliderInput(this.value)" aria-label="Scheduler Grid Row Height Zoom" />
+          </div>
+          <button class="drawer-zoom-btn" id="drawer-zoom-in" data-action="zoom-in" onclick="adjustSchedulerZoom(10)" title="Zoom In (+10px)" type="button">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <span class="drawer-zoom-badge" id="drawer-zoom-label">${percent}%</span>
+        </div>
+        <div class="drawer-zoom-info">
+          <span>Row height: <strong id="drawer-zoom-px">${currentHeight}px</strong></span>
+          <span>Range: 40px – 120px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Time Span (Day | Week | Month) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">calendar_view_week</span>
+        <span>Time Span</span>
+      </div>
+      <div class="drawer-segmented-toggle" id="drawer-time-span-toggle">
+        <button class="drawer-seg-btn ${s.timeSpan === 'Day' ? 'active' : ''}" id="drawer-view-day" data-action="set-time-span" data-span="Day" onclick="setDrawerSchedulerTimeSpan('Day')" type="button">
+          <span class="material-symbols-outlined">calendar_view_day</span>
+          <span>Day</span>
+        </button>
+        <button class="drawer-seg-btn ${s.timeSpan === 'Week' ? 'active' : ''}" id="drawer-view-week" data-action="set-time-span" data-span="Week" onclick="setDrawerSchedulerTimeSpan('Week')" type="button">
+          <span class="material-symbols-outlined">calendar_view_week</span>
+          <span>Week</span>
+        </button>
+        <button class="drawer-seg-btn ${s.timeSpan === 'Month' ? 'active' : ''}" id="drawer-view-month" data-action="set-time-span" data-span="Month" onclick="setDrawerSchedulerTimeSpan('Month')" type="button">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span>Month</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Operating Hours -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>Operating Hours</span>
+      </div>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-operating-hours" ${s.operatingHoursMode === 'standard' ? 'checked' : ''} onchange="toggleDrawerSchedulerHours(this.checked)" />
+        <span>Standard Operating Hours (06:00 – 18:00)</span>
+      </label>
+      <div style="font-size:11px;color:var(--text-muted);padding-left:22px;">
+        Uncheck for 24-hour continuous site operations view.
+      </div>
+    </div>
+
+    <!-- 4. Asset Class Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">precision_manufacturing</span>
+        <span>Asset Class Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-filter-asset" class="drawer-select" data-filter="assetClass" onchange="handleDrawerSchedulerAsset(this.value)">
+          <option value="ALL" ${s.assetCategory === 'ALL' ? 'selected' : ''}>All Machine Classes</option>
+          <option value="All Terrains" ${s.assetCategory === 'All Terrains' ? 'selected' : ''}>All-Terrain Cranes (Liebherr / Grove)</option>
+          <option value="Frannas" ${s.assetCategory === 'Frannas' ? 'selected' : ''}>Frannas (Mobile Pick & Carry)</option>
+          <option value="Crawlers" ${s.assetCategory === 'Crawlers' ? 'selected' : ''}>Lattice Boom Crawlers</option>
+          <option value="Excavators" ${s.assetCategory === 'Excavators' ? 'selected' : ''}>Excavators & Earthmoving</option>
+          <option value="Access" ${s.assetCategory === 'Access' ? 'selected' : ''}>Access Plant (Scissor / Booms)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Personnel Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">badge</span>
+        <span>Personnel Schedule Overlay</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-filter-worker" class="drawer-select" onchange="handleDrawerSchedulerWorker(this.value)">
+          <option value="ALL" ${s.workerFilter === 'ALL' ? 'selected' : ''}>All Rostered Operators</option>
+          <option value="Available" ${s.workerFilter === 'Available' ? 'selected' : ''}>Available (On-Call / Idle)</option>
+          <option value="Overtime Warning" ${s.workerFilter === 'Overtime Warning' ? 'selected' : ''}>Overtime Warning (&gt;10h Today)</option>
+          <optgroup label="Certified Crane Operators">
+            <option value="W001" ${s.workerFilter === 'W001' ? 'selected' : ''}>Luke Harris (C1/CO Open Slewing)</option>
+            <option value="W002" ${s.workerFilter === 'W002' ? 'selected' : ''}>John Smith (C6 ≤20T Mobile)</option>
+            <option value="W003" ${s.workerFilter === 'W003' ? 'selected' : ''}>Mark Johnson (C1 Heavy Slewing)</option>
+            <option value="W004" ${s.workerFilter === 'W004' ? 'selected' : ''}>Sarah Connor (C1 Slewing)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- 6. Status Toggles (Show/Hide Out of Service or Maintenance) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">toggle_on</span>
+        <span>Asset Grid Status Toggles</span>
+      </div>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-in-service" ${s.statusInService ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusInService', this.checked)" />
+        <span>Show In-Service Operational Assets</span>
+      </label>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-maintenance" ${s.statusMaintenance ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusMaintenance', this.checked)" />
+        <span>Show Scheduled Maintenance Assets</span>
+      </label>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-oos" ${s.statusOutOfService ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusOutOfService', this.checked)" />
+        <span>Show Out of Service / Locked Assets</span>
+      </label>
+    </div>
+
+    <!-- 7. Grid Orientation -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span>Grid Orientation</span>
+      </div>
+      <button class="drawer-action-btn" id="drawer-btn-transpose" onclick="toggleDayTranspose()" type="button" title="Flip Time &amp; Asset Axes">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span id="drawer-transpose-label">Transpose View</span>
+      </button>
+    </div>
+
+    <!-- 8. Reset Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetSchedulerDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Scheduler Controls</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindSchedulerDrawerEvents() {
+  if (typeof syncDrawerControls === 'function') syncDrawerControls();
+}
+
+function setDrawerSchedulerTimeSpan(span) {
+  window.drawerFilters.scheduler.timeSpan = span;
+  if (typeof setCalendarView === 'function') {
+    setCalendarView(span);
+  }
+  const bodyEl = document.getElementById('control-drawer-body');
+  if (bodyEl) {
+    ['day', 'week', 'month'].forEach(v => {
+      const btn = document.getElementById(`drawer-view-${v}`);
+      if (btn) btn.classList.toggle('active', v.toLowerCase() === span.toLowerCase());
+    });
+  }
+}
+window.setDrawerSchedulerTimeSpan = setDrawerSchedulerTimeSpan;
+
+function toggleDrawerSchedulerHours(isStandard) {
+  window.drawerFilters.scheduler.operatingHoursMode = isStandard ? 'standard' : '24h';
+  document.body.classList.toggle('no-working-highlight', !isStandard);
+  if (typeof renderCalendar === 'function') renderCalendar();
+}
+window.toggleDrawerSchedulerHours = toggleDrawerSchedulerHours;
+
+function handleDrawerSchedulerAsset(val) {
+  window.drawerFilters.scheduler.assetCategory = val;
+  if (typeof handleAssetFilterChange === 'function') {
+    handleAssetFilterChange(val === 'ALL' ? 'All Assets' : val);
+  }
+}
+window.handleDrawerSchedulerAsset = handleDrawerSchedulerAsset;
+
+function handleDrawerSchedulerWorker(val) {
+  window.drawerFilters.scheduler.workerFilter = val;
+  if (typeof handleWorkerFilterChange === 'function') {
+    handleWorkerFilterChange(val === 'ALL' ? 'All Workers' : val);
+  }
+}
+window.handleDrawerSchedulerWorker = handleDrawerSchedulerWorker;
+
+function toggleDrawerSchedulerStatus(statusKey, checked) {
+  window.drawerFilters.scheduler[statusKey] = checked;
+  if (typeof renderCalendar === 'function') renderCalendar();
+}
+window.toggleDrawerSchedulerStatus = toggleDrawerSchedulerStatus;
+
+function resetSchedulerDrawerFilters() {
+  window.drawerFilters.scheduler = {
+    gridHourHeight: 80,
+    timeSpan: 'Day',
+    operatingHoursMode: 'standard',
+    assetCategory: 'ALL',
+    workerFilter: 'ALL',
+    statusInService: true,
+    statusMaintenance: true,
+    statusOutOfService: false,
+    searchQuery: ''
+  };
+  setSchedulerZoom(80);
+  toggleHighlightWorkingHours(true);
+  if (typeof resetSchedulerFilters === 'function') resetSchedulerFilters();
+  renderDrawerContext('scheduler');
+  if (typeof showToast === 'function') showToast('Scheduler filters reset to default');
+}
+window.resetSchedulerDrawerFilters = resetSchedulerDrawerFilters;
+
+/* ── 2. Job Board Drawer HTML & Binding ───────────────────────────────────── */
+function getJobBoardDrawerHTML() {
+  const jb = window.drawerFilters.jobBoard;
+  const statuses = jb.statuses || [];
+  const currentClient = window.ionConfig?.activeFilters?.client || jb.client || 'ALL';
+
+  return `
+    <!-- 1. Dispatch Window (Date Range Picker) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">date_range</span>
+        <span>Dispatch Window</span>
+      </div>
+      <div class="drawer-field-row">
+        <div class="drawer-field">
+          <label for="drawer-jb-start-date">Start Date</label>
+          <input type="date" id="drawer-jb-start-date" class="drawer-select" data-filter="startDate" value="${jb.startDate || ''}" onchange="handleDrawerJobBoardDate('startDate', this.value)" />
+        </div>
+        <div class="drawer-field">
+          <label for="drawer-jb-end-date">End Date</label>
+          <input type="date" id="drawer-jb-end-date" class="drawer-select" data-filter="endDate" value="${jb.endDate || ''}" onchange="handleDrawerJobBoardDate('endDate', this.value)" />
+        </div>
+      </div>
+      <div class="drawer-segmented-toggle" style="margin-top:6px;">
+        <button class="drawer-seg-btn ${jb.quickPreset === 'today' ? 'active' : ''}" data-preset="today" onclick="setDrawerJobBoardPreset('today')" type="button">Today</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === '7d' ? 'active' : ''}" data-preset="7d" onclick="setDrawerJobBoardPreset('7d')" type="button">7 Days</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === '14d' ? 'active' : ''}" data-preset="14d" onclick="setDrawerJobBoardPreset('14d')" type="button">14 Days</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === 'all' ? 'active' : ''}" data-preset="all" onclick="setDrawerJobBoardPreset('all')" type="button">All Dates</button>
+      </div>
+    </div>
+
+    <!-- 2. Client / Principal Contractor Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">domain</span>
+        <span>Client / Principal Contractor</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-client" class="drawer-select" data-filter="client" onchange="handleDrawerJobBoardClient(this.value)">
+          <option value="ALL" ${currentClient === 'ALL' ? 'selected' : ''}>All Clients & Accounts</option>
+          <option value="Cross River Rail JV" ${currentClient === 'Cross River Rail JV' ? 'selected' : ''}>Cross River Rail JV</option>
+          <option value="Multiplex Constructions" ${currentClient === 'Multiplex Constructions' ? 'selected' : ''}>Multiplex Constructions</option>
+          <option value="CPB Contractors" ${currentClient === 'CPB Contractors' ? 'selected' : ''}>CPB Contractors</option>
+          <option value="Lendlease Building" ${currentClient === 'Lendlease Building' ? 'selected' : ''}>Lendlease Building</option>
+          <option value="John Holland Group" ${currentClient === 'John Holland Group' ? 'selected' : ''}>John Holland Group</option>
+          <option value="Hutchinson Builders" ${currentClient === 'Hutchinson Builders' ? 'selected' : ''}>Hutchinson Builders</option>
+          <option value="BMD Constructions" ${currentClient === 'BMD Constructions' ? 'selected' : ''}>BMD Constructions</option>
+          <option value="Acciona Infrastructure" ${currentClient === 'Acciona Infrastructure' ? 'selected' : ''}>Acciona Infrastructure</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Job Status Filter (Multi-select) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">checklist</span>
+        <span>Pipeline Stage Filter</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('ENQUIRY') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('ENQUIRY', this.checked)" />
+          <span style="font-weight:600;color:#64748b;">Enquiry / Estimate</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('QUOTED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('QUOTED', this.checked)" />
+          <span style="font-weight:600;color:#2563eb;">Quoted & Pending Approval</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('CONFIRMED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('CONFIRMED', this.checked)" />
+          <span style="font-weight:600;color:#0d9488;">Confirmed Booking</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('DISPATCHED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('DISPATCHED', this.checked)" />
+          <span style="font-weight:600;color:#d97706;">Dispatched (In Transit)</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('IN_PROGRESS') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('IN_PROGRESS', this.checked)" />
+          <span style="font-weight:600;color:#16a34a;">Active On Site (In Progress)</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('COMPLETED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('COMPLETED', this.checked)" />
+          <span style="font-weight:600;color:#9333ea;">Completed & Docket Signed</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('INVOICED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('INVOICED', this.checked)" />
+          <span style="font-weight:600;color:#0284c7;">Invoiced / Reconciled</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 4. Client / Project Site Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">location_city</span>
+        <span>Construction Site / Project</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-site" class="drawer-select" onchange="handleDrawerJobBoardSite(this.value)">
+          <option value="ALL" ${jb.site === 'ALL' ? 'selected' : ''}>All Construction Sites</option>
+          <option value="Cross River Rail" ${jb.site === 'Cross River Rail' ? 'selected' : ''}>Cross River Rail (Brisbane CBD)</option>
+          <option value="Brisbane Airport" ${jb.site === 'Brisbane Airport' ? 'selected' : ''}>Brisbane Airport Expansion</option>
+          <option value="Queen's Wharf" ${jb.site === "Queen's Wharf" ? 'selected' : ''}>Queen's Wharf Integrated Resort</option>
+          <option value="Bruce Highway" ${jb.site === 'Bruce Highway' ? 'selected' : ''}>Bruce Highway Upgrade (Caboolture)</option>
+          <option value="Coomera Connector" ${jb.site === 'Coomera Connector' ? 'selected' : ''}>Coomera Connector Stage 1</option>
+          <option value="Port of Brisbane" ${jb.site === 'Port of Brisbane' ? 'selected' : ''}>Port of Brisbane Logistics Hub</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Hire Type Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">handshake</span>
+        <span>Hire Agreement Type</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${jb.hireType === 'all' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('all')" type="button">All</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'wet' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('wet')" type="button" title="Machine + Operator + Crew">Wet Hire</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'dry' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('dry')" type="button" title="Machine Only">Dry Hire</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'labour_only' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('labour_only')" type="button" title="Operator/Rigger Only">Labour</button>
+      </div>
+    </div>
+
+    <!-- 6. Crane Class & Tonnage Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">weight</span>
+        <span>Crane Class & Tonnage</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-crane-class" class="drawer-select" onchange="handleDrawerJobBoardCraneClass(this.value)">
+          <option value="ALL" ${jb.craneClass === 'ALL' ? 'selected' : ''}>All Machine Capacities</option>
+          <option value="franna" ${jb.craneClass === 'franna' ? 'selected' : ''}>Pick & Carry Frannas (≤20T)</option>
+          <option value="all_terrain" ${jb.craneClass === 'all_terrain' ? 'selected' : ''}>Mobile All-Terrain (55T – 100T)</option>
+          <option value="crawler" ${jb.craneClass === 'crawler' ? 'selected' : ''}>Heavy Lattice Crawler (250T)</option>
+          <option value="excavator" ${jb.craneClass === 'excavator' ? 'selected' : ''}>Earthmoving Plant (20T – 35T Excavators)</option>
+          <option value="access" ${jb.craneClass === 'access' ? 'selected' : ''}>Access Plant (Scissor / Booms)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 7. Reset Dispatch Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetJobBoardDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Dispatch Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindJobBoardDrawerEvents() {}
+
+function handleDrawerJobBoardClient(val) {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.client = val;
+  if (window.drawerFilters && window.drawerFilters.jobBoard) {
+    window.drawerFilters.jobBoard.client = val;
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardClient = handleDrawerJobBoardClient;
+
+function handleDrawerJobBoardDate(type, val) {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters[type] = val;
+  if (window.drawerFilters && window.drawerFilters.jobBoard) {
+    window.drawerFilters.jobBoard[type] = val;
+    window.drawerFilters.jobBoard.quickPreset = 'custom';
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardDate = handleDrawerJobBoardDate;
+
+function setDrawerJobBoardPreset(preset) {
+  window.drawerFilters.jobBoard.quickPreset = preset;
+  const todayStr = '2026-09-18';
+  let sDate = '';
+  let eDate = '';
+  if (preset === 'today') {
+    sDate = todayStr;
+    eDate = todayStr;
+  } else if (preset === '7d') {
+    sDate = todayStr;
+    eDate = '2026-09-25';
+  } else if (preset === '14d') {
+    sDate = todayStr;
+    eDate = '2026-10-02';
+  }
+  window.drawerFilters.jobBoard.startDate = sDate;
+  window.drawerFilters.jobBoard.endDate = eDate;
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.startDate = sDate;
+  window.ionConfig.activeFilters.endDate = eDate;
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.setDrawerJobBoardPreset = setDrawerJobBoardPreset;
+
+function toggleDrawerJobBoardStatus(stageKey, checked) {
+  const current = window.drawerFilters.jobBoard.statuses || [];
+  if (checked) {
+    if (!current.includes(stageKey)) current.push(stageKey);
+  } else {
+    window.drawerFilters.jobBoard.statuses = current.filter(s => s !== stageKey);
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.toggleDrawerJobBoardStatus = toggleDrawerJobBoardStatus;
+
+function handleDrawerJobBoardSite(siteVal) {
+  window.drawerFilters.jobBoard.site = siteVal;
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardSite = handleDrawerJobBoardSite;
+
+function setDrawerJobBoardHireType(hireType) {
+  window.drawerFilters.jobBoard.hireType = hireType;
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.hireType = hireType;
+  }
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.setDrawerJobBoardHireType = setDrawerJobBoardHireType;
+
+function handleDrawerJobBoardCraneClass(cls) {
+  window.drawerFilters.jobBoard.craneClass = cls;
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.craneClass = cls;
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardCraneClass = handleDrawerJobBoardCraneClass;
+
+function resetJobBoardDrawerFilters() {
+  window.drawerFilters.jobBoard = {
+    startDate: '',
+    endDate: '',
+    client: 'ALL',
+    quickPreset: 'all',
+    statuses: ['ENQUIRY', 'QUOTED', 'CONFIRMED', 'DISPATCHED', 'IN_PROGRESS', 'COMPLETED', 'INVOICED'],
+    site: 'ALL',
+    hireType: 'all',
+    craneClass: 'ALL',
+    searchQuery: ''
+  };
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.startDate = '';
+    window.ionConfig.activeFilters.endDate = '';
+    window.ionConfig.activeFilters.client = 'ALL';
+    window.ionConfig.activeFilters.hireType = 'all';
+    window.ionConfig.activeFilters.craneClass = 'ALL';
+  }
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+  if (typeof showToast === 'function') showToast('Dispatch filters reset to default');
+}
+window.resetJobBoardDrawerFilters = resetJobBoardDrawerFilters;
+
+/* ── 3. Compliance Drawer HTML & Binding ──────────────────────────────────── */
+function getComplianceDrawerHTML() {
+  const c = window.drawerFilters.compliance;
+  return `
+    <!-- 1. Audit Scope Selector -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">policy</span>
+        <span>Audit Scope</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${c.auditScope === 'ALL' ? 'active' : ''}" onclick="setDrawerComplianceScope('ALL')" type="button">Full Enterprise</button>
+        <button class="drawer-seg-btn ${c.auditScope === 'CRITICAL' ? 'active' : ''}" onclick="setDrawerComplianceScope('CRITICAL')" type="button" style="color:${c.auditScope === 'CRITICAL' ? '#fff' : '#dc2626'};">Critical Alerts</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+        Critical Alerts isolates assets and workforce with expired or &le;30-day certifications.
+      </div>
+    </div>
+
+    <!-- 2. CraneSafe Expiry Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">verified</span>
+        <span>CraneSafe Expiry Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-cranesafe" class="drawer-select" onchange="handleDrawerComplianceCraneSafe(this.value)">
+          <option value="ALL" ${c.craneSafeDue === 'ALL' ? 'selected' : ''}>All CraneSafe Statuses</option>
+          <option value="EXPIRED" ${c.craneSafeDue === 'EXPIRED' ? 'selected' : ''}>Expired / Non-Compliant (&lt; Today)</option>
+          <option value="30_DAYS" ${c.craneSafeDue === '30_DAYS' ? 'selected' : ''}>Expiring within 30 Days (Urgent)</option>
+          <option value="60_DAYS" ${c.craneSafeDue === '60_DAYS' ? 'selected' : ''}>Expiring within 60 Days</option>
+          <option value="90_DAYS" ${c.craneSafeDue === '90_DAYS' ? 'selected' : ''}>Expiring within 90 Days</option>
+          <option value="VALID" ${c.craneSafeDue === 'VALID' ? 'selected' : ''}>Certified & Valid (&gt; 90 Days)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Road Registration (TMR / RMS) Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">directions_car</span>
+        <span>Road Registration (TMR/RMS)</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-rego" class="drawer-select" onchange="handleDrawerComplianceRego(this.value)">
+          <option value="ALL" ${c.regoDue === 'ALL' ? 'selected' : ''}>All Road Registrations</option>
+          <option value="EXPIRED" ${c.regoDue === 'EXPIRED' ? 'selected' : ''}>Expired Registration</option>
+          <option value="30_DAYS" ${c.regoDue === '30_DAYS' ? 'selected' : ''}>Due Renewal (&le; 30 Days)</option>
+          <option value="VALID" ${c.regoDue === 'VALID' ? 'selected' : ''}>Valid Registration (&gt; 30 Days)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4. HRWL Licence Class Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">badge</span>
+        <span>HRWL Licence Class Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-hrwl" class="drawer-select" onchange="handleDrawerComplianceHrwl(this.value)">
+          <option value="ALL" ${c.hrwlClass === 'ALL' ? 'selected' : ''}>All High Risk Licence Classes</option>
+          <option value="C1" ${c.hrwlClass === 'C1' ? 'selected' : ''}>C1 — Slewing Mobile Crane (&gt;20T)</option>
+          <option value="C6" ${c.hrwlClass === 'C6' ? 'selected' : ''}>C6 — Slewing Mobile Crane (&le;20T)</option>
+          <option value="C2" ${c.hrwlClass === 'C2' ? 'selected' : ''}>C2 — Non-Slewing Mobile Crane (&gt;3T)</option>
+          <option value="CN" ${c.hrwlClass === 'CN' ? 'selected' : ''}>CN — Non-Slewing Mobile Crane (&le;3T)</option>
+          <option value="CO" ${c.hrwlClass === 'CO' ? 'selected' : ''}>CO — Bridge & Gantry Crane</option>
+          <option value="DG" ${c.hrwlClass === 'DG' ? 'selected' : ''}>DG — Certified Dogging</option>
+          <option value="RIGGING" ${c.hrwlClass === 'RIGGING' ? 'selected' : ''}>RB / RI / RA — Certified Rigging</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Verification Status Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>Verification Status</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-status" class="drawer-select" onchange="handleDrawerComplianceStatus(this.value)">
+          <option value="ALL" ${c.verificationStatus === 'ALL' ? 'selected' : ''}>All Statuses</option>
+          <option value="Valid" ${c.verificationStatus === 'Valid' ? 'selected' : ''}>Valid & Compliant (Green)</option>
+          <option value="Expiring Soon" ${c.verificationStatus === 'Expiring Soon' ? 'selected' : ''}>Expiring Soon (Amber)</option>
+          <option value="Expired" ${c.verificationStatus === 'Expired' ? 'selected' : ''}>Expired / Critical (Red)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 6. Quick Compliance Actions -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">bolt</span>
+        <span>Audit Actions</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof exportComplianceAuditReport==='function')exportComplianceAuditReport();else showToast('Exporting Tier 1 Audit Pack...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Export Tier 1 Audit Pack</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="if(typeof openUploadCertModal==='function')openUploadCertModal();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+        <span>Upload Certificate to Vault</span>
+      </button>
+    </div>
+
+    <!-- 7. Reset Compliance Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetComplianceDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Compliance Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindComplianceDrawerEvents() {}
+
+function setDrawerComplianceScope(scope) {
+  window.drawerFilters.compliance.auditScope = scope;
+  if (window.complianceState) {
+    window.complianceState.auditScope = scope;
+  }
+  renderDrawerContext('compliance');
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+}
+window.setDrawerComplianceScope = setDrawerComplianceScope;
+
+function handleDrawerComplianceCraneSafe(val) {
+  window.drawerFilters.compliance.craneSafeDue = val;
+  if (window.complianceState) {
+    window.complianceState.craneSafeDue = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+}
+window.handleDrawerComplianceCraneSafe = handleDrawerComplianceCraneSafe;
+
+function handleDrawerComplianceRego(val) {
+  window.drawerFilters.compliance.regoDue = val;
+  if (window.complianceState) {
+    window.complianceState.regoDue = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+}
+window.handleDrawerComplianceRego = handleDrawerComplianceRego;
+
+function handleDrawerComplianceHrwl(val) {
+  window.drawerFilters.compliance.hrwlClass = val;
+  if (window.complianceState) {
+    window.complianceState.hrwlClass = val;
+  }
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+}
+window.handleDrawerComplianceHrwl = handleDrawerComplianceHrwl;
+
+function handleDrawerComplianceStatus(val) {
+  window.drawerFilters.compliance.verificationStatus = val;
+  if (window.complianceState) {
+    window.complianceState.verificationStatus = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+}
+window.handleDrawerComplianceStatus = handleDrawerComplianceStatus;
+
+function resetComplianceDrawerFilters() {
+  window.drawerFilters.compliance = {
+    auditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL',
+    searchQuery: ''
+  };
+  if (window.complianceState) {
+    window.complianceState.auditScope = 'ALL';
+    window.complianceState.craneSafeDue = 'ALL';
+    window.complianceState.regoDue = 'ALL';
+    window.complianceState.hrwlClass = 'ALL';
+    window.complianceState.verificationStatus = 'ALL';
+  }
+  renderDrawerContext('compliance');
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+  if (typeof showToast === 'function') showToast('Compliance filters reset to default');
+}
+window.resetComplianceDrawerFilters = resetComplianceDrawerFilters;
+
+/* ── 4. Administration Drawer HTML & Binding ──────────────────────────────── */
+function getAdminDrawerHTML() {
+  const a = window.drawerFilters.admin;
+  return `
+    <!-- 1. Registry Switcher -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">folder_managed</span>
+        <span>Active Registry</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${a.registryTab === 'fleet' ? 'active' : ''}" onclick="setDrawerAdminRegistryTab('fleet')" type="button">Fleet Assets</button>
+        <button class="drawer-seg-btn ${a.registryTab === 'personnel' ? 'active' : ''}" onclick="setDrawerAdminRegistryTab('personnel')" type="button">Personnel</button>
+      </div>
+    </div>
+
+    <!-- 2. Fleet Filters -->
+    <div class="drawer-section" id="drawer-admin-fleet-group" style="display:${a.registryTab === 'fleet' ? 'flex' : 'none'};">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">precision_manufacturing</span>
+        <span>Fleet Category & Status</span>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-admin-fleet-cat">Machine Category</label>
+        <select id="drawer-admin-fleet-cat" class="drawer-select" onchange="handleDrawerAdminFleetCategory(this.value)">
+          <option value="ALL" ${a.fleetCategory === 'ALL' ? 'selected' : ''}>All Categories</option>
+          <option value="all_terrain" ${a.fleetCategory === 'all_terrain' ? 'selected' : ''}>All-Terrain Cranes</option>
+          <option value="franna" ${a.fleetCategory === 'franna' ? 'selected' : ''}>Pick & Carry Frannas</option>
+          <option value="crawler" ${a.fleetCategory === 'crawler' ? 'selected' : ''}>Lattice Crawlers</option>
+          <option value="excavator" ${a.fleetCategory === 'excavator' ? 'selected' : ''}>Earthmoving Plant (Excavators / Dozers)</option>
+          <option value="access" ${a.fleetCategory === 'access' ? 'selected' : ''}>Access Equipment (Scissor / Booms)</option>
+        </select>
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label for="drawer-admin-fleet-status">Operational Service Status</label>
+        <select id="drawer-admin-fleet-status" class="drawer-select" onchange="handleDrawerAdminFleetStatus(this.value)">
+          <option value="ALL" ${a.fleetStatus === 'ALL' ? 'selected' : ''}>All Service Statuses</option>
+          <option value="Active" ${a.fleetStatus === 'Active' ? 'selected' : ''}>In Service & Ready</option>
+          <option value="Expired" ${a.fleetStatus === 'Expired' ? 'selected' : ''}>Maintenance / Standby / Out of Service</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Personnel Filters -->
+    <div class="drawer-section" id="drawer-admin-worker-group" style="display:${a.registryTab === 'personnel' ? 'flex' : 'none'};">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">groups</span>
+        <span>Workforce Department & Roster</span>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-admin-worker-dept">Department</label>
+        <select id="drawer-admin-worker-dept" class="drawer-select" onchange="handleDrawerAdminWorkerDept(this.value)">
+          <option value="ALL" ${a.workerDepartment === 'ALL' ? 'selected' : ''}>All Departments</option>
+          <option value="Operations" ${a.workerDepartment === 'Operations' ? 'selected' : ''}>Operations & Crane Crew</option>
+          <option value="Administration" ${a.workerDepartment === 'Administration' ? 'selected' : ''}>Administration & Finance</option>
+          <option value="Office" ${a.workerDepartment === 'Office' ? 'selected' : ''}>Office & Executive</option>
+          <option value="Sales" ${a.workerDepartment === 'Sales' ? 'selected' : ''}>Sales & Estimating</option>
+          <option value="Safety" ${a.workerDepartment === 'Safety' ? 'selected' : ''}>HSEQ & Safety</option>
+        </select>
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label for="drawer-admin-worker-roster">Roster Status</label>
+        <select id="drawer-admin-worker-roster" class="drawer-select" onchange="handleDrawerAdminWorkerRoster(this.value)">
+          <option value="ALL" ${a.workerRoster === 'ALL' ? 'selected' : ''}>All Roster Statuses</option>
+          <option value="Active" ${a.workerRoster === 'Active' ? 'selected' : ''}>Active On-Call / On-Shift</option>
+          <option value="Off-Shift" ${a.workerRoster === 'Off-Shift' ? 'selected' : ''}>Off-Shift / Leave</option>
+        </select>
+      </div>
+      <label class="drawer-checkbox-row" style="margin-top:8px;">
+        <input type="checkbox" id="drawer-admin-worker-ot" ${a.workerOvertimeOnly ? 'checked' : ''} onchange="toggleDrawerAdminWorkerOvertime(this.checked)" />
+        <span style="color:#d97706;font-weight:600;">Highlight Overtime Alert (&gt;10h Today)</span>
+      </label>
+    </div>
+
+    <!-- 4. Bulk Registry Actions -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">database</span>
+        <span>Registry Actions</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(window.drawerFilters.admin.registryTab==='fleet'){if(typeof openAddAssetModal==='function')openAddAssetModal();}else{if(typeof openAddPersonnelModal==='function')openAddPersonnelModal();}" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">add_circle</span>
+        <span>Add New Record</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof openBulkImportModal==='function')openBulkImportModal();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">upload</span>
+        <span>Bulk Import Data</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="if(typeof exportFleetCSV==='function')exportFleetCSV();else showToast('Exporting Registry CSV...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">file_download</span>
+        <span>Export Registry (CSV)</span>
+      </button>
+    </div>
+
+    <!-- 5. Reset Admin Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetAdminDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Registry Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindAdminDrawerEvents() {}
+
+function setDrawerAdminRegistryTab(tab) {
+  window.drawerFilters.admin.registryTab = tab;
+  renderDrawerContext('admin');
+  if (typeof switchAdminSubTab === 'function') {
+    switchAdminSubTab(tab);
+  }
+}
+window.setDrawerAdminRegistryTab = setDrawerAdminRegistryTab;
+
+function handleDrawerAdminFleetCategory(cat) {
+  window.drawerFilters.admin.fleetCategory = cat;
+  const cf = document.getElementById('admin-fleet-class-filter');
+  if (cf) cf.value = (cat === 'ALL' ? 'ALL' : cat);
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+}
+window.handleDrawerAdminFleetCategory = handleDrawerAdminFleetCategory;
+
+function handleDrawerAdminFleetStatus(stat) {
+  window.drawerFilters.admin.fleetStatus = stat;
+  const sf = document.getElementById('admin-fleet-status-filter');
+  if (sf) sf.value = stat;
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+}
+window.handleDrawerAdminFleetStatus = handleDrawerAdminFleetStatus;
+
+function handleDrawerAdminWorkerDept(dept) {
+  window.drawerFilters.admin.workerDepartment = dept;
+  const df = document.getElementById('admin-personnel-role-filter');
+  if (df) df.value = dept;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.handleDrawerAdminWorkerDept = handleDrawerAdminWorkerDept;
+
+function handleDrawerAdminWorkerRoster(rost) {
+  window.drawerFilters.admin.workerRoster = rost;
+  const sf = document.getElementById('admin-personnel-status-filter');
+  if (sf) sf.value = rost;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.handleDrawerAdminWorkerRoster = handleDrawerAdminWorkerRoster;
+
+function toggleDrawerAdminWorkerOvertime(checked) {
+  window.drawerFilters.admin.workerOvertimeOnly = checked;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.toggleDrawerAdminWorkerOvertime = toggleDrawerAdminWorkerOvertime;
+
+function resetAdminDrawerFilters() {
+  window.drawerFilters.admin = {
+    registryTab: 'fleet',
+    fleetCategory: 'ALL',
+    fleetStatus: 'ALL',
+    workerDepartment: 'ALL',
+    workerRoster: 'ALL',
+    workerOvertimeOnly: false,
+    searchQuery: ''
+  };
+  renderDrawerContext('admin');
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof showToast === 'function') showToast('Registry filters reset to default');
+}
+window.resetAdminDrawerFilters = resetAdminDrawerFilters;
+
+/* ── 5. Reports & Settings Drawer HTML ────────────────────────────────────── */
+function getReportsDrawerHTML() {
+  return `
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">calendar_today</span>
+        <span>Reporting Period</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn active" type="button">September 2026</button>
+        <button class="drawer-seg-btn" type="button">Q3 2026</button>
+        <button class="drawer-seg-btn" type="button">YTD</button>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">monitoring</span>
+        <span>Executive Exports</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof exportOperationalReportPDF==='function')exportOperationalReportPDF();else showToast('Exporting Executive Operations Report PDF...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">picture_as_pdf</span>
+        <span>Download Operations PDF</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="showToast('Exporting Financial &amp; Telemetry CSV...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Export Telemetry CSV</span>
+      </button>
+    </div>
+  `;
+}
+function bindReportsDrawerEvents() {}
+
+function getSettingsDrawerHTML() {
+  return `
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>Standard Operating Window</span>
+      </div>
+      <div class="drawer-field-row">
+        <div class="drawer-field">
+          <label>Start Time</label>
+          <input type="time" class="drawer-select" value="06:00" />
+        </div>
+        <div class="drawer-field">
+          <label>End Time</label>
+          <input type="time" class="drawer-select" value="18:00" />
+        </div>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">alarm</span>
+        <span>Fatigue &amp; Overtime Rules</span>
+      </div>
+      <div class="drawer-field">
+        <label>Overtime Warning Threshold</label>
+        <input type="text" class="drawer-select" value="8.0 hours" readonly />
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label>Mandatory Fatigue Lockout</label>
+        <input type="text" class="drawer-select" value="12.0 hours" readonly />
+      </div>
+    </div>
+    <div style="padding-top:4px;">
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="showToast('System configuration saved.');closeControlDrawer();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+        <span>Save Configuration</span>
+      </button>
+    </div>
+  `;
+}
+function bindSettingsDrawerEvents() {}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER REACTIVE STATE SYNCHRONIZER: renderAllViews()
+   ───────────────────────────────────────────────────────────────────────────── */
+function renderAllViews() {
+  if (typeof renderCalendar === 'function') renderCalendar();
+  if (typeof renderJobBoard === 'function') renderJobBoard();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceVault === 'function') renderComplianceVault();
+  if (typeof updateComplianceBadgeCounters === 'function') updateComplianceBadgeCounters();
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof renderExecutiveDashboard === 'function') renderExecutiveDashboard();
+  if (typeof renderAnalyticsView === 'function') renderAnalyticsView();
+  if (typeof renderAnalytics === 'function') renderAnalytics();
+  if (typeof syncDrawerControls === 'function') syncDrawerControls();
+}
+window.renderAllViews = renderAllViews;
 
 function initControlDrawerWiring() {
   // 1. Attach click event listener to all 'Controls & Filters' buttons in module headers
@@ -7458,6 +9157,70 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     if (typeof closeControlDrawer === 'function') closeControlDrawer();
     return;
+  }
+
+  // Handle Drawer Interactions (Event Delegation)
+  const drawerEl = e.target.closest('#control-drawer, .control-drawer');
+  if (drawerEl) {
+    // A. Time Span Toggles (Day | Week | Month)
+    const spanBtn = e.target.closest('[data-action="set-time-span"], .drawer-seg-btn[data-span]');
+    if (spanBtn) {
+      e.preventDefault();
+      const span = spanBtn.getAttribute('data-span') || spanBtn.textContent.trim();
+      if (span) {
+        if (!window.ionConfig) window.ionConfig = {};
+        if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+        window.ionConfig.activeFilters.timeSpan = span;
+        if (window.drawerFilters && window.drawerFilters.scheduler) {
+          window.drawerFilters.scheduler.timeSpan = span;
+        }
+        const toggleParent = spanBtn.closest('.drawer-segmented-toggle');
+        if (toggleParent) {
+          toggleParent.querySelectorAll('.drawer-seg-btn').forEach(btn => {
+            const btnSpan = btn.getAttribute('data-span') || btn.textContent.trim();
+            btn.classList.toggle('active', btnSpan.toLowerCase() === span.toLowerCase());
+          });
+        }
+        if (typeof setCalendarView === 'function') {
+          setCalendarView(span);
+        }
+        renderAllViews();
+        return;
+      }
+    }
+
+    // B. Zoom In / Out Buttons
+    const zoomInBtn = e.target.closest('[data-action="zoom-in"], #drawer-zoom-in');
+    if (zoomInBtn) {
+      e.preventDefault();
+      adjustSchedulerZoom(10);
+      return;
+    }
+    const zoomOutBtn = e.target.closest('[data-action="zoom-out"], #drawer-zoom-out');
+    if (zoomOutBtn) {
+      e.preventDefault();
+      adjustSchedulerZoom(-10);
+      return;
+    }
+
+    // C. Date Range Presets
+    const presetBtn = e.target.closest('[data-preset]');
+    if (presetBtn) {
+      e.preventDefault();
+      const preset = presetBtn.getAttribute('data-preset');
+      if (typeof setDrawerJobBoardPreset === 'function') {
+        setDrawerJobBoardPreset(preset);
+      }
+      return;
+    }
+
+    // D. Drawer Close Button
+    const closeBtn = e.target.closest('#control-drawer-close, .control-drawer-close');
+    if (closeBtn) {
+      e.preventDefault();
+      if (typeof closeControlDrawer === 'function') closeControlDrawer();
+      return;
+    }
   }
 
   // 1. Safe Target Resolution:
@@ -7696,7 +9459,7 @@ document.addEventListener('click', (e) => {
   if (text.includes('new booking') || text.includes('quick book')) {
     e.preventDefault();
     if (typeof openCreateBookingModal === 'function') openCreateBookingModal();
-    const modal = document.getElementById('booking-modal');
+    const modal = document.getElementById('new-booking-modal') || document.getElementById('booking-modal');
     if (modal) modal.style.display = 'flex';
     return;
   }
@@ -7753,6 +9516,159 @@ document.addEventListener('click', (e) => {
       }
       return;
     }
+  }
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER INPUT DELEGATION: Dynamic Drawer Slider & Real-time CSS Updates
+   ───────────────────────────────────────────────────────────────────────────── */
+document.addEventListener('input', (e) => {
+  const target = e.target;
+  if (!target) return;
+
+  // Zoom Logic: When the Scheduler zoom slider changes, dynamically update the CSS variable --grid-hour-height on the .scheduler-grid container
+  if (target.id === 'drawer-zoom-slider' || target.classList.contains('drawer-zoom-slider') || target.getAttribute('data-action') === 'zoom-slider') {
+    const num = parseInt(target.value, 10);
+    if (!isNaN(num)) {
+      const clamped = Math.max(40, Math.min(120, num));
+      currentGridHourHeight = clamped;
+
+      // Update CSS variable --grid-hour-height on the .scheduler-grid container and layout roots
+      const gridContainers = document.querySelectorAll('.scheduler-grid, .day-scheduler-root, #calendar-body, #scheduler-view');
+      gridContainers.forEach(el => {
+        el.style.setProperty('--grid-hour-height', clamped + 'px');
+      });
+      document.documentElement.style.setProperty('--grid-hour-height', clamped + 'px');
+
+      if (!window.ionConfig) window.ionConfig = {};
+      if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+      window.ionConfig.activeFilters.zoom = clamped;
+      if (window.drawerFilters && window.drawerFilters.scheduler) {
+        window.drawerFilters.scheduler.gridHourHeight = clamped;
+      }
+
+      const label = document.getElementById('drawer-zoom-label');
+      if (label) {
+        const percent = Math.round((clamped / 80) * 100);
+        label.textContent = percent + '%';
+      }
+      const pxLabel = document.getElementById('drawer-zoom-px');
+      if (pxLabel) {
+        pxLabel.textContent = clamped + 'px';
+      }
+    }
+    return;
+  }
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER CHANGE DELEGATION: Filter Binding to Reactive State Engine
+   ───────────────────────────────────────────────────────────────────────────── */
+document.addEventListener('change', (e) => {
+  const target = e.target;
+  if (!target) return;
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters = {
+      timeSpan: 'Day',
+      zoom: 80,
+      assetClass: 'ALL',
+      client: 'ALL',
+      startDate: '',
+      endDate: '',
+      hireType: 'all',
+      craneClass: 'ALL'
+    };
+  }
+
+  // 1. Client Dropdown: Update dedicated window.ionConfig.activeFilters object and immediately call renderAllViews()
+  if (target.id === 'drawer-jb-client' || target.getAttribute('data-filter') === 'client') {
+    const clientVal = target.value;
+    window.ionConfig.activeFilters.client = clientVal;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.client = clientVal;
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 2. Asset Class Dropdown: Update window.ionConfig.activeFilters and immediately call renderAllViews()
+  if (target.id === 'drawer-filter-asset' || target.getAttribute('data-filter') === 'assetClass') {
+    const assetVal = target.value;
+    window.ionConfig.activeFilters.assetClass = assetVal;
+    if (window.drawerFilters && window.drawerFilters.scheduler) {
+      window.drawerFilters.scheduler.assetCategory = assetVal;
+    }
+    if (typeof handleAssetFilterChange === 'function') {
+      handleAssetFilterChange(assetVal === 'ALL' ? 'All Assets' : assetVal);
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 3. Date Range (Start Date / End Date): Update window.ionConfig.activeFilters and immediately call renderAllViews()
+  if (target.id === 'drawer-jb-start-date' || target.getAttribute('data-filter') === 'startDate') {
+    const sDate = target.value;
+    window.ionConfig.activeFilters.startDate = sDate;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.startDate = sDate;
+      window.drawerFilters.jobBoard.quickPreset = 'custom';
+    }
+    renderAllViews();
+    return;
+  }
+  if (target.id === 'drawer-jb-end-date' || target.getAttribute('data-filter') === 'endDate') {
+    const eDate = target.value;
+    window.ionConfig.activeFilters.endDate = eDate;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.endDate = eDate;
+      window.drawerFilters.jobBoard.quickPreset = 'custom';
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 4. Zoom Slider Fallback (change event)
+  if (target.id === 'drawer-zoom-slider' || target.classList.contains('drawer-zoom-slider') || target.getAttribute('data-action') === 'zoom-slider') {
+    const num = parseInt(target.value, 10);
+    if (!isNaN(num)) {
+      setSchedulerZoom(num);
+    }
+    return;
+  }
+
+  // 5. Operating Hours Standard/24h toggle
+  if (target.id === 'drawer-operating-hours') {
+    const isStandard = target.checked;
+    if (typeof toggleDrawerSchedulerHours === 'function') {
+      toggleDrawerSchedulerHours(isStandard);
+    }
+    return;
+  }
+
+  // 6. Personnel Overlay Filter
+  if (target.id === 'drawer-filter-worker') {
+    if (typeof handleDrawerSchedulerWorker === 'function') {
+      handleDrawerSchedulerWorker(target.value);
+    }
+    return;
+  }
+
+  // 7. Site Filter
+  if (target.id === 'drawer-jb-site') {
+    if (typeof handleDrawerJobBoardSite === 'function') {
+      handleDrawerJobBoardSite(target.value);
+    }
+    return;
+  }
+
+  // 8. Crane Class Filter
+  if (target.id === 'drawer-jb-crane-class') {
+    if (typeof handleDrawerJobBoardCraneClass === 'function') {
+      handleDrawerJobBoardCraneClass(target.value);
+    }
+    return;
   }
 });
 

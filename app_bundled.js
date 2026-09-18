@@ -1,5 +1,10 @@
 // HireEngine Standalone Platform Bundle (Works on both http:// and file:// protocols)
 
+
+/**
+ * dataModels.js
+ */
+
 /**
  * dataModels.js — HireEngine Core Data Layer
  * Single source of truth for all fleet, worker, compliance, and booking data.
@@ -383,7 +388,6 @@ function dOffset(days, h, m = 0) {
   const n = new Date(); n.setDate(n.getDate() + days); n.setHours(h, m, 0, 0); return n.toISOString();
 }
 
-
 /**
  * Booking shape (reference):
  * {
@@ -480,6 +484,9 @@ function getAssetHex(assetId) {
   return asset ? asset.hex : '#475569';
 }
 
+/**
+ * complianceEngine.js
+ */
 
 /**
  * complianceEngine.js — HireEngine Intelligent Compliance & Certification Engine
@@ -510,7 +517,6 @@ function getAssetHex(assetId) {
  *   Crane: C1 satisfies C6, C2, CN. C6 satisfies C2, CN. C2 satisfies CN.
  *   Rigging: RA satisfies RI, RB, DG. RI satisfies RB, DG. RB satisfies DG.
  */
-
 
 
 // ─── LICENSE HIERARCHY TABLES ────────────────────────────────────────────────
@@ -917,13 +923,15 @@ const ComplianceEngine = {
   },
 };
 
+/**
+ * dispatchEngine.js
+ */
 
 /**
  * dispatchEngine.js — HireEngine Dispatch & Booking State Manager
  * Manages all booking CRUD operations, overlap detection, and dispatch validation.
  * Coordinates with ComplianceEngine for pre-dispatch safety checks.
  */
-
 
 
 
@@ -1084,178 +1092,9 @@ const DispatchEngine = {
 
 };
 
-
-
-
-
-function initDragAndDrop(renderCallback, showToastCallback) {
-    window._dragBooking = (e, id) => {
-        e.dataTransfer.setData('text/plain', id);
-        e.dataTransfer.effectAllowed = 'move';
-        setTimeout(() => e.target.style.opacity = '0.5', 0);
-    };
-
-    window._dragEnd = (e) => {
-        e.target.style.opacity = '1';
-    };
-
-    window._dragOver = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        e.currentTarget.classList.add('drag-over-active'); // we will add this class to CSS
-    };
-
-    window._dragLeave = (e) => {
-        e.currentTarget.classList.remove('drag-over-active');
-    };
-
-    const processDrop = (e, id, newStartISO) => {
-        const b = bookings.find(x => x.id === id);
-        if(!b) return;
-
-        const oldStart = new Date(b.startTime);
-        const oldEnd = new Date(b.endTime);
-        const duration = oldEnd.getTime() - oldStart.getTime();
-
-        const tempBooking = { 
-            ...b, 
-            startTime: newStartISO, 
-            endTime: new Date(new Date(newStartISO).getTime() + duration).toISOString() 
-        };
-
-        const validation = ComplianceEngine.validateDispatch(tempBooking, id);
-        if (validation.hardBlocks.length > 0) {
-            showToastCallback('⛔ COMPLIANCE BLOCK: ' + validation.hardBlocks[0].msg, 'error');
-            return;
-        }
-
-        updateBooking(tempBooking);
-        showToastCallback('Booking rescheduled successfully.', 'success');
-        renderCallback();
-    };
-
-    window._dropBooking = (e, newHour, newAsset, dateIso) => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('drag-over-active');
-        const id = e.dataTransfer.getData('text/plain');
-        if(!id) return;
-        
-        const b = bookings.find(x => x.id === id);
-        if(!b) return;
-        
-        // If week view (newAsset is null), preserve original asset
-        const assetToUse = newAsset || b.assetNumber;
-        
-        const baseDate = new Date(dateIso);
-        baseDate.setHours(newHour, 0, 0, 0);
-
-        // Update the asset before processing drop time
-        b.assetNumber = assetToUse; 
-        
-        processDrop(e, id, baseDate.toISOString());
-    };
-
-    window._dropGantt = (e, newAsset, dateIso, minH, totalHours) => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('drag-over-active');
-        const id = e.dataTransfer.getData('text/plain');
-        if(!id) return;
-        
-        const b = bookings.find(x => x.id === id);
-        if(!b) return;
-
-        // Calculate hour based on drop position X relative to the container width
-        const rect = e.currentTarget.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const pct = Math.max(0, Math.min(1, offsetX / rect.width));
-        
-        const droppedHourFloat = minH + (pct * totalHours);
-        
-        // Snap to nearest 15 mins (0.25)
-        const snappedHour = Math.round(droppedHourFloat * 4) / 4;
-        
-        const h = Math.floor(snappedHour);
-        const m = Math.round((snappedHour - h) * 60);
-
-        const baseDate = new Date(dateIso);
-        baseDate.setHours(h, m, 0, 0);
-        
-        b.assetNumber = newAsset || b.assetNumber;
-        
-        processDrop(e, id, baseDate.toISOString());
-    };
-}
-
-
 /**
- * documentAutomation.js
+ * complianceModule.js
  */
-
-function pushToDocuWare(docType, payload) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, documentId: 'DW-12345' });
-    }, 1200);
-  });
-}
-
-function generateSWMSPayload(booking) { 
-  return {
-    bookingId: booking?.id,
-    assetNumber: booking?.assetNumber,
-    clientName: booking?.clientName,
-    siteAddress: booking?.siteAddress,
-    status: booking?.swmsStatus || 'pending'
-  }; 
-}
-
-function generatePreStartPayload(booking) { 
-  return {
-    bookingId: booking?.id,
-    assetNumber: booking?.assetNumber,
-    operatorName: booking?.operatorName,
-    status: booking?.preStartStatus || 'pending'
-  }; 
-}
-
-function generateFieldDocketPayload(booking, actualHours, siteRepName) { 
-  return {
-    bookingId: booking?.id,
-    actualHours: actualHours || 8,
-    siteRepName: siteRepName || 'Site Rep',
-    status: booking?.docketStatus || 'pending'
-  }; 
-}
-
-function getDocPipelineStatus(booking) { 
-  if (!booking) {
-    return {
-      hireAgreement: { status: 'pending' },
-      swms: { status: 'pending' },
-      preStart: { status: 'pending' },
-      fieldDocket: { status: 'pending' },
-    };
-  }
-
-  const isSigned = Boolean(booking.contractSigned || booking.hireAgreementStatus === 'signed');
-  const isUploaded = Boolean(booking.docketUploaded || booking.docketStatus === 'pushed' || booking.docketStatus === 'verified');
-
-  return {
-    hireAgreement: {
-      status: isSigned ? 'signed' : (booking.hireAgreementStatus || 'pending')
-    },
-    swms: {
-      status: booking.swmsStatus || 'pending'
-    },
-    preStart: {
-      status: booking.preStartStatus || 'pending'
-    },
-    fieldDocket: {
-      status: isUploaded ? 'pushed' : (booking.docketStatus || 'pending')
-    }
-  };
-}
-
 
 /**
  * complianceModule.js — HireEngine Enterprise Compliance & Safety Module
@@ -1275,7 +1114,12 @@ window.complianceState = window.complianceState || {
   vaultSort: { column: 'title', direction: 'asc' },
   fleetFilter: { query: '', status: 'ALL' },
   workerFilter: { query: '', status: 'ALL' },
-  vaultFilter: { query: '', category: 'ALL' }
+  vaultFilter: { query: '', category: 'ALL' },
+  auditScope: 'ALL', // 'ALL' or 'CRITICAL'
+  craneSafeDue: 'ALL', // 'ALL', 'EXPIRED', '30_DAYS', '60_DAYS', '90_DAYS', 'VALID'
+  regoDue: 'ALL', // 'ALL', 'EXPIRED', '30_DAYS', '90_DAYS', 'VALID'
+  hrwlClass: 'ALL', // 'ALL', 'C1', 'C6', 'C2', 'CN', 'CO', 'DG', 'RIGGING'
+  verificationStatus: 'ALL' // 'ALL', 'Valid', 'Expiring Soon', 'Expired'
 };
 
 // Default Australian Compliance Dates Reference (Current Baseline: September 2026)
@@ -1689,7 +1533,13 @@ function renderComplianceFleetTable() {
 
   const fleet = window.ionConfig.fleetRegistry || [];
   const q = (window.complianceState.fleetFilter.query || '').toLowerCase().trim();
-  const filterStatus = window.complianceState.fleetFilter.status || 'ALL';
+  const filterStatus = window.complianceState.verificationStatus !== 'ALL' 
+    ? window.complianceState.verificationStatus 
+    : (window.complianceState.fleetFilter.status || 'ALL');
+  const auditScope = window.complianceState.auditScope || 'ALL';
+  const craneSafeFilter = window.complianceState.craneSafeDue || 'ALL';
+  const regoFilter = window.complianceState.regoDue || 'ALL';
+  const today = new Date('2026-09-18');
 
   let filtered = fleet.filter(item => {
     const id = (item.id || '').toLowerCase();
@@ -1702,6 +1552,32 @@ function renderComplianceFleetTable() {
     let matchesStatus = true;
     if (filterStatus !== 'ALL') {
       matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    // Audit Scope
+    if (auditScope === 'CRITICAL') {
+      if (status !== 'Expired' && status !== 'Expiring Soon') return false;
+    }
+
+    // CraneSafe Filter
+    if (craneSafeFilter !== 'ALL' && item.craneSafeDue && item.craneSafeDue !== 'N/A') {
+      const csDate = new Date(item.craneSafeDue);
+      const diffDays = Math.ceil((csDate - today) / (1000 * 60 * 60 * 24));
+      if (craneSafeFilter === 'EXPIRED' && diffDays >= 0) return false;
+      if (craneSafeFilter === '30_DAYS' && (diffDays < 0 || diffDays > 30)) return false;
+      if (craneSafeFilter === '60_DAYS' && (diffDays < 0 || diffDays > 60)) return false;
+      if (craneSafeFilter === '90_DAYS' && (diffDays < 0 || diffDays > 90)) return false;
+      if (craneSafeFilter === 'VALID' && diffDays <= 90) return false;
+    }
+
+    // Road Registration Filter
+    if (regoFilter !== 'ALL' && item.roadRegoExpiry && !item.roadRegoExpiry.includes('N/A')) {
+      const rDate = new Date(item.roadRegoExpiry);
+      const diffDays = Math.ceil((rDate - today) / (1000 * 60 * 60 * 24));
+      if (regoFilter === 'EXPIRED' && diffDays >= 0) return false;
+      if (regoFilter === '30_DAYS' && (diffDays < 0 || diffDays > 30)) return false;
+      if (regoFilter === '90_DAYS' && (diffDays < 0 || diffDays > 90)) return false;
+      if (regoFilter === 'VALID' && diffDays <= 30) return false;
     }
 
     return matchesSearch && matchesStatus;
@@ -1808,12 +1684,17 @@ function renderCompliancePersonnelTable() {
 
   const workers = window.ionConfig.workerRegistry || [];
   const q = (window.complianceState.workerFilter.query || '').toLowerCase().trim();
-  const filterStatus = window.complianceState.workerFilter.status || 'ALL';
+  const filterStatus = window.complianceState.verificationStatus !== 'ALL'
+    ? window.complianceState.verificationStatus
+    : (window.complianceState.workerFilter.status || 'ALL');
+  const auditScope = window.complianceState.auditScope || 'ALL';
+  const hrwlFilter = window.complianceState.hrwlClass || 'ALL';
 
   let filtered = workers.filter(worker => {
     const name = (worker.name || '').toLowerCase();
     const role = (worker.role || '').toLowerCase();
-    const hrwl = (worker.licenseClass || worker.hrwlClass || '').toLowerCase();
+    const rawHrwl = (worker.licenseClass || worker.hrwlClass || '');
+    const hrwl = rawHrwl.toLowerCase();
 
     const matchesSearch = !q || name.includes(q) || role.includes(q) || hrwl.includes(q);
 
@@ -1821,6 +1702,21 @@ function renderCompliancePersonnelTable() {
     let matchesStatus = true;
     if (filterStatus !== 'ALL') {
       matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    // Audit Scope Filter
+    if (auditScope === 'CRITICAL') {
+      if (status !== 'Expired' && status !== 'Expiring Soon') return false;
+    }
+
+    // HRWL Licence Class Filter
+    if (hrwlFilter !== 'ALL') {
+      if (hrwlFilter === 'RIGGING') {
+        const isRigging = rawHrwl.includes('RB') || rawHrwl.includes('RI') || rawHrwl.includes('RA') || hrwl.includes('rigg');
+        if (!isRigging) return false;
+      } else {
+        if (!rawHrwl.includes(hrwlFilter)) return false;
+      }
     }
 
     return matchesSearch && matchesStatus;
@@ -2273,6 +2169,9 @@ function downloadCSV(content, filename) {
   document.body.removeChild(link);
 }
 
+/**
+ * app.js
+ */
 
 /**
  * app.js — HireEngine Main Application Module
@@ -2285,11 +2184,25 @@ function downloadCSV(content, filename) {
 
 
 
-
 // ==========================================================================
 // REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)
 // ==========================================================================
 window.ionConfig = {
+  activeFilters: {
+    timeSpan: 'Day',
+    zoom: 80,
+    assetClass: 'ALL',
+    client: 'ALL',
+    startDate: '',
+    endDate: '',
+    hireType: 'all',
+    craneClass: 'ALL',
+    complianceAuditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL'
+  },
   fleetRegistry: [
     { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
     { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true, roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
@@ -2550,6 +2463,16 @@ function switchTab(tab) {
   if (activeView) {
     activeView.classList.add('active');
     activeView.style.display = 'flex';
+  }
+
+  window.currentActiveModule = tab;
+
+  // If control drawer is currently open, dynamically update its contextual contents
+  const drawer = document.getElementById('control-drawer');
+  if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open') || drawer.style.transform === 'translateX(0px)' || drawer.style.transform === 'translateX(0)')) {
+    if (typeof renderDrawerContext === 'function') {
+      renderDrawerContext(tab);
+    }
   }
 
   // Trigger component renderers
@@ -5461,6 +5384,59 @@ function renderJobBoard() {
              op.includes(searchQuery) ||
              desc.includes(searchQuery) ||
              addr.includes(searchQuery);
+    });
+  }
+
+  // Enterprise Contextual Drawer Filters (Reactive State Binding)
+  const activeFilters = window.ionConfig?.activeFilters || {};
+  const jbFilters = window.drawerFilters?.jobBoard || {};
+  const startDate = activeFilters.startDate || jbFilters.startDate;
+  const endDate = activeFilters.endDate || jbFilters.endDate;
+  const activeClient = (activeFilters.client && activeFilters.client !== 'ALL') ? activeFilters.client : (jbFilters.client && jbFilters.client !== 'ALL' ? jbFilters.client : null);
+
+  if (startDate) {
+    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime >= startDate);
+  }
+  if (endDate) {
+    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime <= (endDate + 'T23:59:59'));
+  }
+  if (activeClient) {
+    const cLower = activeClient.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const cName = String(b.clientName || b.client || '').toLowerCase();
+      return cName.includes(cLower);
+    });
+  }
+  if (jbFilters.statuses && Array.isArray(jbFilters.statuses) && jbFilters.statuses.length > 0 && !jbFilters.statuses.includes('ALL')) {
+    filteredBookings = filteredBookings.filter(b => {
+      const stage = normalizePipelineStage(b.status).toUpperCase();
+      const rawStatus = (b.status || '').toUpperCase();
+      return jbFilters.statuses.some(s => s.toUpperCase() === stage || s.toUpperCase() === rawStatus);
+    });
+  }
+  if (jbFilters.site && jbFilters.site !== 'ALL') {
+    const siteLower = jbFilters.site.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const addr = (b.siteAddress || '').toLowerCase();
+      const sName = (b.siteName || '').toLowerCase();
+      const cName = (b.clientName || '').toLowerCase();
+      return addr.includes(siteLower) || sName.includes(siteLower) || cName.includes(siteLower);
+    });
+  }
+  if (jbFilters.hireType && jbFilters.hireType !== 'all') {
+    filteredBookings = filteredBookings.filter(b => (b.hireType || '').toLowerCase() === jbFilters.hireType.toLowerCase());
+  }
+  if (jbFilters.craneClass && jbFilters.craneClass !== 'ALL') {
+    const targetClass = jbFilters.craneClass.toLowerCase();
+    filteredBookings = filteredBookings.filter(b => {
+      const aNum = (b.assetNumber || '').toLowerCase();
+      const desc = (b.jobDescription || '').toLowerCase();
+      if (targetClass === 'franna') return aNum.includes('fc') || desc.includes('franna') || desc.includes('pick');
+      if (targetClass === 'all_terrain') return aNum.includes('at') || desc.includes('all-terrain') || desc.includes('terrain') || desc.includes('slewing');
+      if (targetClass === 'crawler') return aNum.includes('cr') || desc.includes('crawler') || desc.includes('lattice');
+      if (targetClass === 'excavator') return aNum.includes('ex') || desc.includes('excavator') || desc.includes('earthmoving');
+      if (targetClass === 'access') return aNum.includes('sc') || aNum.includes('bm') || desc.includes('scissor') || desc.includes('boom');
+      return true;
     });
   }
 
@@ -9617,8 +9593,19 @@ function setSchedulerZoom(val) {
   const clamped = Math.max(40, Math.min(120, num));
   currentGridHourHeight = clamped;
   
-  // Set dynamic CSS variable on document root for instant hardware-accelerated scaling
+  // Update CSS variable on .scheduler-grid containers and document root
+  const gridContainers = document.querySelectorAll('.scheduler-grid, .day-scheduler-root, #calendar-body, #scheduler-view');
+  gridContainers.forEach(el => {
+    el.style.setProperty('--grid-hour-height', clamped + 'px');
+  });
   document.documentElement.style.setProperty('--grid-hour-height', clamped + 'px');
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.zoom = clamped;
+  if (window.drawerFilters && window.drawerFilters.scheduler) {
+    window.drawerFilters.scheduler.gridHourHeight = clamped;
+  }
   
   // Sync slider and labels
   const slider = document.getElementById('drawer-zoom-slider');
@@ -9646,7 +9633,11 @@ function handleZoomSliderInput(val) {
   setSchedulerZoom(val);
 }
 
-function openControlDrawer() {
+function openControlDrawer(moduleOverride) {
+  const activeModule = moduleOverride || window.currentActiveModule || (typeof getActiveModule === 'function' ? getActiveModule() : 'scheduler');
+  if (typeof renderDrawerContext === 'function') {
+    renderDrawerContext(activeModule);
+  }
   const drawer = document.getElementById('control-drawer');
   const backdrop = document.getElementById('control-drawer-backdrop');
   if (drawer) {
@@ -9656,7 +9647,9 @@ function openControlDrawer() {
   if (backdrop) {
     backdrop.classList.add('is-open', 'open');
   }
-  syncDrawerControls();
+  if (typeof syncDrawerControls === 'function') {
+    syncDrawerControls();
+  }
 }
 
 function closeControlDrawer() {
@@ -9671,14 +9664,1093 @@ function closeControlDrawer() {
   }
 }
 
-function toggleControlDrawer() {
+function toggleControlDrawer(moduleOverride) {
   const drawer = document.getElementById('control-drawer');
   if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open') || drawer.style.transform === 'translateX(0px)' || drawer.style.transform === 'translateX(0)')) {
     closeControlDrawer();
   } else {
-    openControlDrawer();
+    openControlDrawer(moduleOverride);
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ENTERPRISE CONTEXTUAL CONTROL DRAWER ENGINE & FILTER STATE
+   ───────────────────────────────────────────────────────────────────────────── */
+
+window.drawerFilters = window.drawerFilters || {
+  activeModule: 'scheduler',
+  scheduler: {
+    gridHourHeight: 80,
+    timeSpan: 'Day',
+    operatingHoursMode: 'standard', // 'standard' (06:00 - 18:00) vs '24h'
+    assetCategory: 'ALL',
+    workerFilter: 'ALL',
+    statusInService: true,
+    statusMaintenance: true,
+    statusOutOfService: false,
+    searchQuery: ''
+  },
+  jobBoard: {
+    startDate: '',
+    endDate: '',
+    quickPreset: 'all',
+    statuses: ['ENQUIRY', 'QUOTED', 'CONFIRMED', 'DISPATCHED', 'IN_PROGRESS', 'COMPLETED', 'INVOICED'],
+    site: 'ALL',
+    hireType: 'all',
+    craneClass: 'ALL',
+    searchQuery: ''
+  },
+  compliance: {
+    auditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL',
+    searchQuery: ''
+  },
+  admin: {
+    registryTab: 'fleet',
+    fleetCategory: 'ALL',
+    fleetStatus: 'ALL',
+    workerDepartment: 'ALL',
+    workerRoster: 'ALL',
+    workerOvertimeOnly: false,
+    searchQuery: ''
+  },
+  reports: {
+    period: 'month',
+    metric: 'utilization',
+    minUtilization: 0
+  },
+  settings: {
+    rules: {}
+  }
+};
+
+function getActiveModule() {
+  if (window.currentActiveModule) return window.currentActiveModule;
+  const jb = document.getElementById('job-board-view');
+  if (jb && (jb.classList.contains('active') || jb.style.display === 'flex')) return 'job-board';
+  const comp = document.getElementById('compliance-view');
+  if (comp && (comp.classList.contains('active') || comp.style.display === 'flex')) return 'compliance';
+  const adm = document.getElementById('admin-view');
+  if (adm && (adm.classList.contains('active') || adm.style.display === 'flex')) return 'administration';
+  const rep = document.getElementById('reports-view');
+  if (rep && (rep.classList.contains('active') || rep.style.display === 'flex')) return 'reports';
+  const set = document.getElementById('settings-view');
+  if (set && (set.classList.contains('active') || set.style.display === 'flex')) return 'settings';
+  return 'scheduler';
+}
+window.getActiveModule = getActiveModule;
+
+function renderDrawerContext(rawModuleId) {
+  const moduleId = (rawModuleId || getActiveModule() || 'scheduler').toLowerCase().replace('-view', '').replace('view-', '');
+  window.drawerFilters.activeModule = moduleId;
+  const titleEl = document.getElementById('control-drawer-title');
+  const iconEl = document.getElementById('control-drawer-icon');
+  const bodyEl = document.getElementById('control-drawer-body');
+  if (!bodyEl) return;
+
+  if (moduleId === 'job-board' || moduleId === 'jobboard') {
+    if (titleEl) titleEl.textContent = 'Job Board Dispatch & Pipeline';
+    if (iconEl) iconEl.textContent = 'view_kanban';
+    bodyEl.innerHTML = getJobBoardDrawerHTML();
+    bindJobBoardDrawerEvents();
+  } else if (moduleId === 'compliance') {
+    if (titleEl) titleEl.textContent = 'Compliance & HSEQ Audit';
+    if (iconEl) iconEl.textContent = 'verified_user';
+    bodyEl.innerHTML = getComplianceDrawerHTML();
+    bindComplianceDrawerEvents();
+  } else if (moduleId === 'admin' || moduleId === 'administration') {
+    if (titleEl) titleEl.textContent = 'Enterprise Registries & Fleet';
+    if (iconEl) iconEl.textContent = 'manage_accounts';
+    bodyEl.innerHTML = getAdminDrawerHTML();
+    bindAdminDrawerEvents();
+  } else if (moduleId === 'reports') {
+    if (titleEl) titleEl.textContent = 'Analytics & Operational Reports';
+    if (iconEl) iconEl.textContent = 'bar_chart';
+    bodyEl.innerHTML = getReportsDrawerHTML();
+    bindReportsDrawerEvents();
+  } else if (moduleId === 'settings') {
+    if (titleEl) titleEl.textContent = 'System & Dispatch Rules';
+    if (iconEl) iconEl.textContent = 'tune';
+    bodyEl.innerHTML = getSettingsDrawerHTML();
+    bindSettingsDrawerEvents();
+  } else {
+    // Default: Scheduler Drawer
+    if (titleEl) titleEl.textContent = 'Scheduler Controls & Utilization';
+    if (iconEl) iconEl.textContent = 'calendar_month';
+    bodyEl.innerHTML = getSchedulerDrawerHTML();
+    bindSchedulerDrawerEvents();
+  }
+}
+window.renderDrawerContext = renderDrawerContext;
+
+/* ── 1. Scheduler Drawer HTML & Binding ───────────────────────────────────── */
+function getSchedulerDrawerHTML() {
+  const s = window.drawerFilters.scheduler;
+  const currentHeight = currentGridHourHeight || 80;
+  const percent = Math.round((currentHeight / 80) * 100);
+
+  return `
+    <!-- 1. Grid Zoom Control -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">zoom_in</span>
+        <span>Grid Zoom Control</span>
+      </div>
+      <div class="drawer-zoom-wrap">
+        <div class="drawer-zoom-controls">
+          <button class="drawer-zoom-btn" id="drawer-zoom-out" data-action="zoom-out" onclick="adjustSchedulerZoom(-10)" title="Zoom Out (-10px)" type="button">
+            <span class="material-symbols-outlined">remove</span>
+          </button>
+          <div class="drawer-zoom-slider-container">
+            <input type="range" id="drawer-zoom-slider" class="drawer-zoom-slider" data-action="zoom-slider" min="40" max="120" step="10" value="${currentHeight}" oninput="handleZoomSliderInput(this.value)" aria-label="Scheduler Grid Row Height Zoom" />
+          </div>
+          <button class="drawer-zoom-btn" id="drawer-zoom-in" data-action="zoom-in" onclick="adjustSchedulerZoom(10)" title="Zoom In (+10px)" type="button">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <span class="drawer-zoom-badge" id="drawer-zoom-label">${percent}%</span>
+        </div>
+        <div class="drawer-zoom-info">
+          <span>Row height: <strong id="drawer-zoom-px">${currentHeight}px</strong></span>
+          <span>Range: 40px – 120px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Time Span (Day | Week | Month) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">calendar_view_week</span>
+        <span>Time Span</span>
+      </div>
+      <div class="drawer-segmented-toggle" id="drawer-time-span-toggle">
+        <button class="drawer-seg-btn ${s.timeSpan === 'Day' ? 'active' : ''}" id="drawer-view-day" data-action="set-time-span" data-span="Day" onclick="setDrawerSchedulerTimeSpan('Day')" type="button">
+          <span class="material-symbols-outlined">calendar_view_day</span>
+          <span>Day</span>
+        </button>
+        <button class="drawer-seg-btn ${s.timeSpan === 'Week' ? 'active' : ''}" id="drawer-view-week" data-action="set-time-span" data-span="Week" onclick="setDrawerSchedulerTimeSpan('Week')" type="button">
+          <span class="material-symbols-outlined">calendar_view_week</span>
+          <span>Week</span>
+        </button>
+        <button class="drawer-seg-btn ${s.timeSpan === 'Month' ? 'active' : ''}" id="drawer-view-month" data-action="set-time-span" data-span="Month" onclick="setDrawerSchedulerTimeSpan('Month')" type="button">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span>Month</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Operating Hours -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>Operating Hours</span>
+      </div>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-operating-hours" ${s.operatingHoursMode === 'standard' ? 'checked' : ''} onchange="toggleDrawerSchedulerHours(this.checked)" />
+        <span>Standard Operating Hours (06:00 – 18:00)</span>
+      </label>
+      <div style="font-size:11px;color:var(--text-muted);padding-left:22px;">
+        Uncheck for 24-hour continuous site operations view.
+      </div>
+    </div>
+
+    <!-- 4. Asset Class Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">precision_manufacturing</span>
+        <span>Asset Class Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-filter-asset" class="drawer-select" data-filter="assetClass" onchange="handleDrawerSchedulerAsset(this.value)">
+          <option value="ALL" ${s.assetCategory === 'ALL' ? 'selected' : ''}>All Machine Classes</option>
+          <option value="All Terrains" ${s.assetCategory === 'All Terrains' ? 'selected' : ''}>All-Terrain Cranes (Liebherr / Grove)</option>
+          <option value="Frannas" ${s.assetCategory === 'Frannas' ? 'selected' : ''}>Frannas (Mobile Pick & Carry)</option>
+          <option value="Crawlers" ${s.assetCategory === 'Crawlers' ? 'selected' : ''}>Lattice Boom Crawlers</option>
+          <option value="Excavators" ${s.assetCategory === 'Excavators' ? 'selected' : ''}>Excavators & Earthmoving</option>
+          <option value="Access" ${s.assetCategory === 'Access' ? 'selected' : ''}>Access Plant (Scissor / Booms)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Personnel Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">badge</span>
+        <span>Personnel Schedule Overlay</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-filter-worker" class="drawer-select" onchange="handleDrawerSchedulerWorker(this.value)">
+          <option value="ALL" ${s.workerFilter === 'ALL' ? 'selected' : ''}>All Rostered Operators</option>
+          <option value="Available" ${s.workerFilter === 'Available' ? 'selected' : ''}>Available (On-Call / Idle)</option>
+          <option value="Overtime Warning" ${s.workerFilter === 'Overtime Warning' ? 'selected' : ''}>Overtime Warning (&gt;10h Today)</option>
+          <optgroup label="Certified Crane Operators">
+            <option value="W001" ${s.workerFilter === 'W001' ? 'selected' : ''}>Luke Harris (C1/CO Open Slewing)</option>
+            <option value="W002" ${s.workerFilter === 'W002' ? 'selected' : ''}>John Smith (C6 ≤20T Mobile)</option>
+            <option value="W003" ${s.workerFilter === 'W003' ? 'selected' : ''}>Mark Johnson (C1 Heavy Slewing)</option>
+            <option value="W004" ${s.workerFilter === 'W004' ? 'selected' : ''}>Sarah Connor (C1 Slewing)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- 6. Status Toggles (Show/Hide Out of Service or Maintenance) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">toggle_on</span>
+        <span>Asset Grid Status Toggles</span>
+      </div>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-in-service" ${s.statusInService ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusInService', this.checked)" />
+        <span>Show In-Service Operational Assets</span>
+      </label>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-maintenance" ${s.statusMaintenance ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusMaintenance', this.checked)" />
+        <span>Show Scheduled Maintenance Assets</span>
+      </label>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-status-oos" ${s.statusOutOfService ? 'checked' : ''} onchange="toggleDrawerSchedulerStatus('statusOutOfService', this.checked)" />
+        <span>Show Out of Service / Locked Assets</span>
+      </label>
+    </div>
+
+    <!-- 7. Grid Orientation -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span>Grid Orientation</span>
+      </div>
+      <button class="drawer-action-btn" id="drawer-btn-transpose" onclick="toggleDayTranspose()" type="button" title="Flip Time &amp; Asset Axes">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span id="drawer-transpose-label">Transpose View</span>
+      </button>
+    </div>
+
+    <!-- 8. Reset Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetSchedulerDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Scheduler Controls</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindSchedulerDrawerEvents() {
+  if (typeof syncDrawerControls === 'function') syncDrawerControls();
+}
+
+function setDrawerSchedulerTimeSpan(span) {
+  window.drawerFilters.scheduler.timeSpan = span;
+  if (typeof setCalendarView === 'function') {
+    setCalendarView(span);
+  }
+  const bodyEl = document.getElementById('control-drawer-body');
+  if (bodyEl) {
+    ['day', 'week', 'month'].forEach(v => {
+      const btn = document.getElementById(`drawer-view-${v}`);
+      if (btn) btn.classList.toggle('active', v.toLowerCase() === span.toLowerCase());
+    });
+  }
+}
+window.setDrawerSchedulerTimeSpan = setDrawerSchedulerTimeSpan;
+
+function toggleDrawerSchedulerHours(isStandard) {
+  window.drawerFilters.scheduler.operatingHoursMode = isStandard ? 'standard' : '24h';
+  document.body.classList.toggle('no-working-highlight', !isStandard);
+  if (typeof renderCalendar === 'function') renderCalendar();
+}
+window.toggleDrawerSchedulerHours = toggleDrawerSchedulerHours;
+
+function handleDrawerSchedulerAsset(val) {
+  window.drawerFilters.scheduler.assetCategory = val;
+  if (typeof handleAssetFilterChange === 'function') {
+    handleAssetFilterChange(val === 'ALL' ? 'All Assets' : val);
+  }
+}
+window.handleDrawerSchedulerAsset = handleDrawerSchedulerAsset;
+
+function handleDrawerSchedulerWorker(val) {
+  window.drawerFilters.scheduler.workerFilter = val;
+  if (typeof handleWorkerFilterChange === 'function') {
+    handleWorkerFilterChange(val === 'ALL' ? 'All Workers' : val);
+  }
+}
+window.handleDrawerSchedulerWorker = handleDrawerSchedulerWorker;
+
+function toggleDrawerSchedulerStatus(statusKey, checked) {
+  window.drawerFilters.scheduler[statusKey] = checked;
+  if (typeof renderCalendar === 'function') renderCalendar();
+}
+window.toggleDrawerSchedulerStatus = toggleDrawerSchedulerStatus;
+
+function resetSchedulerDrawerFilters() {
+  window.drawerFilters.scheduler = {
+    gridHourHeight: 80,
+    timeSpan: 'Day',
+    operatingHoursMode: 'standard',
+    assetCategory: 'ALL',
+    workerFilter: 'ALL',
+    statusInService: true,
+    statusMaintenance: true,
+    statusOutOfService: false,
+    searchQuery: ''
+  };
+  setSchedulerZoom(80);
+  toggleHighlightWorkingHours(true);
+  if (typeof resetSchedulerFilters === 'function') resetSchedulerFilters();
+  renderDrawerContext('scheduler');
+  if (typeof showToast === 'function') showToast('Scheduler filters reset to default');
+}
+window.resetSchedulerDrawerFilters = resetSchedulerDrawerFilters;
+
+/* ── 2. Job Board Drawer HTML & Binding ───────────────────────────────────── */
+function getJobBoardDrawerHTML() {
+  const jb = window.drawerFilters.jobBoard;
+  const statuses = jb.statuses || [];
+  const currentClient = window.ionConfig?.activeFilters?.client || jb.client || 'ALL';
+
+  return `
+    <!-- 1. Dispatch Window (Date Range Picker) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">date_range</span>
+        <span>Dispatch Window</span>
+      </div>
+      <div class="drawer-field-row">
+        <div class="drawer-field">
+          <label for="drawer-jb-start-date">Start Date</label>
+          <input type="date" id="drawer-jb-start-date" class="drawer-select" data-filter="startDate" value="${jb.startDate || ''}" onchange="handleDrawerJobBoardDate('startDate', this.value)" />
+        </div>
+        <div class="drawer-field">
+          <label for="drawer-jb-end-date">End Date</label>
+          <input type="date" id="drawer-jb-end-date" class="drawer-select" data-filter="endDate" value="${jb.endDate || ''}" onchange="handleDrawerJobBoardDate('endDate', this.value)" />
+        </div>
+      </div>
+      <div class="drawer-segmented-toggle" style="margin-top:6px;">
+        <button class="drawer-seg-btn ${jb.quickPreset === 'today' ? 'active' : ''}" data-preset="today" onclick="setDrawerJobBoardPreset('today')" type="button">Today</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === '7d' ? 'active' : ''}" data-preset="7d" onclick="setDrawerJobBoardPreset('7d')" type="button">7 Days</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === '14d' ? 'active' : ''}" data-preset="14d" onclick="setDrawerJobBoardPreset('14d')" type="button">14 Days</button>
+        <button class="drawer-seg-btn ${jb.quickPreset === 'all' ? 'active' : ''}" data-preset="all" onclick="setDrawerJobBoardPreset('all')" type="button">All Dates</button>
+      </div>
+    </div>
+
+    <!-- 2. Client / Principal Contractor Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">domain</span>
+        <span>Client / Principal Contractor</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-client" class="drawer-select" data-filter="client" onchange="handleDrawerJobBoardClient(this.value)">
+          <option value="ALL" ${currentClient === 'ALL' ? 'selected' : ''}>All Clients & Accounts</option>
+          <option value="Cross River Rail JV" ${currentClient === 'Cross River Rail JV' ? 'selected' : ''}>Cross River Rail JV</option>
+          <option value="Multiplex Constructions" ${currentClient === 'Multiplex Constructions' ? 'selected' : ''}>Multiplex Constructions</option>
+          <option value="CPB Contractors" ${currentClient === 'CPB Contractors' ? 'selected' : ''}>CPB Contractors</option>
+          <option value="Lendlease Building" ${currentClient === 'Lendlease Building' ? 'selected' : ''}>Lendlease Building</option>
+          <option value="John Holland Group" ${currentClient === 'John Holland Group' ? 'selected' : ''}>John Holland Group</option>
+          <option value="Hutchinson Builders" ${currentClient === 'Hutchinson Builders' ? 'selected' : ''}>Hutchinson Builders</option>
+          <option value="BMD Constructions" ${currentClient === 'BMD Constructions' ? 'selected' : ''}>BMD Constructions</option>
+          <option value="Acciona Infrastructure" ${currentClient === 'Acciona Infrastructure' ? 'selected' : ''}>Acciona Infrastructure</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Job Status Filter (Multi-select) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">checklist</span>
+        <span>Pipeline Stage Filter</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('ENQUIRY') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('ENQUIRY', this.checked)" />
+          <span style="font-weight:600;color:#64748b;">Enquiry / Estimate</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('QUOTED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('QUOTED', this.checked)" />
+          <span style="font-weight:600;color:#2563eb;">Quoted & Pending Approval</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('CONFIRMED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('CONFIRMED', this.checked)" />
+          <span style="font-weight:600;color:#0d9488;">Confirmed Booking</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('DISPATCHED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('DISPATCHED', this.checked)" />
+          <span style="font-weight:600;color:#d97706;">Dispatched (In Transit)</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('IN_PROGRESS') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('IN_PROGRESS', this.checked)" />
+          <span style="font-weight:600;color:#16a34a;">Active On Site (In Progress)</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('COMPLETED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('COMPLETED', this.checked)" />
+          <span style="font-weight:600;color:#9333ea;">Completed & Docket Signed</span>
+        </label>
+        <label class="drawer-checkbox-row">
+          <input type="checkbox" ${statuses.includes('INVOICED') ? 'checked' : ''} onchange="toggleDrawerJobBoardStatus('INVOICED', this.checked)" />
+          <span style="font-weight:600;color:#0284c7;">Invoiced / Reconciled</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 4. Client / Project Site Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">location_city</span>
+        <span>Construction Site / Project</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-site" class="drawer-select" onchange="handleDrawerJobBoardSite(this.value)">
+          <option value="ALL" ${jb.site === 'ALL' ? 'selected' : ''}>All Construction Sites</option>
+          <option value="Cross River Rail" ${jb.site === 'Cross River Rail' ? 'selected' : ''}>Cross River Rail (Brisbane CBD)</option>
+          <option value="Brisbane Airport" ${jb.site === 'Brisbane Airport' ? 'selected' : ''}>Brisbane Airport Expansion</option>
+          <option value="Queen's Wharf" ${jb.site === "Queen's Wharf" ? 'selected' : ''}>Queen's Wharf Integrated Resort</option>
+          <option value="Bruce Highway" ${jb.site === 'Bruce Highway' ? 'selected' : ''}>Bruce Highway Upgrade (Caboolture)</option>
+          <option value="Coomera Connector" ${jb.site === 'Coomera Connector' ? 'selected' : ''}>Coomera Connector Stage 1</option>
+          <option value="Port of Brisbane" ${jb.site === 'Port of Brisbane' ? 'selected' : ''}>Port of Brisbane Logistics Hub</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Hire Type Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">handshake</span>
+        <span>Hire Agreement Type</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${jb.hireType === 'all' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('all')" type="button">All</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'wet' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('wet')" type="button" title="Machine + Operator + Crew">Wet Hire</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'dry' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('dry')" type="button" title="Machine Only">Dry Hire</button>
+        <button class="drawer-seg-btn ${jb.hireType === 'labour_only' ? 'active' : ''}" onclick="setDrawerJobBoardHireType('labour_only')" type="button" title="Operator/Rigger Only">Labour</button>
+      </div>
+    </div>
+
+    <!-- 6. Crane Class & Tonnage Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">weight</span>
+        <span>Crane Class & Tonnage</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-jb-crane-class" class="drawer-select" onchange="handleDrawerJobBoardCraneClass(this.value)">
+          <option value="ALL" ${jb.craneClass === 'ALL' ? 'selected' : ''}>All Machine Capacities</option>
+          <option value="franna" ${jb.craneClass === 'franna' ? 'selected' : ''}>Pick & Carry Frannas (≤20T)</option>
+          <option value="all_terrain" ${jb.craneClass === 'all_terrain' ? 'selected' : ''}>Mobile All-Terrain (55T – 100T)</option>
+          <option value="crawler" ${jb.craneClass === 'crawler' ? 'selected' : ''}>Heavy Lattice Crawler (250T)</option>
+          <option value="excavator" ${jb.craneClass === 'excavator' ? 'selected' : ''}>Earthmoving Plant (20T – 35T Excavators)</option>
+          <option value="access" ${jb.craneClass === 'access' ? 'selected' : ''}>Access Plant (Scissor / Booms)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 7. Reset Dispatch Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetJobBoardDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Dispatch Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindJobBoardDrawerEvents() {}
+
+function handleDrawerJobBoardClient(val) {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.client = val;
+  if (window.drawerFilters && window.drawerFilters.jobBoard) {
+    window.drawerFilters.jobBoard.client = val;
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardClient = handleDrawerJobBoardClient;
+
+function handleDrawerJobBoardDate(type, val) {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters[type] = val;
+  if (window.drawerFilters && window.drawerFilters.jobBoard) {
+    window.drawerFilters.jobBoard[type] = val;
+    window.drawerFilters.jobBoard.quickPreset = 'custom';
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardDate = handleDrawerJobBoardDate;
+
+function setDrawerJobBoardPreset(preset) {
+  window.drawerFilters.jobBoard.quickPreset = preset;
+  const todayStr = '2026-09-18';
+  let sDate = '';
+  let eDate = '';
+  if (preset === 'today') {
+    sDate = todayStr;
+    eDate = todayStr;
+  } else if (preset === '7d') {
+    sDate = todayStr;
+    eDate = '2026-09-25';
+  } else if (preset === '14d') {
+    sDate = todayStr;
+    eDate = '2026-10-02';
+  }
+  window.drawerFilters.jobBoard.startDate = sDate;
+  window.drawerFilters.jobBoard.endDate = eDate;
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+  window.ionConfig.activeFilters.startDate = sDate;
+  window.ionConfig.activeFilters.endDate = eDate;
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.setDrawerJobBoardPreset = setDrawerJobBoardPreset;
+
+function toggleDrawerJobBoardStatus(stageKey, checked) {
+  const current = window.drawerFilters.jobBoard.statuses || [];
+  if (checked) {
+    if (!current.includes(stageKey)) current.push(stageKey);
+  } else {
+    window.drawerFilters.jobBoard.statuses = current.filter(s => s !== stageKey);
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.toggleDrawerJobBoardStatus = toggleDrawerJobBoardStatus;
+
+function handleDrawerJobBoardSite(siteVal) {
+  window.drawerFilters.jobBoard.site = siteVal;
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardSite = handleDrawerJobBoardSite;
+
+function setDrawerJobBoardHireType(hireType) {
+  window.drawerFilters.jobBoard.hireType = hireType;
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.hireType = hireType;
+  }
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.setDrawerJobBoardHireType = setDrawerJobBoardHireType;
+
+function handleDrawerJobBoardCraneClass(cls) {
+  window.drawerFilters.jobBoard.craneClass = cls;
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.craneClass = cls;
+  }
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+}
+window.handleDrawerJobBoardCraneClass = handleDrawerJobBoardCraneClass;
+
+function resetJobBoardDrawerFilters() {
+  window.drawerFilters.jobBoard = {
+    startDate: '',
+    endDate: '',
+    client: 'ALL',
+    quickPreset: 'all',
+    statuses: ['ENQUIRY', 'QUOTED', 'CONFIRMED', 'DISPATCHED', 'IN_PROGRESS', 'COMPLETED', 'INVOICED'],
+    site: 'ALL',
+    hireType: 'all',
+    craneClass: 'ALL',
+    searchQuery: ''
+  };
+  if (window.ionConfig && window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters.startDate = '';
+    window.ionConfig.activeFilters.endDate = '';
+    window.ionConfig.activeFilters.client = 'ALL';
+    window.ionConfig.activeFilters.hireType = 'all';
+    window.ionConfig.activeFilters.craneClass = 'ALL';
+  }
+  renderDrawerContext('job-board');
+  if (typeof renderAllViews === 'function') {
+    renderAllViews();
+  } else if (typeof renderJobBoard === 'function') {
+    renderJobBoard();
+  }
+  if (typeof showToast === 'function') showToast('Dispatch filters reset to default');
+}
+window.resetJobBoardDrawerFilters = resetJobBoardDrawerFilters;
+
+/* ── 3. Compliance Drawer HTML & Binding ──────────────────────────────────── */
+function getComplianceDrawerHTML() {
+  const c = window.drawerFilters.compliance;
+  return `
+    <!-- 1. Audit Scope Selector -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">policy</span>
+        <span>Audit Scope</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${c.auditScope === 'ALL' ? 'active' : ''}" onclick="setDrawerComplianceScope('ALL')" type="button">Full Enterprise</button>
+        <button class="drawer-seg-btn ${c.auditScope === 'CRITICAL' ? 'active' : ''}" onclick="setDrawerComplianceScope('CRITICAL')" type="button" style="color:${c.auditScope === 'CRITICAL' ? '#fff' : '#dc2626'};">Critical Alerts</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+        Critical Alerts isolates assets and workforce with expired or &le;30-day certifications.
+      </div>
+    </div>
+
+    <!-- 2. CraneSafe Expiry Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">verified</span>
+        <span>CraneSafe Expiry Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-cranesafe" class="drawer-select" onchange="handleDrawerComplianceCraneSafe(this.value)">
+          <option value="ALL" ${c.craneSafeDue === 'ALL' ? 'selected' : ''}>All CraneSafe Statuses</option>
+          <option value="EXPIRED" ${c.craneSafeDue === 'EXPIRED' ? 'selected' : ''}>Expired / Non-Compliant (&lt; Today)</option>
+          <option value="30_DAYS" ${c.craneSafeDue === '30_DAYS' ? 'selected' : ''}>Expiring within 30 Days (Urgent)</option>
+          <option value="60_DAYS" ${c.craneSafeDue === '60_DAYS' ? 'selected' : ''}>Expiring within 60 Days</option>
+          <option value="90_DAYS" ${c.craneSafeDue === '90_DAYS' ? 'selected' : ''}>Expiring within 90 Days</option>
+          <option value="VALID" ${c.craneSafeDue === 'VALID' ? 'selected' : ''}>Certified & Valid (&gt; 90 Days)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Road Registration (TMR / RMS) Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">directions_car</span>
+        <span>Road Registration (TMR/RMS)</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-rego" class="drawer-select" onchange="handleDrawerComplianceRego(this.value)">
+          <option value="ALL" ${c.regoDue === 'ALL' ? 'selected' : ''}>All Road Registrations</option>
+          <option value="EXPIRED" ${c.regoDue === 'EXPIRED' ? 'selected' : ''}>Expired Registration</option>
+          <option value="30_DAYS" ${c.regoDue === '30_DAYS' ? 'selected' : ''}>Due Renewal (&le; 30 Days)</option>
+          <option value="VALID" ${c.regoDue === 'VALID' ? 'selected' : ''}>Valid Registration (&gt; 30 Days)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4. HRWL Licence Class Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">badge</span>
+        <span>HRWL Licence Class Filter</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-hrwl" class="drawer-select" onchange="handleDrawerComplianceHrwl(this.value)">
+          <option value="ALL" ${c.hrwlClass === 'ALL' ? 'selected' : ''}>All High Risk Licence Classes</option>
+          <option value="C1" ${c.hrwlClass === 'C1' ? 'selected' : ''}>C1 — Slewing Mobile Crane (&gt;20T)</option>
+          <option value="C6" ${c.hrwlClass === 'C6' ? 'selected' : ''}>C6 — Slewing Mobile Crane (&le;20T)</option>
+          <option value="C2" ${c.hrwlClass === 'C2' ? 'selected' : ''}>C2 — Non-Slewing Mobile Crane (&gt;3T)</option>
+          <option value="CN" ${c.hrwlClass === 'CN' ? 'selected' : ''}>CN — Non-Slewing Mobile Crane (&le;3T)</option>
+          <option value="CO" ${c.hrwlClass === 'CO' ? 'selected' : ''}>CO — Bridge & Gantry Crane</option>
+          <option value="DG" ${c.hrwlClass === 'DG' ? 'selected' : ''}>DG — Certified Dogging</option>
+          <option value="RIGGING" ${c.hrwlClass === 'RIGGING' ? 'selected' : ''}>RB / RI / RA — Certified Rigging</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. Verification Status Filter -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>Verification Status</span>
+      </div>
+      <div class="drawer-field">
+        <select id="drawer-comp-status" class="drawer-select" onchange="handleDrawerComplianceStatus(this.value)">
+          <option value="ALL" ${c.verificationStatus === 'ALL' ? 'selected' : ''}>All Statuses</option>
+          <option value="Valid" ${c.verificationStatus === 'Valid' ? 'selected' : ''}>Valid & Compliant (Green)</option>
+          <option value="Expiring Soon" ${c.verificationStatus === 'Expiring Soon' ? 'selected' : ''}>Expiring Soon (Amber)</option>
+          <option value="Expired" ${c.verificationStatus === 'Expired' ? 'selected' : ''}>Expired / Critical (Red)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 6. Quick Compliance Actions -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">bolt</span>
+        <span>Audit Actions</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof exportComplianceAuditReport==='function')exportComplianceAuditReport();else showToast('Exporting Tier 1 Audit Pack...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Export Tier 1 Audit Pack</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="if(typeof openUploadCertModal==='function')openUploadCertModal();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+        <span>Upload Certificate to Vault</span>
+      </button>
+    </div>
+
+    <!-- 7. Reset Compliance Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetComplianceDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Compliance Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindComplianceDrawerEvents() {}
+
+function setDrawerComplianceScope(scope) {
+  window.drawerFilters.compliance.auditScope = scope;
+  if (window.complianceState) {
+    window.complianceState.auditScope = scope;
+  }
+  renderDrawerContext('compliance');
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+}
+window.setDrawerComplianceScope = setDrawerComplianceScope;
+
+function handleDrawerComplianceCraneSafe(val) {
+  window.drawerFilters.compliance.craneSafeDue = val;
+  if (window.complianceState) {
+    window.complianceState.craneSafeDue = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+}
+window.handleDrawerComplianceCraneSafe = handleDrawerComplianceCraneSafe;
+
+function handleDrawerComplianceRego(val) {
+  window.drawerFilters.compliance.regoDue = val;
+  if (window.complianceState) {
+    window.complianceState.regoDue = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+}
+window.handleDrawerComplianceRego = handleDrawerComplianceRego;
+
+function handleDrawerComplianceHrwl(val) {
+  window.drawerFilters.compliance.hrwlClass = val;
+  if (window.complianceState) {
+    window.complianceState.hrwlClass = val;
+  }
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+}
+window.handleDrawerComplianceHrwl = handleDrawerComplianceHrwl;
+
+function handleDrawerComplianceStatus(val) {
+  window.drawerFilters.compliance.verificationStatus = val;
+  if (window.complianceState) {
+    window.complianceState.verificationStatus = val;
+  }
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+}
+window.handleDrawerComplianceStatus = handleDrawerComplianceStatus;
+
+function resetComplianceDrawerFilters() {
+  window.drawerFilters.compliance = {
+    auditScope: 'ALL',
+    craneSafeDue: 'ALL',
+    regoDue: 'ALL',
+    hrwlClass: 'ALL',
+    verificationStatus: 'ALL',
+    searchQuery: ''
+  };
+  if (window.complianceState) {
+    window.complianceState.auditScope = 'ALL';
+    window.complianceState.craneSafeDue = 'ALL';
+    window.complianceState.regoDue = 'ALL';
+    window.complianceState.hrwlClass = 'ALL';
+    window.complianceState.verificationStatus = 'ALL';
+  }
+  renderDrawerContext('compliance');
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+  if (typeof showToast === 'function') showToast('Compliance filters reset to default');
+}
+window.resetComplianceDrawerFilters = resetComplianceDrawerFilters;
+
+/* ── 4. Administration Drawer HTML & Binding ──────────────────────────────── */
+function getAdminDrawerHTML() {
+  const a = window.drawerFilters.admin;
+  return `
+    <!-- 1. Registry Switcher -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">folder_managed</span>
+        <span>Active Registry</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn ${a.registryTab === 'fleet' ? 'active' : ''}" onclick="setDrawerAdminRegistryTab('fleet')" type="button">Fleet Assets</button>
+        <button class="drawer-seg-btn ${a.registryTab === 'personnel' ? 'active' : ''}" onclick="setDrawerAdminRegistryTab('personnel')" type="button">Personnel</button>
+      </div>
+    </div>
+
+    <!-- 2. Fleet Filters -->
+    <div class="drawer-section" id="drawer-admin-fleet-group" style="display:${a.registryTab === 'fleet' ? 'flex' : 'none'};">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">precision_manufacturing</span>
+        <span>Fleet Category & Status</span>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-admin-fleet-cat">Machine Category</label>
+        <select id="drawer-admin-fleet-cat" class="drawer-select" onchange="handleDrawerAdminFleetCategory(this.value)">
+          <option value="ALL" ${a.fleetCategory === 'ALL' ? 'selected' : ''}>All Categories</option>
+          <option value="all_terrain" ${a.fleetCategory === 'all_terrain' ? 'selected' : ''}>All-Terrain Cranes</option>
+          <option value="franna" ${a.fleetCategory === 'franna' ? 'selected' : ''}>Pick & Carry Frannas</option>
+          <option value="crawler" ${a.fleetCategory === 'crawler' ? 'selected' : ''}>Lattice Crawlers</option>
+          <option value="excavator" ${a.fleetCategory === 'excavator' ? 'selected' : ''}>Earthmoving Plant (Excavators / Dozers)</option>
+          <option value="access" ${a.fleetCategory === 'access' ? 'selected' : ''}>Access Equipment (Scissor / Booms)</option>
+        </select>
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label for="drawer-admin-fleet-status">Operational Service Status</label>
+        <select id="drawer-admin-fleet-status" class="drawer-select" onchange="handleDrawerAdminFleetStatus(this.value)">
+          <option value="ALL" ${a.fleetStatus === 'ALL' ? 'selected' : ''}>All Service Statuses</option>
+          <option value="Active" ${a.fleetStatus === 'Active' ? 'selected' : ''}>In Service & Ready</option>
+          <option value="Expired" ${a.fleetStatus === 'Expired' ? 'selected' : ''}>Maintenance / Standby / Out of Service</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3. Personnel Filters -->
+    <div class="drawer-section" id="drawer-admin-worker-group" style="display:${a.registryTab === 'personnel' ? 'flex' : 'none'};">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">groups</span>
+        <span>Workforce Department & Roster</span>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-admin-worker-dept">Department</label>
+        <select id="drawer-admin-worker-dept" class="drawer-select" onchange="handleDrawerAdminWorkerDept(this.value)">
+          <option value="ALL" ${a.workerDepartment === 'ALL' ? 'selected' : ''}>All Departments</option>
+          <option value="Operations" ${a.workerDepartment === 'Operations' ? 'selected' : ''}>Operations & Crane Crew</option>
+          <option value="Administration" ${a.workerDepartment === 'Administration' ? 'selected' : ''}>Administration & Finance</option>
+          <option value="Office" ${a.workerDepartment === 'Office' ? 'selected' : ''}>Office & Executive</option>
+          <option value="Sales" ${a.workerDepartment === 'Sales' ? 'selected' : ''}>Sales & Estimating</option>
+          <option value="Safety" ${a.workerDepartment === 'Safety' ? 'selected' : ''}>HSEQ & Safety</option>
+        </select>
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label for="drawer-admin-worker-roster">Roster Status</label>
+        <select id="drawer-admin-worker-roster" class="drawer-select" onchange="handleDrawerAdminWorkerRoster(this.value)">
+          <option value="ALL" ${a.workerRoster === 'ALL' ? 'selected' : ''}>All Roster Statuses</option>
+          <option value="Active" ${a.workerRoster === 'Active' ? 'selected' : ''}>Active On-Call / On-Shift</option>
+          <option value="Off-Shift" ${a.workerRoster === 'Off-Shift' ? 'selected' : ''}>Off-Shift / Leave</option>
+        </select>
+      </div>
+      <label class="drawer-checkbox-row" style="margin-top:8px;">
+        <input type="checkbox" id="drawer-admin-worker-ot" ${a.workerOvertimeOnly ? 'checked' : ''} onchange="toggleDrawerAdminWorkerOvertime(this.checked)" />
+        <span style="color:#d97706;font-weight:600;">Highlight Overtime Alert (&gt;10h Today)</span>
+      </label>
+    </div>
+
+    <!-- 4. Bulk Registry Actions -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">database</span>
+        <span>Registry Actions</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(window.drawerFilters.admin.registryTab==='fleet'){if(typeof openAddAssetModal==='function')openAddAssetModal();}else{if(typeof openAddPersonnelModal==='function')openAddPersonnelModal();}" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">add_circle</span>
+        <span>Add New Record</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof openBulkImportModal==='function')openBulkImportModal();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">upload</span>
+        <span>Bulk Import Data</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="if(typeof exportFleetCSV==='function')exportFleetCSV();else showToast('Exporting Registry CSV...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">file_download</span>
+        <span>Export Registry (CSV)</span>
+      </button>
+    </div>
+
+    <!-- 5. Reset Admin Filters -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetAdminDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Registry Filters</span>
+      </button>
+    </div>
+  `;
+}
+
+function bindAdminDrawerEvents() {}
+
+function setDrawerAdminRegistryTab(tab) {
+  window.drawerFilters.admin.registryTab = tab;
+  renderDrawerContext('admin');
+  if (typeof switchAdminSubTab === 'function') {
+    switchAdminSubTab(tab);
+  }
+}
+window.setDrawerAdminRegistryTab = setDrawerAdminRegistryTab;
+
+function handleDrawerAdminFleetCategory(cat) {
+  window.drawerFilters.admin.fleetCategory = cat;
+  const cf = document.getElementById('admin-fleet-class-filter');
+  if (cf) cf.value = (cat === 'ALL' ? 'ALL' : cat);
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+}
+window.handleDrawerAdminFleetCategory = handleDrawerAdminFleetCategory;
+
+function handleDrawerAdminFleetStatus(stat) {
+  window.drawerFilters.admin.fleetStatus = stat;
+  const sf = document.getElementById('admin-fleet-status-filter');
+  if (sf) sf.value = stat;
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+}
+window.handleDrawerAdminFleetStatus = handleDrawerAdminFleetStatus;
+
+function handleDrawerAdminWorkerDept(dept) {
+  window.drawerFilters.admin.workerDepartment = dept;
+  const df = document.getElementById('admin-personnel-role-filter');
+  if (df) df.value = dept;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.handleDrawerAdminWorkerDept = handleDrawerAdminWorkerDept;
+
+function handleDrawerAdminWorkerRoster(rost) {
+  window.drawerFilters.admin.workerRoster = rost;
+  const sf = document.getElementById('admin-personnel-status-filter');
+  if (sf) sf.value = rost;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.handleDrawerAdminWorkerRoster = handleDrawerAdminWorkerRoster;
+
+function toggleDrawerAdminWorkerOvertime(checked) {
+  window.drawerFilters.admin.workerOvertimeOnly = checked;
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+}
+window.toggleDrawerAdminWorkerOvertime = toggleDrawerAdminWorkerOvertime;
+
+function resetAdminDrawerFilters() {
+  window.drawerFilters.admin = {
+    registryTab: 'fleet',
+    fleetCategory: 'ALL',
+    fleetStatus: 'ALL',
+    workerDepartment: 'ALL',
+    workerRoster: 'ALL',
+    workerOvertimeOnly: false,
+    searchQuery: ''
+  };
+  renderDrawerContext('admin');
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof showToast === 'function') showToast('Registry filters reset to default');
+}
+window.resetAdminDrawerFilters = resetAdminDrawerFilters;
+
+/* ── 5. Reports & Settings Drawer HTML ────────────────────────────────────── */
+function getReportsDrawerHTML() {
+  return `
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">calendar_today</span>
+        <span>Reporting Period</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn active" type="button">September 2026</button>
+        <button class="drawer-seg-btn" type="button">Q3 2026</button>
+        <button class="drawer-seg-btn" type="button">YTD</button>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">monitoring</span>
+        <span>Executive Exports</span>
+      </div>
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;" onclick="if(typeof exportOperationalReportPDF==='function')exportOperationalReportPDF();else showToast('Exporting Executive Operations Report PDF...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">picture_as_pdf</span>
+        <span>Download Operations PDF</span>
+      </button>
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:8px;" onclick="showToast('Exporting Financial &amp; Telemetry CSV...');" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Export Telemetry CSV</span>
+      </button>
+    </div>
+  `;
+}
+function bindReportsDrawerEvents() {}
+
+function getSettingsDrawerHTML() {
+  return `
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>Standard Operating Window</span>
+      </div>
+      <div class="drawer-field-row">
+        <div class="drawer-field">
+          <label>Start Time</label>
+          <input type="time" class="drawer-select" value="06:00" />
+        </div>
+        <div class="drawer-field">
+          <label>End Time</label>
+          <input type="time" class="drawer-select" value="18:00" />
+        </div>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">alarm</span>
+        <span>Fatigue &amp; Overtime Rules</span>
+      </div>
+      <div class="drawer-field">
+        <label>Overtime Warning Threshold</label>
+        <input type="text" class="drawer-select" value="8.0 hours" readonly />
+      </div>
+      <div class="drawer-field" style="margin-top:6px;">
+        <label>Mandatory Fatigue Lockout</label>
+        <input type="text" class="drawer-select" value="12.0 hours" readonly />
+      </div>
+    </div>
+    <div style="padding-top:4px;">
+      <button class="btn-primary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="showToast('System configuration saved.');closeControlDrawer();" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+        <span>Save Configuration</span>
+      </button>
+    </div>
+  `;
+}
+function bindSettingsDrawerEvents() {}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER REACTIVE STATE SYNCHRONIZER: renderAllViews()
+   ───────────────────────────────────────────────────────────────────────────── */
+function renderAllViews() {
+  if (typeof renderCalendar === 'function') renderCalendar();
+  if (typeof renderJobBoard === 'function') renderJobBoard();
+  if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
+  if (typeof renderComplianceFleetTable === 'function') renderComplianceFleetTable();
+  if (typeof renderCompliancePersonnelTable === 'function') renderCompliancePersonnelTable();
+  if (typeof renderComplianceVault === 'function') renderComplianceVault();
+  if (typeof updateComplianceBadgeCounters === 'function') updateComplianceBadgeCounters();
+  if (typeof renderAdminFleetTable === 'function') renderAdminFleetTable();
+  if (typeof renderAdminPersonnelTable === 'function') renderAdminPersonnelTable();
+  if (typeof renderAnalyticsView === 'function') renderAnalyticsView();
+  if (typeof syncDrawerControls === 'function') syncDrawerControls();
+}
+window.renderAllViews = renderAllViews;
 
 function initControlDrawerWiring() {
   // 1. Attach click event listener to all 'Controls & Filters' buttons in module headers
@@ -9730,6 +10802,70 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     if (typeof closeControlDrawer === 'function') closeControlDrawer();
     return;
+  }
+
+  // Handle Drawer Interactions (Event Delegation)
+  const drawerEl = e.target.closest('#control-drawer, .control-drawer');
+  if (drawerEl) {
+    // A. Time Span Toggles (Day | Week | Month)
+    const spanBtn = e.target.closest('[data-action="set-time-span"], .drawer-seg-btn[data-span]');
+    if (spanBtn) {
+      e.preventDefault();
+      const span = spanBtn.getAttribute('data-span') || spanBtn.textContent.trim();
+      if (span) {
+        if (!window.ionConfig) window.ionConfig = {};
+        if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+        window.ionConfig.activeFilters.timeSpan = span;
+        if (window.drawerFilters && window.drawerFilters.scheduler) {
+          window.drawerFilters.scheduler.timeSpan = span;
+        }
+        const toggleParent = spanBtn.closest('.drawer-segmented-toggle');
+        if (toggleParent) {
+          toggleParent.querySelectorAll('.drawer-seg-btn').forEach(btn => {
+            const btnSpan = btn.getAttribute('data-span') || btn.textContent.trim();
+            btn.classList.toggle('active', btnSpan.toLowerCase() === span.toLowerCase());
+          });
+        }
+        if (typeof setCalendarView === 'function') {
+          setCalendarView(span);
+        }
+        renderAllViews();
+        return;
+      }
+    }
+
+    // B. Zoom In / Out Buttons
+    const zoomInBtn = e.target.closest('[data-action="zoom-in"], #drawer-zoom-in');
+    if (zoomInBtn) {
+      e.preventDefault();
+      adjustSchedulerZoom(10);
+      return;
+    }
+    const zoomOutBtn = e.target.closest('[data-action="zoom-out"], #drawer-zoom-out');
+    if (zoomOutBtn) {
+      e.preventDefault();
+      adjustSchedulerZoom(-10);
+      return;
+    }
+
+    // C. Date Range Presets
+    const presetBtn = e.target.closest('[data-preset]');
+    if (presetBtn) {
+      e.preventDefault();
+      const preset = presetBtn.getAttribute('data-preset');
+      if (typeof setDrawerJobBoardPreset === 'function') {
+        setDrawerJobBoardPreset(preset);
+      }
+      return;
+    }
+
+    // D. Drawer Close Button
+    const closeBtn = e.target.closest('#control-drawer-close, .control-drawer-close');
+    if (closeBtn) {
+      e.preventDefault();
+      if (typeof closeControlDrawer === 'function') closeControlDrawer();
+      return;
+    }
   }
 
   // 1. Safe Target Resolution:
@@ -10025,6 +11161,159 @@ document.addEventListener('click', (e) => {
       }
       return;
     }
+  }
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER INPUT DELEGATION: Dynamic Drawer Slider & Real-time CSS Updates
+   ───────────────────────────────────────────────────────────────────────────── */
+document.addEventListener('input', (e) => {
+  const target = e.target;
+  if (!target) return;
+
+  // Zoom Logic: When the Scheduler zoom slider changes, dynamically update the CSS variable --grid-hour-height on the .scheduler-grid container
+  if (target.id === 'drawer-zoom-slider' || target.classList.contains('drawer-zoom-slider') || target.getAttribute('data-action') === 'zoom-slider') {
+    const num = parseInt(target.value, 10);
+    if (!isNaN(num)) {
+      const clamped = Math.max(40, Math.min(120, num));
+      currentGridHourHeight = clamped;
+
+      // Update CSS variable --grid-hour-height on the .scheduler-grid container and layout roots
+      const gridContainers = document.querySelectorAll('.scheduler-grid, .day-scheduler-root, #calendar-body, #scheduler-view');
+      gridContainers.forEach(el => {
+        el.style.setProperty('--grid-hour-height', clamped + 'px');
+      });
+      document.documentElement.style.setProperty('--grid-hour-height', clamped + 'px');
+
+      if (!window.ionConfig) window.ionConfig = {};
+      if (!window.ionConfig.activeFilters) window.ionConfig.activeFilters = {};
+      window.ionConfig.activeFilters.zoom = clamped;
+      if (window.drawerFilters && window.drawerFilters.scheduler) {
+        window.drawerFilters.scheduler.gridHourHeight = clamped;
+      }
+
+      const label = document.getElementById('drawer-zoom-label');
+      if (label) {
+        const percent = Math.round((clamped / 80) * 100);
+        label.textContent = percent + '%';
+      }
+      const pxLabel = document.getElementById('drawer-zoom-px');
+      if (pxLabel) {
+        pxLabel.textContent = clamped + 'px';
+      }
+    }
+    return;
+  }
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MASTER CHANGE DELEGATION: Filter Binding to Reactive State Engine
+   ───────────────────────────────────────────────────────────────────────────── */
+document.addEventListener('change', (e) => {
+  const target = e.target;
+  if (!target) return;
+
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.activeFilters) {
+    window.ionConfig.activeFilters = {
+      timeSpan: 'Day',
+      zoom: 80,
+      assetClass: 'ALL',
+      client: 'ALL',
+      startDate: '',
+      endDate: '',
+      hireType: 'all',
+      craneClass: 'ALL'
+    };
+  }
+
+  // 1. Client Dropdown: Update dedicated window.ionConfig.activeFilters object and immediately call renderAllViews()
+  if (target.id === 'drawer-jb-client' || target.getAttribute('data-filter') === 'client') {
+    const clientVal = target.value;
+    window.ionConfig.activeFilters.client = clientVal;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.client = clientVal;
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 2. Asset Class Dropdown: Update window.ionConfig.activeFilters and immediately call renderAllViews()
+  if (target.id === 'drawer-filter-asset' || target.getAttribute('data-filter') === 'assetClass') {
+    const assetVal = target.value;
+    window.ionConfig.activeFilters.assetClass = assetVal;
+    if (window.drawerFilters && window.drawerFilters.scheduler) {
+      window.drawerFilters.scheduler.assetCategory = assetVal;
+    }
+    if (typeof handleAssetFilterChange === 'function') {
+      handleAssetFilterChange(assetVal === 'ALL' ? 'All Assets' : assetVal);
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 3. Date Range (Start Date / End Date): Update window.ionConfig.activeFilters and immediately call renderAllViews()
+  if (target.id === 'drawer-jb-start-date' || target.getAttribute('data-filter') === 'startDate') {
+    const sDate = target.value;
+    window.ionConfig.activeFilters.startDate = sDate;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.startDate = sDate;
+      window.drawerFilters.jobBoard.quickPreset = 'custom';
+    }
+    renderAllViews();
+    return;
+  }
+  if (target.id === 'drawer-jb-end-date' || target.getAttribute('data-filter') === 'endDate') {
+    const eDate = target.value;
+    window.ionConfig.activeFilters.endDate = eDate;
+    if (window.drawerFilters && window.drawerFilters.jobBoard) {
+      window.drawerFilters.jobBoard.endDate = eDate;
+      window.drawerFilters.jobBoard.quickPreset = 'custom';
+    }
+    renderAllViews();
+    return;
+  }
+
+  // 4. Zoom Slider Fallback (change event)
+  if (target.id === 'drawer-zoom-slider' || target.classList.contains('drawer-zoom-slider') || target.getAttribute('data-action') === 'zoom-slider') {
+    const num = parseInt(target.value, 10);
+    if (!isNaN(num)) {
+      setSchedulerZoom(num);
+    }
+    return;
+  }
+
+  // 5. Operating Hours Standard/24h toggle
+  if (target.id === 'drawer-operating-hours') {
+    const isStandard = target.checked;
+    if (typeof toggleDrawerSchedulerHours === 'function') {
+      toggleDrawerSchedulerHours(isStandard);
+    }
+    return;
+  }
+
+  // 6. Personnel Overlay Filter
+  if (target.id === 'drawer-filter-worker') {
+    if (typeof handleDrawerSchedulerWorker === 'function') {
+      handleDrawerSchedulerWorker(target.value);
+    }
+    return;
+  }
+
+  // 7. Site Filter
+  if (target.id === 'drawer-jb-site') {
+    if (typeof handleDrawerJobBoardSite === 'function') {
+      handleDrawerJobBoardSite(target.value);
+    }
+    return;
+  }
+
+  // 8. Crane Class Filter
+  if (target.id === 'drawer-jb-crane-class') {
+    if (typeof handleDrawerJobBoardCraneClass === 'function') {
+      handleDrawerJobBoardCraneClass(target.value);
+    }
+    return;
   }
 });
 
