@@ -1,18 +1,2290 @@
+// HireEngine Standalone Platform Bundle (Works on both http:// and file:// protocols)
+
+/**
+ * dataModels.js — HireEngine Core Data Layer
+ * Single source of truth for all fleet, worker, compliance, and booking data.
+ *
+ * Australian High Risk Work Licence (HRWL) codes used throughout:
+ *   Cranes:  CN  (non-slewing, capacity ≤ 3T)
+ *            C2  (non-slewing, capacity > 3T)
+ *            C6  (slewing mobile, capacity ≤ 20T)
+ *            C1  (slewing mobile, capacity > 20T)
+ *            CO  (bridge & gantry crane)
+ *   Rigging: DG  (Dogging)
+ *            RB  (Basic Rigging)
+ *            RI  (Intermediate Rigging)
+ *            RA  (Advanced Rigging)
+ *
+ * License hierarchy (higher class supersedes lower):
+ *   Cranes:  C1 > C6 > C2 > CN  |  CO is standalone
+ *   Rigging: RA > RI > RB > DG
+ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CONFIGURATION & CONSTANTS
+───────────────────────────────────────────────────────────────────────────── */
+
+const HOURLY_RATES = {
+  EX: 250,   // Excavator
+  SK: 180,   // Skid Steer
+  DZ: 280,   // Dozer
+  FL: 150,   // Forklift
+  SC: 120,   // Scissor Lift
+  BM: 180,   // Boom Lift
+  CR: 480,   // Crane (wet hire premium rate)
+  DT: 200,   // Dump Truck
+};
+
+/**
+ * HRWL requirements by crane category.
+ * A license of a higher tier satisfies requirements for lower tiers.
+ * For example, C1 holders can operate cranes requiring C6, C2, or CN.
+ */
+const CRANE_HRWL_REQUIREMENTS = {
+  non_slewing_light: { label: 'Non-slewing Mobile (≤3T)',   requiredLicenses: ['CN', 'C2', 'C1'] },
+  non_slewing_heavy: { label: 'Non-slewing Mobile (>3T)',   requiredLicenses: ['C2', 'C1'] },
+  slewing_light:     { label: 'Slewing Mobile (≤20T)',      requiredLicenses: ['C6', 'C1'] },
+  slewing_heavy:     { label: 'Slewing Mobile (>20T)',      requiredLicenses: ['C1'] },
+  bridge_gantry:     { label: 'Bridge & Gantry Crane',      requiredLicenses: ['CO'] },
+  pick_carry:        { label: 'Pick-and-Carry (Franna)',    requiredLicenses: ['C6', 'C1'] },
+};
+
+const RIGGING_LICENSE_TYPES = ['DG', 'RB', 'RI', 'RA'];
+
+const HIRE_TYPES = {
+  WET:         'wet',          // Machine + certified operator + dogman/rigger
+  DRY:         'dry',          // Machine only — client supplies operator
+  LABOUR_ONLY: 'labour_only',  // Operator/rigger labour only — client supplies machine
+};
+
+const DOC_STATUSES = {
+  PENDING:   'pending',
+  COMPLETED: 'completed',
+  PUSHED:    'pushed',      // Successfully indexed in DocuWare
+};
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ASSET REGISTRY
+   Source of truth for all fleet assets. Mutable via helper functions.
+───────────────────────────────────────────────────────────────────────────── */
+
+
+let clientsRegistry = [
+  { id: 'C100', name: 'ADCO Constructions', phone: '1300 000 001', email: 'admin@adco.com.au' },
+  { id: 'C101', name: 'Downer Group', phone: '1300 000 002', email: 'dispatch@downer.com.au' },
+  { id: 'C102', name: 'Fulton Hogan', phone: '1300 000 003', email: 'ops@fultonhogan.com.au' },
+  { id: 'C103', name: 'Lendlease Group', phone: '1300 000 004', email: 'dispatch@lendlease.com' },
+  { id: 'C104', name: 'Multiplex Constructions', phone: '1300 000 005', email: 'site@multiplex.biz' },
+  { id: 'C105', name: 'CPB Contractors', phone: '1300 000 006', email: 'plant@cpbcon.com.au' },
+  { id: 'C106', name: 'Hutchinson Builders', phone: '1300 000 007', email: 'ops@hutchies.com.au' }
+];
+
+let projectsRegistry = [
+  { id: 'P200', clientId: 'C100', name: 'Coronation Dr Basement', address: '12 Coronation Dr, Milton QLD 4064', contact: 'Site Mgr Bill (0411 223 344)' },
+  { id: 'P201', clientId: 'C100', name: 'Chermside Health Hub', address: '395 Hamilton Rd, Chermside QLD 4032', contact: 'Mark Davies (0412 889 900)' },
+  { id: 'P202', clientId: 'C101', name: 'Springfield Subdivision', address: 'Lot 42 Springfield Central QLD 4300', contact: 'Dave Foreman (0418 556 677)' },
+  { id: 'P203', clientId: 'C101', name: 'Centenary Highway Upgrade', address: 'Centenary Hwy, Darra QLD 4076', contact: 'Gareth Evans (0419 223 311)' },
+  { id: 'P204', clientId: 'C102', name: 'Gateway Overpass', address: 'Gateway Motorway, Nudgee QLD 4014', contact: 'Structural Eng. Tim (0420 112 233)' },
+  { id: 'P205', clientId: 'C103', name: 'Queens Wharf Integrated Resort', address: 'Queens Wharf, Brisbane CBD QLD 4000', contact: 'Rob Superintendent (0421 998 877)' },
+  { id: 'P206', clientId: 'C104', name: '55 Eagle St Commercial Tower', address: '55 Eagle St, Brisbane CBD QLD 4000', contact: 'Paul Crane Co-ord (0422 445 566)' },
+  { id: 'P207', clientId: 'C105', name: 'Cross River Rail Roma St', address: 'Roma St Station Precinct, Brisbane QLD 4000', contact: 'Sarah Works Mgr (0423 778 899)' },
+  { id: 'P208', clientId: 'C106', name: 'South Bank Cultural Precinct', address: 'Grey St, South Brisbane QLD 4101', contact: 'Jack Project Dir (0424 334 455)' },
+];
+
+function addClient(c) { clientsRegistry.push(c); }
+function addProject(p) { projectsRegistry.push(p); }
+
+let assetRegistry = [
+  { id: 'EX01', description: 'Excavator 20T',        hex: '#0ea5e9', assetType: 'excavator' },
+  { id: 'EX02', description: 'Excavator 35T',        hex: '#06b6d4', assetType: 'excavator' },
+  { id: 'SK03', description: 'Skid Steer Loader',    hex: '#8b5cf6', assetType: 'skid_steer' },
+  { id: 'DZ04', description: 'Dozer D6',             hex: '#475569', assetType: 'dozer' },
+  { id: 'FL05', description: 'Forklift 5T',          hex: '#6366f1', assetType: 'forklift' },
+  { id: 'FL06', description: 'Forklift 10T',         hex: '#2563eb', assetType: 'forklift' },
+  { id: 'SC07', description: 'Scissor Lift 12m',     hex: '#059669', assetType: 'elevated_platform' },
+  { id: 'BM08', description: 'Boom Lift 17m',        hex: '#b45309', assetType: 'elevated_platform' },
+  { id: 'CR09', description: 'Crawler Crane 50T',    hex: '#334155', assetType: 'crane_slewing_crawler' },
+  { id: 'DT10', description: 'Dump Truck',           hex: '#9333ea', assetType: 'truck' },
+];
+
+function addAsset(asset) {
+  assetRegistry.push(asset);
+}
+function removeAssetById(id) {
+  assetRegistry = assetRegistry.filter(a => a.id !== id);
+}
+function updateAssetById(id, fields) {
+  const idx = assetRegistry.findIndex(a => a.id === id);
+  if (idx >= 0) assetRegistry[idx] = { ...assetRegistry[idx], ...fields };
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CRANE CAPABILITY REGISTRY
+   Detailed specifications for all crane assets.
+───────────────────────────────────────────────────────────────────────────── */
+
+const craneCapabilityRegistry = {
+  CR09: {
+    maxLiftCapacity: 50,            // tonnes
+    craneCategory: 'slewing_heavy', // maps to CRANE_HRWL_REQUIREMENTS key
+    boomLength: 45,                 // metres
+    rig: 'lattice_boom_crawler',
+    requiredOperatorLicenses: ['C1'],
+    riggingMandatory: true,         // dogman or rigger required by law
+    swmsRequired: true,
+    maxWindSpeed: 12,               // m/s operational limit per manufacturer
+    notes: '50T capacity at 4m radius. Maximum radius 40m at reduced capacity. SWL to be confirmed by dogman per lift.',
+  },
+  // Additional crane assets added here as fleet grows
+};
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   COMPLIANCE REGISTRY
+   Asset-level certification, registration, and inspection tracking.
+───────────────────────────────────────────────────────────────────────────── */
+
+let complianceRegistry = {
+  EX01: { rego: 'REG-8829-EX', certDate: '2026-11-15', nextServiceDue: '2026-12-01', status: 'valid',   risk: 'Low',  annualCertDate: '2026-11-15', riskAssessmentDate: '2026-06-01' },
+  EX02: { rego: 'REG-4410-EX', certDate: '2026-09-20', nextServiceDue: '2026-09-20', status: 'warning', risk: 'Med', annualCertDate: '2026-09-20', riskAssessmentDate: '2026-03-15' },
+  SK03: { rego: 'REG-1204-SK', certDate: '2026-12-01', nextServiceDue: '2026-12-15', status: 'valid',   risk: 'Low',  annualCertDate: '2026-12-01', riskAssessmentDate: '2026-06-01' },
+  DZ04: { rego: 'REG-9912-DZ', certDate: '2027-01-20', nextServiceDue: '2027-02-01', status: 'valid',   risk: 'Low',  annualCertDate: '2027-01-20', riskAssessmentDate: '2026-07-20' },
+  FL05: { rego: 'REG-3319-FL', certDate: '2026-10-10', nextServiceDue: '2026-11-01', status: 'valid',   risk: 'Low',  annualCertDate: '2026-10-10', riskAssessmentDate: '2026-04-10' },
+  FL06: { rego: 'REG-5521-FL', certDate: '2026-10-04', nextServiceDue: '2026-11-04', status: 'valid',   risk: 'Low',  annualCertDate: '2026-10-04', riskAssessmentDate: '2026-04-04' },
+  SC07: { rego: 'REG-7714-SC', certDate: '2026-09-22', nextServiceDue: '2026-09-22', status: 'warning', risk: 'Med', annualCertDate: '2026-09-22', riskAssessmentDate: '2026-03-22' },
+  BM08: { rego: 'REG-8840-BM', certDate: '2026-11-30', nextServiceDue: '2026-12-10', status: 'valid',   risk: 'Low',  annualCertDate: '2026-11-30', riskAssessmentDate: '2026-05-30' },
+  CR09: { rego: 'REG-0012-CR', certDate: '2026-07-30', nextServiceDue: '2026-07-30', status: 'expired', risk: 'HIGH', annualCertDate: '2026-07-30', riskAssessmentDate: '2026-01-15' },
+  DT10: { rego: 'REG-6632-DT', certDate: '2026-12-15', nextServiceDue: '2027-01-15', status: 'valid',   risk: 'Low',  annualCertDate: '2026-12-15', riskAssessmentDate: '2026-06-15' },
+};
+
+function updateComplianceRecord(assetId, fields) {
+  if (complianceRegistry[assetId]) {
+    complianceRegistry[assetId] = { ...complianceRegistry[assetId], ...fields };
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   WORKER REGISTRY
+   Personnel with High Risk Work Licences (HRWL) and contact details.
+   License statuses are computed at render time against today's date.
+───────────────────────────────────────────────────────────────────────────── */
+
+let workerRegistry = [
+  {
+    id: 'W001', name: 'Luke Harris', role: 'Crane Operator', status: 'available',
+    phone: '0412 001 001', email: 'l.harris@hireengine.com.au',
+    licenses: [
+      { type: 'C1', licenseNumber: 'QLD-HRW-C1-28491', expiry: '2027-03-15', state: 'QLD' },
+      { type: 'C6', licenseNumber: 'QLD-HRW-C6-28491', expiry: '2027-03-15', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W002', name: 'John Smith', role: 'Crane Operator', status: 'available',
+    phone: '0412 001 002', email: 'j.smith@hireengine.com.au',
+    licenses: [
+      { type: 'C6', licenseNumber: 'QLD-HRW-C6-19234', expiry: '2026-10-30', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W003', name: 'Mark Johnson', role: 'Plant Operator',
+    phone: '0412 001 003', email: 'm.johnson@hireengine.com.au',
+    licenses: [
+      { type: 'C2', licenseNumber: 'QLD-HRW-C2-44120', expiry: '2027-01-08', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W004', name: 'Dave Wilson', role: 'Plant Operator',
+    phone: '0412 001 004', email: 'd.wilson@hireengine.com.au',
+    licenses: [
+      { type: 'C2', licenseNumber: 'QLD-HRW-C2-33981', expiry: '2026-10-05', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W005', name: 'Sam Davies', role: 'Plant Operator',
+    phone: '0412 001 005', email: 's.davies@hireengine.com.au',
+    licenses: [
+      { type: 'CO', licenseNumber: 'QLD-HRW-CO-11023', expiry: '2027-04-22', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W006', name: 'Alex Morgan', role: 'Plant Operator',
+    phone: '0412 001 006', email: 'a.morgan@hireengine.com.au',
+    licenses: [
+      { type: 'C6', licenseNumber: 'NSW-HRW-C6-90211', expiry: '2026-12-19', state: 'NSW' },
+    ],
+  },
+  {
+    id: 'W007', name: 'Chris Evans', role: 'Crane Operator', status: 'available',
+    phone: '0412 001 007', email: 'c.evans@hireengine.com.au',
+    licenses: [
+      { type: 'C6', licenseNumber: 'QLD-HRW-C6-77321', expiry: '2027-02-11', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W008', name: 'Ryan Nash', role: 'Plant Operator',
+    phone: '0412 001 008', email: 'r.nash@hireengine.com.au',
+    licenses: [
+      { type: 'C6', licenseNumber: 'QLD-HRW-C6-88412', expiry: '2027-05-30', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W009', name: 'Tom Reed', role: 'Plant Operator',
+    phone: '0412 001 009', email: 't.reed@hireengine.com.au',
+    licenses: [
+      { type: 'CO', licenseNumber: 'QLD-HRW-CO-22011', expiry: '2026-11-14', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W010', name: 'Mike Stone', role: 'Plant Operator',
+    phone: '0412 001 010', email: 'm.stone@hireengine.com.au',
+    licenses: [
+      { type: 'C2', licenseNumber: 'QLD-HRW-C2-66012', expiry: '2027-07-01', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W011', name: 'Sam Chen', role: 'Crane Operator', status: 'available',
+    phone: '0412 001 011', email: 's.chen@hireengine.com.au',
+    licenses: [
+      // EXPIRED — flagged as compliance block on dispatch
+      { type: 'C1', licenseNumber: 'QLD-HRW-C1-00431', expiry: '2026-08-01', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W012', name: 'Brad Nguyen', role: 'Dogman', status: 'available',
+    phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au',
+    licenses: [
+      { type: 'DG', licenseNumber: 'QLD-HRW-DG-55123', expiry: '2027-06-20', state: 'QLD' },
+      { type: 'RB', licenseNumber: 'QLD-HRW-RB-55123', expiry: '2027-06-20', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W013', name: "Kerry O'Brien", role: 'Dogman', status: 'available',
+    phone: '0412 001 013', email: 'k.obrien@hireengine.com.au',
+    licenses: [
+      { type: 'DG', licenseNumber: 'QLD-HRW-DG-67441', expiry: '2026-11-30', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W014', name: 'James Wu', role: 'Rigger',
+    phone: '0412 001 014', email: 'j.wu@hireengine.com.au',
+    licenses: [
+      { type: 'RB', licenseNumber: 'QLD-HRW-RB-41200', expiry: '2027-08-15', state: 'QLD' },
+      { type: 'RI', licenseNumber: 'QLD-HRW-RI-41200', expiry: '2027-08-15', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W015', name: 'Tina Forde', role: 'Rigger',
+    phone: '0412 001 015', email: 't.forde@hireengine.com.au',
+    licenses: [
+      // Expiring within 30 days — triggers WARN on dispatch
+      { type: 'RI', licenseNumber: 'QLD-HRW-RI-98012', expiry: '2026-10-01', state: 'QLD' },
+    ],
+  },
+  {
+    id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', status: 'available',
+    phone: '0412 110 091', email: 's.jenkins@ionhire.com.au',
+    licenses: [
+      { type: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', expiry: '', state: 'QLD' }
+    ]
+  },
+  {
+    id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', status: 'available',
+    phone: '0413 552 819', email: 'm.chang@ionhire.com.au',
+    licenses: [
+      { type: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', expiry: '', state: 'QLD' }
+    ]
+  },
+  {
+    id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', status: 'available',
+    phone: '0415 889 204', email: 'j.miller@ionhire.com.au',
+    licenses: [
+      { type: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', expiry: '', state: 'QLD' }
+    ]
+  },
+  {
+    id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', status: 'available',
+    phone: '0418 332 901', email: 'd.thornton@ionhire.com.au',
+    licenses: [
+      { type: 'N/A (Office)', licenseNumber: 'MGMT-01', expiry: '', state: 'QLD' }
+    ]
+  },
+  {
+    id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', status: 'available',
+    phone: '0416 771 430', email: 'r.vance@ionhire.com.au',
+    licenses: [
+      { type: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', expiry: '2027-12-31', state: 'QLD' }
+    ]
+  },
+  {
+    id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', status: 'available',
+    phone: '0417 443 652', email: 'a.ross@ionhire.com.au',
+    licenses: [
+      { type: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', expiry: '', state: 'QLD' }
+    ]
+  }
+];
+
+/**
+ * Returns the computed license status for a given expiry date string.
+ * 'expired' = already expired
+ * 'warning' = expires within 30 days
+ * 'valid'   = valid for > 30 days
+ */
+function getLicenseStatus(expiryDateStr) {
+  if (!expiryDateStr) return 'valid';
+  const now = new Date();
+  const expiry = new Date(expiryDateStr);
+  if (expiry < now) return 'expired';
+  const daysRemaining = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+  if (daysRemaining <= 30) return 'warning';
+  return 'valid';
+}
+
+/**
+ * Returns the number of days until a license expires (negative if already expired).
+ */
+function daysUntilExpiry(expiryDateStr) {
+  if (!expiryDateStr) return 9999;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.ceil((new Date(expiryDateStr) - now) / (1000 * 60 * 60 * 24));
+}
+
+function addWorker(worker) {
+  workerRegistry.push(worker);
+}
+function updateWorkerById(id, fields) {
+  const idx = workerRegistry.findIndex(w => w.id === id);
+  if (idx >= 0) workerRegistry[idx] = { ...workerRegistry[idx], ...fields };
+}
+function removeWorkerById(id) {
+  const idx = workerRegistry.findIndex(w => w.id === id);
+  if (idx >= 0) workerRegistry.splice(idx, 1);
+}
+function getWorkerById(id) {
+  return workerRegistry.find(w => w.id === id) || null;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BOOKING DATA
+   Extended booking model with wet hire resources, document pipeline tracking,
+   and site data. Existing POC bookings preserved and enriched.
+───────────────────────────────────────────────────────────────────────────── */
+
+// Date helpers
+function d(h, m = 0) {
+  const n = new Date(); n.setHours(h, m, 0, 0); return n.toISOString();
+}
+function dOffset(days, h, m = 0) {
+  const n = new Date(); n.setDate(n.getDate() + days); n.setHours(h, m, 0, 0); return n.toISOString();
+}
+
+
+/**
+ * Booking shape (reference):
+ * {
+ *   id: string,
+ *   assetNumber: string,
+ *   hireType: 'wet' | 'dry' | 'labour_only',
+ *   clientName: string,
+ *   jobDescription: string,
+ *   operatorName: string,           // display name (legacy, kept for compat)
+ *   wetHireResources: [             // populated for wet hire
+ *     { role: 'Operator'|'Dogman'|'Rigger', workerId: string, workerName: string, licenseType: string }
+ *   ],
+ *   requiredLiftCapacity: number,   // tonnes; 0 for non-crane assets
+ *   siteAddress: string,
+ *   startTime: ISO string,
+ *   endTime: ISO string,
+ *   status: 'EOI / Pending'|'Scheduled / Dispatched'|'Active On-Site'|'Pending Docket'|'Ready for Invoicing'|'Scheduled'|'Dispatched'|'On-Site'|'Docket Verification'|'Completed'|'Invoiced'|'Urgent'|'Out of Service',
+ *   swmsStatus: 'pending'|'completed'|'pushed',
+ *   preStartStatus: 'pending'|'completed'|'pushed',
+ *   docketStatus: 'pending'|'completed'|'pushed',
+ *   contractSigned: boolean,
+ *   docketUploaded: boolean,
+ *   complianceOverrideReason: string|null,
+ * }
+ */
+
+let bookings = [
+  { id:'b1',  assetNumber:'EX01', hireType:'wet',  clientName:'BuildCorp Inc.',           jobDescription:'Foundation excavation — Stage 1',           operatorName:'John Smith',   clientPhone:'0412 889 901', isHighPriority:true, isDelayed:false, wetHireResources:[{role:'Operator',workerId:'W002',workerName:'John Smith',licenseType:'C6'}],                                                           requiredLiftCapacity:0, siteAddress:'12 Commerce Dr, Yatala QLD 4207',         startTime:d(7,0),        endTime:d(13,0),        status:'Active On-Site',  swmsStatus:'completed', preStartStatus:'completed', docketStatus:'pending',   contractSigned:true,  docketUploaded:false },
+  { id:'b2',  assetNumber:'EX02', hireType:'wet',  clientName:'Civil Works Pty Ltd',       jobDescription:'Bulk earthworks — cut to fill',              operatorName:'Mark Johnson', clientPhone:'0412 889 902', isHighPriority:false, isDelayed:false, wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}],                                                          requiredLiftCapacity:0, siteAddress:'88 Pacific Hwy, Helensvale QLD 4212',     startTime:d(7,30),       endTime:d(15,0),        status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b3',  assetNumber:'EX02', hireType:'wet',  clientName:'Metro Rail Authority',       jobDescription:'Drainage trench excavation',                 operatorName:'Mark Johnson', clientPhone:'0412 889 903', isHighPriority:false, isDelayed:false, wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}],                                                          requiredLiftCapacity:0, siteAddress:'Station Rd, Roma QLD 4455',               startTime:d(15,30),      endTime:d(17,30),       status:'Ready for Invoicing',   swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b4',  assetNumber:'SK03', hireType:'dry',  clientName:'Apex Constructions',         jobDescription:'Backfill compaction — basement slab',         operatorName:'Sam Davies',   clientPhone:'0412 889 904', isHighPriority:false, isDelayed:false, wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'4 Nexus Way, Southport QLD 4215',         startTime:d(8,0),        endTime:d(12,0),        status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b5',  assetNumber:'DZ04', hireType:'dry',  clientName:'City Infrastructure',         jobDescription:'Site clearing — greenfield stage',            operatorName:'Dave Wilson',  clientPhone:'0412 889 905', isHighPriority:false, isDelayed:false, wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Industrial Estate, Narangba QLD 4504',    startTime:d(6,0),        endTime:d(14,0),        status:'EOI / Pending',     swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b6',  assetNumber:'FL05', hireType:'dry',  clientName:'Warehouse Direct',            jobDescription:'Pallet racking install — Bay C',              operatorName:'Alex Morgan',  clientPhone:'0412 889 906', isHighPriority:false, isDelayed:false, wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Lot 14 Warehouse Ct, Larapinta QLD 4110', startTime:d(9,0),        endTime:d(13,0),        status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b7',  assetNumber:'FL06', hireType:'dry',  clientName:'National Logistics',          jobDescription:'Heavy machinery unloading',                   operatorName:'Chris Evans',  clientPhone:'0412 889 907', isHighPriority:false, isDelayed:false, wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'25 Gateway Dr, Yatala QLD 4207',          startTime:d(10,0),       endTime:d(14,30),       status:'Active On-Site',  swmsStatus:'completed',   preStartStatus:'completed',   docketStatus:'pending',   contractSigned:true,  docketUploaded:false },
+  { id:'b8',  assetNumber:'SC07', hireType:'dry',  clientName:'Urban Developers QLD',        jobDescription:'Facade maintenance — Level 4',                operatorName:'Tom Reed',     clientPhone:'0412 889 908', isHighPriority:false, isDelayed:false, wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'101 Charlotte St, Brisbane QLD 4000',     startTime:d(8,0),        endTime:d(16,0),        status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b9',  assetNumber:'BM08', hireType:'dry',  clientName:'Sunshine Coast Council',      jobDescription:'Streetlight installation',                    operatorName:'Ryan Nash',    clientPhone:'0412 889 909', isHighPriority:false, isDelayed:true,  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Maroochy Blvd, Maroochydore QLD 4558',    startTime:dOffset(-1,7,0), endTime:dOffset(-1,15,0), status:'Pending Docket', swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pending',   contractSigned:true,  docketUploaded:false },
+  { id:'b10', assetNumber:'CR09', hireType:'wet',  clientName:'Port Authority',              jobDescription:'Wharf beam placement',                        operatorName:'Luke Harris',  clientPhone:'0412 889 910', isHighPriority:true,  isDelayed:false, wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W012',workerName:'Brad Nguyen',licenseType:'DG'}], requiredLiftCapacity:28, siteAddress:'Fisherman Islands, Brisbane QLD 4178', startTime:dOffset(-1,6,30), endTime:dOffset(-1,16,0), status:'Ready for Invoicing', swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b11', assetNumber:'EX01', hireType:'wet',  clientName:'Lendlease Group',             jobDescription:'Retaining wall footings',                     operatorName:'John Smith',   clientPhone:'0412 889 911', isHighPriority:false, isDelayed:false, wetHireResources:[{role:'Operator',workerId:'W002',workerName:'John Smith',licenseType:'C6'}],                                                           requiredLiftCapacity:0, siteAddress:'Queens Wharf, Brisbane QLD 4000',         startTime:dOffset(1,7,0),  endTime:dOffset(1,13,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b12', assetNumber:'DT10', hireType:'dry',  clientName:'Fulton Hogan',                jobDescription:'Spoil cartage — highway widening',             operatorName:'Mike Stone',   clientPhone:'0412 889 912', isHighPriority:false, isDelayed:true,  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'M1 Pacific Motorway, Coomera QLD 4209',   startTime:dOffset(1,5,30), endTime:dOffset(1,14,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b13', assetNumber:'FL06', hireType:'dry',  clientName:'Mirvac Group',                jobDescription:'Steel module placement — Level 6',             operatorName:'Chris Evans',  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'80 Ann St, Brisbane QLD 4000',            startTime:dOffset(2,8,0),  endTime:dOffset(2,13,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b14', assetNumber:'BM08', hireType:'dry',  clientName:'Multiplex Constructions',     jobDescription:'Signage installation — rooftop',               operatorName:'Ryan Nash',    wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'55 Eagle St, Brisbane QLD 4000',          startTime:dOffset(2,9,0),  endTime:dOffset(2,14,0),  status:'EOI / Pending',     swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b15', assetNumber:'CR09', hireType:'wet',  clientName:'Queensland Rail',             jobDescription:'Bridge girder placement',                     operatorName:'Luke Harris',  wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W012',workerName:'Brad Nguyen',licenseType:'DG'}], requiredLiftCapacity:42, siteAddress:'Ipswich Motorway Rail Bridge, Gailes QLD 4300', startTime:dOffset(3,6,0), endTime:dOffset(3,18,0), status:'Scheduled / Dispatched', swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false },
+  { id:'b16', assetNumber:'EX02', hireType:'wet',  clientName:'Boral Limited',              jobDescription:'Quarry face excavation',                      operatorName:'Mark Johnson', wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}],                                                          requiredLiftCapacity:0, siteAddress:'Wacol Quarry, Brisbane QLD 4076',         startTime:dOffset(-2,7,0), endTime:dOffset(-2,15,0), status:'Ready for Invoicing',   swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b17', assetNumber:'DZ04', hireType:'dry',  clientName:'Hutchinson Builders',        jobDescription:'Sub-grade preparation',                       operatorName:'Dave Wilson',  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Windsor Rd, Nundah QLD 4012',            startTime:dOffset(-2,6,30),endTime:dOffset(-2,14,0), status:'Pending Docket',  swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b18', assetNumber:'CR09', hireType:'wet',  clientName:'Seymour Whyte Constructions',jobDescription:'Precast panel erection — Block B',             operatorName:'Luke Harris',  wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W013',workerName:"Kerry O'Brien",licenseType:'DG'}], requiredLiftCapacity:18, siteAddress:'Mater Hill, South Brisbane QLD 4101', startTime:dOffset(-3,7,0), endTime:dOffset(-3,17,0), status:'Ready for Invoicing', swmsStatus:'pushed', preStartStatus:'pushed', docketStatus:'pushed', contractSigned:true, docketUploaded:true },
+  { id:'b19', assetNumber:'SK03', hireType:'dry',  clientName:'BMD Constructions',          jobDescription:'Trenching — stormwater main',                 operatorName:'Sam Davies',   wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Beaudesert Rd, Archerfield QLD 4108',    startTime:dOffset(-3,8,0), endTime:dOffset(-3,14,0), status:'Pending Docket',  swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b20', assetNumber:'SC07', hireType:'dry',  clientName:'Aria Property Group',        jobDescription:'Window replacement — Levels 2-4',             operatorName:'Tom Reed',     wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'200 Mary St, Brisbane QLD 4000',          startTime:dOffset(-1,9,0), endTime:dOffset(-1,17,0), status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b21', assetNumber:'EX01', hireType:'wet',  clientName:'ADCO Constructions',         jobDescription:'Rock breaking — basement',                    operatorName:'John Smith',   wetHireResources:[{role:'Operator',workerId:'W002',workerName:'John Smith',licenseType:'C6'}],                                                           requiredLiftCapacity:0, siteAddress:'Coronation Dr, Milton QLD 4064',          startTime:dOffset(-1,6,30),endTime:dOffset(-1,13,0), status:'Ready for Invoicing',   swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b22', assetNumber:'DT10', hireType:'dry',  clientName:'Downer Group',               jobDescription:'Fill cartage — subdivision',                  operatorName:'Mike Stone',   wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Springfield Central QLD 4300',            startTime:dOffset(1,6,0),  endTime:dOffset(1,14,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b23', assetNumber:'CR09', hireType:'wet',  clientName:'Fulton Hogan',               jobDescription:'Overpass beam launch',                        operatorName:'Luke Harris',  wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W012',workerName:'Brad Nguyen',licenseType:'DG'}], requiredLiftCapacity:35, siteAddress:'Gateway Motorway Overpass, Nudgee QLD 4014', startTime:dOffset(1,7,0), endTime:dOffset(1,16,0), status:'EOI / Pending',     swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b24', assetNumber:'BM08', hireType:'dry',  clientName:'Hansen Yuncken',             jobDescription:'Cladding install — south elevation',           operatorName:'Ryan Nash',    wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Bowen Hills QLD 4006',                    startTime:dOffset(1,14,0), endTime:dOffset(1,18,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b25', assetNumber:'FL05', hireType:'dry',  clientName:"Laing O'Rourke",             jobDescription:'Warehouse restocking run',                    operatorName:'Alex Morgan',  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Acacia Ridge Distribution Centre QLD 4110',startTime:dOffset(2,7,0),  endTime:dOffset(2,11,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b26', assetNumber:'EX02', hireType:'wet',  clientName:'Roberts Co',                 jobDescription:'Footings excavation — Tower C',               operatorName:'Mark Johnson', wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}],                                                          requiredLiftCapacity:0, siteAddress:'Newstead QLD 4006',                       startTime:dOffset(2,6,30), endTime:dOffset(2,13,0),  status:'Active On-Site',  swmsStatus:'completed',   preStartStatus:'completed',   docketStatus:'pending',   contractSigned:true,  docketUploaded:false },
+  { id:'b27', assetNumber:'SC07', hireType:'dry',  clientName:'Watpac Constructions',       jobDescription:'External painting — Level 5',                 operatorName:'Tom Reed',     wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'South Bank QLD 4101',                     startTime:dOffset(2,8,0),  endTime:dOffset(2,16,0),  status:'EOI / Pending',     swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b28', assetNumber:'DZ04', hireType:'dry',  clientName:'Acciona Infrastructure',     jobDescription:'Road formation — Stage 3',                    operatorName:'Dave Wilson',  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Logan Motorway Extension QLD 4131',       startTime:dOffset(3,6,30), endTime:dOffset(3,16,0),  status:'Active On-Site',  swmsStatus:'completed',   preStartStatus:'completed',   docketStatus:'pending',   contractSigned:true,  docketUploaded:false },
+  { id:'b29', assetNumber:'FL06', hireType:'dry',  clientName:'CPB Contractors',            jobDescription:'Plant repositioning — depot',                  operatorName:'Chris Evans',  wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Eagle Farm QLD 4009',                     startTime:dOffset(3,9,0),  endTime:dOffset(3,14,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b30', assetNumber:'EX01', hireType:'wet',  clientName:'McConnell Dowell',           jobDescription:'Pipeline trench — DN600',                     operatorName:'John Smith',   wetHireResources:[{role:'Operator',workerId:'W002',workerName:'John Smith',licenseType:'C6'}],                                                           requiredLiftCapacity:0, siteAddress:'Toowong QLD 4066',                        startTime:dOffset(4,7,0),  endTime:dOffset(4,16,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  { id:'b31', assetNumber:'SK03', hireType:'dry',  clientName:'John Holland Group',         jobDescription:'Backfill operations — platform',               operatorName:'Sam Davies',   wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Central Station Precinct QLD 4000',       startTime:dOffset(4,8,0),  endTime:dOffset(4,15,0),  status:'Ready for Invoicing',   swmsStatus:'pushed',    preStartStatus:'pushed',    docketStatus:'pushed',    contractSigned:true,  docketUploaded:true  },
+  { id:'b32', assetNumber:'BM08', hireType:'dry',  clientName:'Probuild',                   jobDescription:'HVAC installation — rooftop',                 operatorName:'Ryan Nash',    wetHireResources:[],                                                                                                                                      requiredLiftCapacity:0, siteAddress:'Spring Hill QLD 4004',                    startTime:dOffset(5,7,30), endTime:dOffset(5,14,0),  status:'Scheduled / Dispatched',  swmsStatus:'pending',   preStartStatus:'pending',   docketStatus:'pending',   contractSigned:false, docketUploaded:false },
+  // Distinct Multi-Day Jobs for Calendar Grid
+  { id:'b-multi-1', assetNumber:'EX02', hireType:'wet',  clientName:'Civil Works Pty Ltd', clientPhone:'1300 000 003', jobDescription:'Bulk Earthworks Package — 5-Day Continuous Cut & Fill', operatorName:'Mark Johnson', isMultiDay:true, wetHireResources:[{role:'Operator',workerId:'W003',workerName:'Mark Johnson',licenseType:'C2'}], requiredLiftCapacity:0, siteAddress:'88 Pacific Hwy, Helensvale QLD 4212', startTime:dOffset(-1,6,0), endTime:dOffset(4,18,0), status:'Scheduled', swmsStatus:'completed', preStartStatus:'completed', docketStatus:'pending', contractSigned:true, docketUploaded:false },
+  { id:'b-multi-2', assetNumber:'CR09', hireType:'wet',  clientName:'Queensland Rail', clientPhone:'1300 000 001', jobDescription:'Rail Bridge Span Installation — 4-Day Continuous Lift', operatorName:'Luke Harris', isMultiDay:true, wetHireResources:[{role:'Operator',workerId:'W001',workerName:'Luke Harris',licenseType:'C1'},{role:'Dogman',workerId:'W012',workerName:'Brad Nguyen',licenseType:'DG'}], requiredLiftCapacity:45, siteAddress:'Ipswich Motorway Rail Bridge, Gailes QLD 4300', startTime:dOffset(7,6,0), endTime:dOffset(10,18,0), status:'Scheduled', swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false },
+  // Red 'Out of Service' blocks
+  { id:'b-oos-1', assetNumber:'DZ04', hireType:'dry', clientName:'Fleet Workshop', clientPhone:'0400 999 111', jobDescription:'Out of Service: 500-Hour Hydraulic Transmission Overhaul', operatorName:'Maintenance Depot', isOutOfService:true, status:'Out of Service', requiredLiftCapacity:0, siteAddress:'Depot Central Workshop, Pinkenba QLD', startTime:dOffset(0,0,0), endTime:dOffset(3,23,59), swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false },
+  { id:'b-oos-2', assetNumber:'FL05', hireType:'dry', clientName:'Fleet Workshop', clientPhone:'0400 999 222', jobDescription:'Out of Service: Annual Mast Non-Destructive Testing (NDT)', operatorName:'Maintenance Depot', isOutOfService:true, status:'Out of Service', requiredLiftCapacity:0, siteAddress:'Depot Central Workshop, Pinkenba QLD', startTime:dOffset(12,0,0), endTime:dOffset(15,23,59), swmsStatus:'pending', preStartStatus:'pending', docketStatus:'pending', contractSigned:false, docketUploaded:false }
+];
+
+// Booking mutation functions
+function addBooking(booking) {
+  bookings.push(booking);
+}
+
+function updateBooking(updated) {
+  const idx = bookings.findIndex(b => b.id === updated.id);
+  if (idx >= 0) bookings[idx] = updated;
+}
+
+function removeBooking(id) {
+  bookings = bookings.filter(b => b.id !== id);
+}
+
+function getBookingById(id) {
+  return bookings.find(b => b.id === id) || null;
+}
+
+// Derived ASSET_HEX lookup rebuilt from assetRegistry
+function getAssetHex(assetId) {
+  // Semantic overrides (status-driven)
+  const semanticMap = {
+    Urgent: '#dc2626',
+  };
+  if (semanticMap[assetId]) return semanticMap[assetId];
+  const asset = assetRegistry.find(a => a.id === assetId);
+  return asset ? asset.hex : '#475569';
+}
+
+
+/**
+ * complianceEngine.js — HireEngine Intelligent Compliance & Certification Engine
+ *
+ * Validates dispatch operations against 8 tiered safety rules based on:
+ *   - Asset registration and certification status
+ *   - Australian High Risk Work Licence (HRWL) codes for crane operators
+ *   - Rigging licence requirements for dogmen and riggers
+ *   - Crane load capacity against job requirements
+ *   - Worker double-booking detection
+ *
+ * Validation severity:
+ *   HARD BLOCK — dispatch is prevented. User cannot override.
+ *   WARNING    — dispatch is permitted after acknowledged override with mandatory reason.
+ *
+ * Australian HRWL Reference (Safe Work Australia — Model WHS Regulations):
+ *   CN  — Non-slewing mobile crane, capacity not exceeding 3 tonnes
+ *   C2  — Non-slewing mobile crane, capacity exceeding 3 tonnes
+ *   C6  — Slewing mobile crane, capacity not exceeding 20 tonnes
+ *   C1  — Slewing mobile crane, capacity exceeding 20 tonnes
+ *   CO  — Bridge and gantry crane
+ *   DG  — Dogging (licence to sling and direct crane operator)
+ *   RB  — Basic Rigging
+ *   RI  — Intermediate Rigging
+ *   RA  — Advanced Rigging
+ *
+ * Licence hierarchy (higher class satisfies lower class requirements):
+ *   Crane: C1 satisfies C6, C2, CN. C6 satisfies C2, CN. C2 satisfies CN.
+ *   Rigging: RA satisfies RI, RB, DG. RI satisfies RB, DG. RB satisfies DG.
+ */
+
+
+
+// ─── LICENSE HIERARCHY TABLES ────────────────────────────────────────────────
+
+/**
+ * For each required crane license, lists all licenses that satisfy it
+ * (including the license itself and all higher-tier licenses).
+ */
+const CRANE_LICENSE_SATISFIES = {
+  CN: ['CN', 'C2', 'C6', 'C1'],  // any crane license works for ≤3T non-slewing
+  C2: ['C2', 'C1'],               // C2 or C1 for >3T non-slewing
+  C6: ['C6', 'C1'],               // C6 or C1 for ≤20T slewing
+  C1: ['C1'],                     // C1 only for >20T slewing
+  CO: ['CO'],                     // CO only for bridge/gantry
+};
+
+/**
+ * For each required rigging license, lists all licenses that satisfy it.
+ */
+const RIGGING_LICENSE_SATISFIES = {
+  DG: ['DG', 'RB', 'RI', 'RA'],
+  RB: ['RB', 'RI', 'RA'],
+  RI: ['RI', 'RA'],
+  RA: ['RA'],
+};
+
+// ─── VALIDATION RESULT SHAPE ─────────────────────────────────────────────────
+
+/**
+ * Creates an empty validation result.
+ * @returns {{ valid: boolean, hardBlocks: Array, warnings: Array }}
+ */
+function createResult() {
+  return { valid: true, hardBlocks: [], warnings: [] };
+}
+
+/**
+ * Adds a hard block to a result (marks it invalid).
+ */
+function addBlock(result, code, message, context = {}) {
+  result.valid = false;
+  result.hardBlocks.push({ code, message, ...context });
+}
+
+/**
+ * Adds a warning to a result (does not invalidate).
+ */
+function addWarning(result, code, message, context = {}) {
+  result.warnings.push({ code, message, ...context });
+}
+
+// ─── COMPLIANCE ENGINE ───────────────────────────────────────────────────────
+
+const ComplianceEngine = {
+
+  /**
+   * Master validation entry point.
+   * Runs all 8 compliance rules against a proposed booking.
+   *
+   * @param {object} booking - the proposed booking object (not yet persisted)
+   * @param {string|null} editId - if editing, the existing booking's ID (excluded from overlap check)
+   * @returns {{ valid: boolean, hardBlocks: Array, warnings: Array }}
+   */
+  validateDispatch(booking, editId = null) {
+    const result = createResult();
+
+    // Rule 1 — Asset certification must not be expired (HARD BLOCK)
+    this._checkAssetCertification(booking, result);
+
+    // Rule 2 — Asset service due within 7 days (WARNING)
+    this._checkAssetServiceDue(booking, result);
+
+    // Rules 3–7 — Wet hire specific checks
+    if (booking.hireType === 'wet') {
+      // Rule 3 — Crane capacity vs. job requirement (HARD BLOCK for cranes)
+      this._checkCraneCapacity(booking, result);
+
+      // Rule 4 — Operator holds a valid, current HRWL for this crane (HARD BLOCK)
+      this._checkOperatorLicense(booking, result);
+
+      // Rule 5 — Dogman/rigger holds a valid rigging licence (HARD BLOCK)
+      this._checkRiggingLicense(booking, result);
+
+      // Rule 6 — Worker licence expiring within 30 days (WARNING)
+      this._checkLicenseExpiry(booking, result);
+
+      // Rule 7 — Worker double-booking detection (WARNING)
+      this._checkWorkerDoubleBooking(booking, editId, result);
+    }
+
+    // Rule 8 — Asset scheduling overlap (HARD BLOCK) — only if no editId conflict
+    this._checkAssetOverlap(booking, editId, result);
+
+    return result;
+  },
+
+  // ─── RULE 1: Asset Certification ─────────────────────────────────────────
+
+  _checkAssetCertification(booking, result) {
+    const comp = complianceRegistry[booking.assetNumber];
+    if (!comp) return; // No record — permit with warning
+    if (comp.status === 'expired') {
+      addBlock(result, 'ASSET_CERT_EXPIRED', [
+        `Asset ${booking.assetNumber} (Rego: ${comp.rego}) has an EXPIRED safety certificate.`,
+        `Certificate expiry: ${comp.certDate}.`,
+        `Dispatch is locked until a renewed certificate is uploaded and indexed in the DocuWare Safety Cabinet.`,
+        `Contact your compliance officer to initiate certificate renewal.`,
+      ].join(' '), { assetId: booking.assetNumber, rego: comp.rego, expiry: comp.certDate });
+    }
+  },
+
+  // ─── RULE 2: Asset Service Due ────────────────────────────────────────────
+
+  _checkAssetServiceDue(booking, result) {
+    const comp = complianceRegistry[booking.assetNumber];
+    if (!comp || !comp.nextServiceDue) return;
+    const days = daysUntilExpiry(comp.nextServiceDue);
+    if (days > 0 && days <= 7) {
+      addWarning(result, 'ASSET_SERVICE_IMMINENT', [
+        `Asset ${booking.assetNumber} is due for scheduled service in ${days} day${days !== 1 ? 's' : ''} (${comp.nextServiceDue}).`,
+        `Confirm the asset is fit for this dispatch and schedule the service immediately after this job.`,
+      ].join(' '), { assetId: booking.assetNumber, daysRemaining: days });
+    } else if (days <= 0 && comp.status !== 'expired') {
+      // Overdue service but cert not flagged as expired — borderline warning
+      addWarning(result, 'ASSET_SERVICE_OVERDUE', [
+        `Asset ${booking.assetNumber} scheduled service is overdue (was due ${comp.nextServiceDue}).`,
+        `Inspect the asset before dispatch and raise a service booking immediately.`,
+      ].join(' '), { assetId: booking.assetNumber });
+    }
+  },
+
+  // ─── RULE 3: Crane Capacity ───────────────────────────────────────────────
+
+  _checkCraneCapacity(booking, result) {
+    const craneCap = craneCapabilityRegistry[booking.assetNumber];
+    if (!craneCap) return; // Not a crane — skip
+    const required = Number(booking.requiredLiftCapacity) || 0;
+    if (required > craneCap.maxLiftCapacity) {
+      addBlock(result, 'CRANE_CAPACITY_INSUFFICIENT', [
+        `Required lift capacity (${required}T) exceeds the safe working load of ${booking.assetNumber}`,
+        `(maximum capacity: ${craneCap.maxLiftCapacity}T at minimum radius).`,
+        `Select a higher-capacity crane or obtain an engineered lift plan demonstrating the reduced radius`,
+        `and confirm SWL with the licenced dogman before proceeding.`,
+      ].join(' '), {
+        assetId: booking.assetNumber,
+        required,
+        maxCapacity: craneCap.maxLiftCapacity,
+      });
+    }
+  },
+
+  // ─── RULE 4: Operator HRWL Validation ────────────────────────────────────
+
+  _checkOperatorLicense(booking, result) {
+    const resources = booking.wetHireResources || [];
+    const operatorResource = resources.find(r => r.role === 'Operator');
+
+    // No operator assigned at all
+    if (!operatorResource || !operatorResource.workerId) {
+      addBlock(result, 'NO_OPERATOR_ASSIGNED', [
+        `Wet hire dispatch requires a certified crane operator.`,
+        `No operator has been assigned to this booking.`,
+        `Assign a worker holding the appropriate HRWL (C1, C6, C2, CN, or CO) before dispatching.`,
+      ].join(' '));
+      return;
+    }
+
+    const worker = workerRegistry.find(w => w.id === operatorResource.workerId);
+    if (!worker) {
+      addBlock(result, 'OPERATOR_NOT_FOUND', `Operator record (ID: ${operatorResource.workerId}) not found in the worker registry. Update the booking and assign a registered worker.`);
+      return;
+    }
+
+    // Determine the required license types for this asset
+    const craneCap = craneCapabilityRegistry[booking.assetNumber];
+    const requiredLicenses = craneCap ? craneCap.requiredOperatorLicenses : ['C6', 'C1'];
+
+    // Build the set of all license types that satisfy any required license
+    const satisfyingSet = new Set();
+    requiredLicenses.forEach(req => {
+      (CRANE_LICENSE_SATISFIES[req] || [req]).forEach(l => satisfyingSet.add(l));
+    });
+
+    // Check worker's licenses — at least one must be valid (not expired) and satisfying
+    const validSatisfying = worker.licenses.filter(l => {
+      const status = getLicenseStatus(l.expiry);
+      return satisfyingSet.has(l.type) && status !== 'expired';
+    });
+
+    if (validSatisfying.length === 0) {
+      // Check if they HAVE the license but it's expired
+      const expiredSatisfying = worker.licenses.filter(l => satisfyingSet.has(l.type));
+      const expiredDetails = expiredSatisfying.length > 0
+        ? ` (${worker.name} holds licence ${expiredSatisfying[0].type} but it expired on ${expiredSatisfying[0].expiry}).`
+        : '';
+
+      addBlock(result, 'OPERATOR_LICENSE_INVALID', [
+        `Operator ${worker.name} does not hold a current HRWL authorising operation of ${booking.assetNumber}.`,
+        `Required: ${requiredLicenses.join(' or ')}.${expiredDetails}`,
+        `Arrange licence renewal or assign a different operator with a current, valid HRWL.`,
+      ].join(' '), {
+        workerId: worker.id,
+        workerName: worker.name,
+        requiredLicenses,
+      });
+    }
+  },
+
+  // ─── RULE 5: Dogging / Rigging Licence Validation ────────────────────────
+
+  _checkRiggingLicense(booking, result) {
+    const craneCap = craneCapabilityRegistry[booking.assetNumber];
+
+    // Only check if the asset is a crane requiring a dogman
+    if (!craneCap || !craneCap.riggingMandatory) return;
+
+    const resources = booking.wetHireResources || [];
+    const riggingResource = resources.find(r => r.role === 'Dogman' || r.role === 'Rigger');
+
+    if (!riggingResource || !riggingResource.workerId) {
+      addBlock(result, 'NO_DOGMAN_ASSIGNED', [
+        `Crane operations (${booking.assetNumber}) require a licenced dogman or rigger on-site by law.`,
+        `No dogman/rigger has been assigned to this booking.`,
+        `Assign a worker holding a valid DG, RB, RI, or RA HRWL.`,
+      ].join(' '));
+      return;
+    }
+
+    const worker = workerRegistry.find(w => w.id === riggingResource.workerId);
+    if (!worker) {
+      addBlock(result, 'DOGMAN_NOT_FOUND', `Dogman/rigger record (ID: ${riggingResource.workerId}) not found in the worker registry.`);
+      return;
+    }
+
+    // All rigging types are valid (DG is the minimum for crane dogging)
+    const validRigging = worker.licenses.filter(l => {
+      const status = getLicenseStatus(l.expiry);
+      return RIGGING_LICENSE_TYPES.includes(l.type) && status !== 'expired';
+    });
+
+    if (validRigging.length === 0) {
+      const expiredRigging = worker.licenses.filter(l => RIGGING_LICENSE_TYPES.includes(l.type));
+      const expiredInfo = expiredRigging.length > 0
+        ? ` ${worker.name}'s ${expiredRigging[0].type} licence expired on ${expiredRigging[0].expiry}.`
+        : '';
+
+      addBlock(result, 'DOGMAN_LICENSE_INVALID', [
+        `${worker.name} does not hold a current dogging or rigging HRWL.`,
+        `A current DG, RB, RI, or RA licence is required for crane lift operations.${expiredInfo}`,
+        `Arrange renewal or assign a different worker.`,
+      ].join(' '), {
+        workerId: worker.id,
+        workerName: worker.name,
+      });
+    }
+  },
+
+  // ─── RULE 6: Licence Expiry Warning (30 days) ────────────────────────────
+
+  _checkLicenseExpiry(booking, result) {
+    const resources = booking.wetHireResources || [];
+    const craneCap = craneCapabilityRegistry[booking.assetNumber];
+    const requiredCraneLicenses = craneCap ? craneCap.requiredOperatorLicenses : ['C6', 'C1'];
+
+    resources.forEach(resource => {
+      const worker = workerRegistry.find(w => w.id === resource.workerId);
+      if (!worker) return;
+
+      const isOperator = resource.role === 'Operator';
+      const relevantTypes = isOperator
+        ? new Set(requiredCraneLicenses.flatMap(r => CRANE_LICENSE_SATISFIES[r] || [r]))
+        : new Set(RIGGING_LICENSE_TYPES);
+
+      worker.licenses.forEach(lic => {
+        if (!relevantTypes.has(lic.type)) return;
+        const status = getLicenseStatus(lic.expiry);
+        if (status === 'warning') {
+          const days = daysUntilExpiry(lic.expiry);
+          addWarning(result, 'LICENSE_EXPIRING_SOON', [
+            `${resource.role} ${worker.name}'s ${lic.type} HRWL (Licence No. ${lic.licenseNumber})`,
+            `expires in ${days} day${days !== 1 ? 's' : ''} on ${lic.expiry}.`,
+            `Arrange renewal immediately to prevent a future dispatch block.`,
+          ].join(' '), {
+            workerId: worker.id,
+            workerName: worker.name,
+            licenseType: lic.type,
+            expiry: lic.expiry,
+            daysRemaining: days,
+          });
+        }
+      });
+    });
+  },
+
+  // ─── RULE 7: Worker Double-Booking ───────────────────────────────────────
+
+  _checkWorkerDoubleBooking(booking, editId, result) {
+    const resources = booking.wetHireResources || [];
+    const s = new Date(booking.startTime);
+    const e = new Date(booking.endTime);
+
+    resources.forEach(resource => {
+      if (!resource.workerId) return;
+
+      const conflict = bookings.find(b => {
+        if (b.id === editId) return false;
+        const bResources = b.wetHireResources || [];
+        const workerInBooking = bResources.some(r => r.workerId === resource.workerId);
+        if (!workerInBooking) return false;
+        return new Date(b.startTime) < e && new Date(b.endTime) > s;
+      });
+
+      if (conflict) {
+        addWarning(result, 'WORKER_DOUBLE_BOOKED', [
+          `${resource.role} ${resource.workerName} is already assigned to a concurrent booking`,
+          `for ${conflict.clientName} (${conflict.assetNumber},`,
+          `${new Date(conflict.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`,
+          `– ${new Date(conflict.endTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}).`,
+          `Confirm the worker is available or assign a different person.`,
+        ].join(' '), {
+          workerId: resource.workerId,
+          workerName: resource.workerName,
+          conflictingBookingId: conflict.id,
+          conflictingClient: conflict.clientName,
+        });
+      }
+    });
+  },
+
+  // ─── RULE 8: Asset Scheduling Overlap ────────────────────────────────────
+
+  _checkAssetOverlap(booking, editId, result) {
+    const s = new Date(booking.startTime);
+    const e = new Date(booking.endTime);
+
+    const conflict = bookings.find(b =>
+      b.id !== editId &&
+      b.assetNumber === booking.assetNumber &&
+      new Date(b.startTime) < e &&
+      new Date(b.endTime) > s
+    );
+
+    if (conflict) {
+      addBlock(result, 'ASSET_SCHEDULING_CONFLICT', [
+        `Asset ${booking.assetNumber} is already scheduled for ${conflict.clientName}`,
+        `from ${new Date(conflict.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`,
+        `to ${new Date(conflict.endTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}.`,
+        `Adjust the booking time or select a different asset.`,
+      ].join(' '), {
+        assetId: booking.assetNumber,
+        conflictingBookingId: conflict.id,
+        conflictingClient: conflict.clientName,
+      });
+    }
+  },
+
+  // ─── UTILITY: Summarise Result ───────────────────────────────────────────
+
+  /**
+   * Returns a structured summary of a validation result for display in the UI.
+   * @param {{ valid: boolean, hardBlocks: Array, warnings: Array }} result
+   * @returns {{ hasIssues: boolean, blockCount: number, warnCount: number, allMessages: Array }}
+   */
+  summarise(result) {
+    return {
+      hasIssues: !result.valid || result.warnings.length > 0,
+      blockCount: result.hardBlocks.length,
+      warnCount: result.warnings.length,
+      allMessages: [
+        ...result.hardBlocks.map(b => ({ severity: 'block', ...b })),
+        ...result.warnings.map(w => ({ severity: 'warn', ...w })),
+      ],
+    };
+  },
+
+  /**
+   * Quick check — returns true if an asset is hard-locked for dispatch.
+   * @param {string} assetId
+   * @returns {boolean}
+   */
+  isAssetLocked(assetId) {
+    const comp = complianceRegistry[assetId];
+    return comp ? comp.status === 'expired' : false;
+  },
+
+  /**
+   * Quick check — returns the compliance status of an asset.
+   * @param {string} assetId
+   * @returns {'valid'|'warning'|'expired'|'unknown'}
+   */
+  getAssetStatus(assetId) {
+    return complianceRegistry[assetId]?.status || 'unknown';
+  },
+
+  /**
+   * Returns days until the asset's certificate expires (negative if expired).
+   * @param {string} assetId
+   * @returns {number}
+   */
+  getAssetCertDaysRemaining(assetId) {
+    const comp = complianceRegistry[assetId];
+    if (!comp) return 999;
+    return daysUntilExpiry(comp.certDate);
+  },
+};
+
+
+/**
+ * dispatchEngine.js — HireEngine Dispatch & Booking State Manager
+ * Manages all booking CRUD operations, overlap detection, and dispatch validation.
+ * Coordinates with ComplianceEngine for pre-dispatch safety checks.
+ */
+
+
+
+
+const DispatchEngine = {
+
+  /**
+   * Checks whether a given asset has an overlapping booking.
+   * @param {string} assetId
+   * @param {string} startISO
+   * @param {string} endISO
+   * @param {string|null} excludeId - booking ID to exclude from check (for edits)
+   * @returns {object|null} - the conflicting booking, or null if clear
+   */
+  getOverlap(assetId, startISO, endISO, excludeId = null) {
+    const s = new Date(startISO), e = new Date(endISO);
+    return bookings.find(b =>
+      b.id !== excludeId &&
+      b.assetNumber === assetId &&
+      new Date(b.startTime) < e &&
+      new Date(b.endTime) > s
+    ) || null;
+  },
+
+  /**
+   * Checks whether a given worker is double-booked on the same day.
+   * @param {string} workerId
+   * @param {string} dateISO - ISO date string of the booking
+   * @param {string|null} excludeId
+   * @returns {object|null} - conflicting booking or null
+   */
+  getWorkerDoubleBooking(workerId, startISO, endISO, excludeId = null) {
+    const s = new Date(startISO), e = new Date(endISO);
+    return bookings.find(b => {
+      if (b.id === excludeId) return false;
+      const resources = b.wetHireResources || [];
+      const hasWorker = resources.some(r => r.workerId === workerId);
+      if (!hasWorker) return false;
+      return new Date(b.startTime) < e && new Date(b.endTime) > s;
+    }) || null;
+  },
+
+  /**
+   * Attempts to save (create or update) a booking.
+   * Runs compliance validation first. Returns a result object.
+   * @param {object} bookingData - the booking to save
+   * @param {string|null} editId - if set, this is an edit of an existing booking
+   * @returns {{ success: boolean, booking?: object, validation?: object, error?: string }}
+   */
+  saveBooking(bookingData, editId = null) {
+    const { assetNumber, startTime, endTime } = bookingData;
+
+    // Basic time integrity
+    if (new Date(endTime) <= new Date(startTime)) {
+      return { success: false, error: 'End time must be after start time.' };
+    }
+
+    // Asset overlap check
+    const conflict = this.getOverlap(assetNumber, startTime, endTime, editId);
+    if (conflict) {
+      return {
+        success: false,
+        error: `Asset ${assetNumber} has a scheduling conflict with job for ${conflict.clientName} (${new Date(conflict.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })} – ${new Date(conflict.endTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}).`
+      };
+    }
+
+    // Chronological integrity — future bookings cannot be Invoiced or Completed
+    if (new Date(startTime) > new Date() &&
+        (bookingData.status === 'Invoiced' || bookingData.status === 'Completed')) {
+      bookingData.status = 'Scheduled';
+    }
+
+    // Compliance validation
+    const validation = ComplianceEngine.validateDispatch(bookingData, editId);
+    if (!validation.valid) {
+      // Hard blocks — cannot save
+      return { success: false, validation, error: 'Compliance validation failed.' };
+    }
+
+    // Persist
+    const booking = { ...bookingData, id: editId || ('b' + Date.now()) };
+    if (editId) {
+      updateBooking(booking);
+    } else {
+      addBooking(booking);
+    }
+
+    return { success: true, booking, validation };
+  },
+
+  /**
+   * Deletes a booking by ID.
+   * @param {string} id
+   */
+  deleteBooking(id) {
+    removeBooking(id);
+  },
+
+  /**
+   * Moves a booking to a new asset and/or time after a drag-and-drop operation.
+   * Validates compliance on the new position. Returns success/failure.
+   * @param {string} bookingId
+   * @param {string} newAssetId
+   * @param {string} newStartISO
+   * @param {string} newEndISO
+   * @returns {{ success: boolean, error?: string, validation?: object }}
+   */
+  moveBooking(bookingId, newAssetId, newStartISO, newEndISO) {
+    const original = bookings.find(b => b.id === bookingId);
+    if (!original) return { success: false, error: 'Booking not found.' };
+
+    const proposed = {
+      ...original,
+      assetNumber: newAssetId,
+      startTime: newStartISO,
+      endTime: newEndISO,
+    };
+
+    const conflict = this.getOverlap(newAssetId, newStartISO, newEndISO, bookingId);
+    if (conflict) {
+      return {
+        success: false,
+        error: `Asset ${newAssetId} conflicts with ${conflict.clientName} at this time.`
+      };
+    }
+
+    const validation = ComplianceEngine.validateDispatch(proposed, bookingId);
+    if (!validation.valid) {
+      return { success: false, validation, error: 'Compliance block on new position.' };
+    }
+
+    updateBooking(proposed);
+    return { success: true, booking: proposed, validation };
+  },
+
+  /**
+   * Returns a flat list of all bookings, optionally filtered.
+   */
+  getBookings({ assetFilter = null, dateStr = null } = {}) {
+    let result = [...bookings];
+    if (assetFilter && assetFilter.size > 0) {
+      result = result.filter(b => assetFilter.has(b.assetNumber));
+    }
+    if (dateStr) {
+      result = result.filter(b => new Date(b.startTime).toDateString() === new Date(dateStr).toDateString());
+    }
+    return result;
+  },
+
+  /**
+   * Calculates the revenue for a booking based on asset prefix and duration.
+   */
+  calcRevenue(booking) {
+    const prefix = booking.assetNumber.replace(/[0-9]/g, '');
+    const rate = HOURLY_RATES[prefix] || 200;
+    const hours = (new Date(booking.endTime) - new Date(booking.startTime)) / 3600000;
+    return { rate, hours, total: Math.round(rate * hours) };
+  },
+
+};
+
+
+
+
+
+function initDragAndDrop(renderCallback, showToastCallback) {
+    window._dragBooking = (e, id) => {
+        e.dataTransfer.setData('text/plain', id);
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => e.target.style.opacity = '0.5', 0);
+    };
+
+    window._dragEnd = (e) => {
+        e.target.style.opacity = '1';
+    };
+
+    window._dragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.classList.add('drag-over-active'); // we will add this class to CSS
+    };
+
+    window._dragLeave = (e) => {
+        e.currentTarget.classList.remove('drag-over-active');
+    };
+
+    const processDrop = (e, id, newStartISO) => {
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+
+        const oldStart = new Date(b.startTime);
+        const oldEnd = new Date(b.endTime);
+        const duration = oldEnd.getTime() - oldStart.getTime();
+
+        const tempBooking = { 
+            ...b, 
+            startTime: newStartISO, 
+            endTime: new Date(new Date(newStartISO).getTime() + duration).toISOString() 
+        };
+
+        const validation = ComplianceEngine.validateDispatch(tempBooking, id);
+        if (validation.hardBlocks.length > 0) {
+            showToastCallback('⛔ COMPLIANCE BLOCK: ' + validation.hardBlocks[0].msg, 'error');
+            return;
+        }
+
+        updateBooking(tempBooking);
+        showToastCallback('Booking rescheduled successfully.', 'success');
+        renderCallback();
+    };
+
+    window._dropBooking = (e, newHour, newAsset, dateIso) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over-active');
+        const id = e.dataTransfer.getData('text/plain');
+        if(!id) return;
+        
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+        
+        // If week view (newAsset is null), preserve original asset
+        const assetToUse = newAsset || b.assetNumber;
+        
+        const baseDate = new Date(dateIso);
+        baseDate.setHours(newHour, 0, 0, 0);
+
+        // Update the asset before processing drop time
+        b.assetNumber = assetToUse; 
+        
+        processDrop(e, id, baseDate.toISOString());
+    };
+
+    window._dropGantt = (e, newAsset, dateIso, minH, totalHours) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over-active');
+        const id = e.dataTransfer.getData('text/plain');
+        if(!id) return;
+        
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+
+        // Calculate hour based on drop position X relative to the container width
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const pct = Math.max(0, Math.min(1, offsetX / rect.width));
+        
+        const droppedHourFloat = minH + (pct * totalHours);
+        
+        // Snap to nearest 15 mins (0.25)
+        const snappedHour = Math.round(droppedHourFloat * 4) / 4;
+        
+        const h = Math.floor(snappedHour);
+        const m = Math.round((snappedHour - h) * 60);
+
+        const baseDate = new Date(dateIso);
+        baseDate.setHours(h, m, 0, 0);
+        
+        b.assetNumber = newAsset || b.assetNumber;
+        
+        processDrop(e, id, baseDate.toISOString());
+    };
+}
+
+
+/**
+ * documentAutomation.js
+ */
+
+function pushToDocuWare(docType, payload) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ success: true, documentId: 'DW-12345' });
+    }, 1200);
+  });
+}
+
+function generateSWMSPayload(booking) { 
+  return {
+    bookingId: booking?.id,
+    assetNumber: booking?.assetNumber,
+    clientName: booking?.clientName,
+    siteAddress: booking?.siteAddress,
+    status: booking?.swmsStatus || 'pending'
+  }; 
+}
+
+function generatePreStartPayload(booking) { 
+  return {
+    bookingId: booking?.id,
+    assetNumber: booking?.assetNumber,
+    operatorName: booking?.operatorName,
+    status: booking?.preStartStatus || 'pending'
+  }; 
+}
+
+function generateFieldDocketPayload(booking, actualHours, siteRepName) { 
+  return {
+    bookingId: booking?.id,
+    actualHours: actualHours || 8,
+    siteRepName: siteRepName || 'Site Rep',
+    status: booking?.docketStatus || 'pending'
+  }; 
+}
+
+function getDocPipelineStatus(booking) { 
+  if (!booking) {
+    return {
+      hireAgreement: { status: 'pending' },
+      swms: { status: 'pending' },
+      preStart: { status: 'pending' },
+      fieldDocket: { status: 'pending' },
+    };
+  }
+
+  const isSigned = Boolean(booking.contractSigned || booking.hireAgreementStatus === 'signed');
+  const isUploaded = Boolean(booking.docketUploaded || booking.docketStatus === 'pushed' || booking.docketStatus === 'verified');
+
+  return {
+    hireAgreement: {
+      status: isSigned ? 'signed' : (booking.hireAgreementStatus || 'pending')
+    },
+    swms: {
+      status: booking.swmsStatus || 'pending'
+    },
+    preStart: {
+      status: booking.preStartStatus || 'pending'
+    },
+    fieldDocket: {
+      status: isUploaded ? 'pushed' : (booking.docketStatus || 'pending')
+    }
+  };
+}
+
+
+/**
+ * complianceModule.js — HireEngine Enterprise Compliance & Safety Module
+ * 
+ * Tracks safety, licensing, certifications, and HSEQ audit readiness
+ * across fleet assets and workforce personnel using window.ionConfig.
+ * 
+ * Complies strictly with vanilla JS, Material Symbols (no emojis),
+ * and flat UI / high-contrast dark mode design standards.
+ */
+
+// Global state for Compliance Module
+window.complianceState = window.complianceState || {
+  currentSubTab: 'dashboard',
+  fleetSort: { column: 'id', direction: 'asc' },
+  workerSort: { column: 'name', direction: 'asc' },
+  vaultSort: { column: 'title', direction: 'asc' },
+  fleetFilter: { query: '', status: 'ALL' },
+  workerFilter: { query: '', status: 'ALL' },
+  vaultFilter: { query: '', category: 'ALL' }
+};
+
+// Default Australian Compliance Dates Reference (Current Baseline: September 2026)
+const DEFAULT_FLEET_COMPLIANCE = {
+  'AT11': { roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
+  'FC1':  { roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
+  'MC2':  { roadRegoExpiry: '2026-11-30', craneSafeDue: '2027-01-18', majorInspectionDue: '2030-04-25', complianceStatus: 'Valid' },
+  'CR01': { roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-12-12', majorInspectionDue: '2033-07-20', complianceStatus: 'Valid' },
+  'AT10': { roadRegoExpiry: '2026-12-05', craneSafeDue: '2027-05-15', majorInspectionDue: '2028-09-10', complianceStatus: 'Valid' },
+  'EX01': { roadRegoExpiry: '2026-08-28', craneSafeDue: '2026-11-15', majorInspectionDue: '2031-06-18', complianceStatus: 'Expired' }, // Critical: Registration Expired
+  'EX02': { roadRegoExpiry: '2026-10-02', craneSafeDue: '2026-09-20', majorInspectionDue: '2032-02-28', complianceStatus: 'Expiring Soon' },
+  'SK03': { roadRegoExpiry: '2027-05-10', craneSafeDue: '2026-12-01', majorInspectionDue: '2034-01-12', complianceStatus: 'Valid' },
+  'DZ04': { roadRegoExpiry: 'N/A (Off-Road Tracked)', craneSafeDue: '2027-01-20', majorInspectionDue: '2033-10-05', complianceStatus: 'Valid' },
+  'FL05': { roadRegoExpiry: '2026-10-10', craneSafeDue: '2026-11-01', majorInspectionDue: '2030-12-15', complianceStatus: 'Valid' },
+  'FL06': { roadRegoExpiry: '2026-10-04', craneSafeDue: '2026-11-04', majorInspectionDue: '2031-03-19', complianceStatus: 'Valid' },
+  'SC07': { roadRegoExpiry: '2026-09-28', craneSafeDue: '2026-09-22', majorInspectionDue: '2029-07-11', complianceStatus: 'Expiring Soon' }, // Expiring within 30 days
+  'BM08': { roadRegoExpiry: '2026-11-30', craneSafeDue: '2026-12-10', majorInspectionDue: '2032-11-04', complianceStatus: 'Valid' },
+  'CR09': { roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-07-30', majorInspectionDue: '2027-03-10', complianceStatus: 'Expired' },
+  'DT10': { roadRegoExpiry: '2026-12-15', craneSafeDue: 'N/A (Transport Plant)', majorInspectionDue: 'N/A', complianceStatus: 'Valid' }
+};
+
+const DEFAULT_WORKER_COMPLIANCE = {
+  'W001': { vocDate: '2026-01-15', complianceStatus: 'Expiring Soon', hrwlExpiry: '2026-10-08' }, // Luke Harris expiring in <30 days
+  'W002': { vocDate: '2026-02-10', complianceStatus: 'Expiring Soon', hrwlExpiry: '2026-10-30' },
+  'W003': { vocDate: '2025-11-20', complianceStatus: 'Valid', hrwlExpiry: '2027-01-08' },
+  'W004': { vocDate: '2026-03-04', complianceStatus: 'Expiring Soon', hrwlExpiry: '2026-10-05' },
+  'W005': { vocDate: '2026-04-18', complianceStatus: 'Valid', hrwlExpiry: '2027-04-22' },
+  'W006': { vocDate: '2026-02-28', complianceStatus: 'Valid', hrwlExpiry: '2026-12-19' },
+  'W007': { vocDate: '2025-06-12', complianceStatus: 'Expired', hrwlExpiry: '2025-08-10' },
+  'W008': { vocDate: '2026-01-22', complianceStatus: 'Valid', hrwlExpiry: '2027-02-14' },
+  'W009': { vocDate: '2025-12-05', complianceStatus: 'Valid', hrwlExpiry: '2026-11-25' },
+  'W010': { vocDate: '2026-05-10', complianceStatus: 'Valid', hrwlExpiry: '2027-05-30' },
+  'W011': { vocDate: '2025-08-19', complianceStatus: 'Expired', hrwlExpiry: '2026-06-15' },
+  'W012': { vocDate: '2026-02-14', complianceStatus: 'Valid', hrwlExpiry: '2027-01-20' },
+  'W013': { vocDate: '2026-01-08', complianceStatus: 'Valid', hrwlExpiry: '2026-12-05' },
+  'W014': { vocDate: '2026-03-12', complianceStatus: 'Valid', hrwlExpiry: '2027-03-01' },
+  'W015': { vocDate: '2025-05-20', complianceStatus: 'Expired', hrwlExpiry: '2025-11-12' },
+  'W016': { vocDate: '2026-01-10', complianceStatus: 'Valid', hrwlExpiry: 'Exempt' },
+  'W017': { vocDate: '2026-01-10', complianceStatus: 'Valid', hrwlExpiry: 'Exempt' },
+  'W018': { vocDate: '2026-01-10', complianceStatus: 'Valid', hrwlExpiry: 'Exempt' },
+  'W019': { vocDate: '2026-01-10', complianceStatus: 'Valid', hrwlExpiry: 'Exempt' },
+  'W020': { vocDate: '2026-02-01', complianceStatus: 'Valid', hrwlExpiry: '2027-12-31' },
+  'W021': { vocDate: '2026-01-10', complianceStatus: 'Valid', hrwlExpiry: 'Exempt' }
+};
+
+// Document Vault Records
+window.complianceVault = window.complianceVault || [
+  { id: 'DOC-101', title: 'SWMS-01: Mobile & Crawler Crane Lifting Operations', category: 'SWMS', entity: 'All Cranes (AT11, FC1, CR01, CR09)', expiryDate: '2027-06-30', status: 'Valid', fileType: 'PDF' },
+  { id: 'DOC-102', title: 'Plant Risk Assessment: Demag AC 55-3 All Terrain', category: 'Risk Assessment', entity: 'AT10 - Demag All-Terrain', expiryDate: '2027-01-15', status: 'Valid', fileType: 'PDF' },
+  { id: 'DOC-103', title: '10-Year Major Structural Certificate: Liebherr 100T', category: 'Certification', entity: 'AT11 - 100T Liebherr', expiryDate: '2032-08-14', status: 'Valid', fileType: 'PDF' },
+  { id: 'DOC-104', title: 'TMR Road Registration Renewal Notice: EX01', category: 'Registration', entity: 'EX01 - 20T Excavator', expiryDate: '2026-08-28', status: 'Expired', fileType: 'PDF' },
+  { id: 'DOC-105', title: 'CraneSafe Green Sticker Audit: SC07 12m Scissor Lift', category: 'Certification', entity: 'SC07 - Scissor Lift', expiryDate: '2026-09-22', status: 'Expiring Soon', fileType: 'PDF' },
+  { id: 'DOC-106', title: 'WorkSafe QLD HRWL High Risk Licence Verification: Luke Harris', category: 'Licensing', entity: 'Luke Harris (C1 / C6)', expiryDate: '2026-10-08', status: 'Expiring Soon', fileType: 'PDF' },
+  { id: 'DOC-107', title: 'Principal Contractor Certificate of Currency: Public Liability $50M', category: 'Insurance', entity: 'Company Wide', expiryDate: '2027-06-30', status: 'Valid', fileType: 'PDF' },
+  { id: 'DOC-108', title: 'Annual Major Inspection Log: CR09 Lattice Crawler 50T', category: 'Certification', entity: 'CR09 - Crawler 50T', expiryDate: '2026-07-30', status: 'Expired', fileType: 'PDF' }
+];
+
+/**
+ * Ensures all entities in window.ionConfig have full compliance attributes.
+ */
+function ensureIonConfigComplianceData() {
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!Array.isArray(window.ionConfig.fleetRegistry)) window.ionConfig.fleetRegistry = [];
+  if (!Array.isArray(window.ionConfig.workerRegistry)) window.ionConfig.workerRegistry = [];
+
+  // Enrich Fleet Assets
+  window.ionConfig.fleetRegistry.forEach(asset => {
+    const defaults = DEFAULT_FLEET_COMPLIANCE[asset.id] || {
+      roadRegoExpiry: '2027-03-01',
+      craneSafeDue: '2027-01-15',
+      majorInspectionDue: '2031-10-20',
+      complianceStatus: 'Valid'
+    };
+    if (!asset.roadRegoExpiry) asset.roadRegoExpiry = defaults.roadRegoExpiry;
+    if (!asset.craneSafeDue) asset.craneSafeDue = defaults.craneSafeDue;
+    if (!asset.majorInspectionDue) asset.majorInspectionDue = defaults.majorInspectionDue;
+    if (!asset.complianceStatus) asset.complianceStatus = defaults.complianceStatus;
+  });
+
+  // Enrich Workers
+  window.ionConfig.workerRegistry.forEach(worker => {
+    const defaults = DEFAULT_WORKER_COMPLIANCE[worker.id] || {
+      vocDate: '2026-01-15',
+      complianceStatus: 'Valid',
+      hrwlExpiry: worker.hrwlExpiry || '2027-05-15'
+    };
+    if (!worker.vocDate) worker.vocDate = defaults.vocDate;
+    if (!worker.hrwlExpiry) worker.hrwlExpiry = defaults.hrwlExpiry;
+    if (!worker.licenseClass) worker.licenseClass = worker.hrwlClass || 'N/A';
+    if (!worker.complianceStatus) worker.complianceStatus = defaults.complianceStatus;
+  });
+}
+
+/**
+ * Master initialization for the Compliance Module.
+ */
+function initComplianceModule() {
+  ensureIonConfigComplianceData();
+  if (typeof renderComplianceDashboard === 'function') {
+    renderComplianceDashboard();
+  }
+}
+window.initComplianceModule = initComplianceModule;
+
+/**
+ * Main render function invoked when switching to 'compliance' tab.
+ */
+function renderComplianceView() {
+  initComplianceModule();
+  const subTab = window.complianceState.currentSubTab || 'dashboard';
+  switchComplianceSubTab(subTab);
+}
+window.renderComplianceView = renderComplianceView;
+
+/**
+ * Horizontal Sub-Navigation Switcher
+ */
+function switchComplianceSubTab(tabName) {
+  window.complianceState.currentSubTab = tabName;
+
+  const tabs = ['dashboard', 'fleet', 'personnel', 'vault'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`compliance-subtab-${t}`);
+    const view = document.getElementById(`compliance-view-${t}`);
+
+    if (btn) {
+      if (t === tabName) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+
+    if (view) {
+      if (t === tabName) {
+        view.style.display = 'flex';
+      } else {
+        view.style.display = 'none';
+      }
+    }
+  });
+
+  if (tabName === 'dashboard') {
+    renderComplianceDashboard();
+  } else if (tabName === 'fleet') {
+    renderComplianceFleetTable();
+  } else if (tabName === 'personnel') {
+    renderCompliancePersonnelTable();
+  } else if (tabName === 'vault') {
+    renderComplianceVault();
+  }
+}
+window.switchComplianceSubTab = switchComplianceSubTab;
+
+/**
+ * Calculate traffic light status based on date string (Reference: 2026-09-18).
+ */
+function evaluateStatus(dateStr) {
+  if (!dateStr || dateStr.includes('N/A') || dateStr.includes('Exempt')) return 'Valid';
+  const target = new Date(dateStr + 'T00:00:00');
+  if (isNaN(target.getTime())) return 'Valid';
+
+  const today = new Date('2026-09-18T00:00:00');
+  const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return 'Expired';
+  if (diffDays <= 30) return 'Expiring Soon';
+  return 'Valid';
+}
+
+/**
+ * Helper to generate solid-color traffic light pill badge (No transparent glow).
+ */
+function getPillBadgeHTML(status) {
+  const norm = (status || '').toLowerCase().trim();
+  if (norm.includes('expired')) {
+    return `<span class="compliance-pill-badge pill-danger">Expired</span>`;
+  }
+  if (norm.includes('expiring') || norm.includes('soon') || norm.includes('warning') || norm.includes('due')) {
+    return `<span class="compliance-pill-badge pill-warning">Expiring Soon</span>`;
+  }
+  return `<span class="compliance-pill-badge pill-valid">Valid</span>`;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. COMPLIANCE DASHBOARD (Active Monitoring View)
+───────────────────────────────────────────────────────────────────────────── */
+
+function renderComplianceDashboard() {
+  ensureIonConfigComplianceData();
+  const fleet = window.ionConfig.fleetRegistry || [];
+  const workers = window.ionConfig.workerRegistry || [];
+
+  // Filter Expiring within 30 days
+  const expiringFleet = fleet.filter(a => a.complianceStatus === 'Expiring Soon' || evaluateStatus(a.roadRegoExpiry) === 'Expiring Soon' || evaluateStatus(a.craneSafeDue) === 'Expiring Soon');
+  const expiringWorkers = workers.filter(w => w.complianceStatus === 'Expiring Soon' || evaluateStatus(w.hrwlExpiry) === 'Expiring Soon');
+  const totalExpiring = expiringFleet.length + expiringWorkers.length;
+
+  // Filter Critical Non-Compliance
+  const criticalFleet = fleet.filter(a => a.complianceStatus === 'Expired' || evaluateStatus(a.roadRegoExpiry) === 'Expired' || evaluateStatus(a.craneSafeDue) === 'Expired');
+  const criticalWorkers = workers.filter(w => w.complianceStatus === 'Expired' || evaluateStatus(w.hrwlExpiry) === 'Expired');
+  const totalCritical = criticalFleet.length + criticalWorkers.length;
+
+  // Calculate Audit Readiness
+  const validFleet = fleet.filter(a => a.complianceStatus !== 'Expired' && evaluateStatus(a.roadRegoExpiry) !== 'Expired' && evaluateStatus(a.craneSafeDue) !== 'Expired');
+  const validWorkers = workers.filter(w => w.complianceStatus !== 'Expired' && evaluateStatus(w.hrwlExpiry) !== 'Expired');
+  
+  const totalEntities = fleet.length + workers.length;
+  const compliantEntities = validFleet.length + validWorkers.length;
+  const auditPct = totalEntities > 0 ? Math.round((compliantEntities / totalEntities) * 100) : 94;
+
+  // Update Metric Card 1: Expiring within 30 Days
+  const expCountEl = document.getElementById('metric-expiring-count');
+  if (expCountEl) expCountEl.textContent = `${totalExpiring} Action Items`;
+
+  const expListEl = document.getElementById('metric-expiring-list');
+  if (expListEl) {
+    expListEl.innerHTML = `
+      <div class="compliance-detail-row">
+        <span class="material-symbols-outlined" style="color:#d97706;">schedule</span>
+        <span><strong>Luke Harris</strong> &bull; HRWL C1/C6 (Due 08 Oct 2026)</span>
+      </div>
+      <div class="compliance-detail-row">
+        <span class="material-symbols-outlined" style="color:#d97706;">precision_manufacturing</span>
+        <span><strong>SC07</strong> &bull; 12m Scissor Lift (Due 22 Sep 2026)</span>
+      </div>
+      <div class="compliance-subdetail-note">
+        Review &amp; schedule renewal prior to 30-day operational threshold.
+      </div>
+    `;
+  }
+
+  // Update Metric Card 2: Critical Non-Compliance (Subtle Red Tint & Accent Bar)
+  const critCountEl = document.getElementById('metric-critical-count');
+  if (critCountEl) critCountEl.textContent = `${totalCritical} Critical Flags`;
+
+  const critListEl = document.getElementById('metric-critical-list');
+  if (critListEl) {
+    critListEl.innerHTML = `
+      <div class="compliance-detail-row critical-highlight">
+        <span class="material-symbols-outlined">block</span>
+        <span><strong>EX01</strong> &bull; Registration Expired (28/08/2026)</span>
+      </div>
+      <div class="compliance-detail-row critical-highlight">
+        <span class="material-symbols-outlined">lock</span>
+        <span><strong>CR09</strong> &bull; CraneSafe Expired (30/07/2026)</span>
+      </div>
+      <div class="compliance-subdetail-note">
+        Automatic dispatch lockout enforced on all non-compliant units.
+      </div>
+    `;
+  }
+
+  // Update Metric Card 3: Audit Readiness (Subtle Green Tint & Accent Bar)
+  const auditPctEl = document.getElementById('metric-audit-pct');
+  if (auditPctEl) auditPctEl.textContent = `${auditPct}% Compliant`;
+
+  const auditListEl = document.getElementById('metric-audit-list');
+  if (auditListEl) {
+    auditListEl.innerHTML = `
+      <div class="compliance-detail-row">
+        <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
+        <span><strong>${validFleet.length} of ${fleet.length} Fleet Assets</strong> certified</span>
+      </div>
+      <div class="compliance-detail-row">
+        <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
+        <span><strong>${validWorkers.length} of ${workers.length} Personnel</strong> licences verified active</span>
+      </div>
+      <div class="compliance-subdetail-note">
+        Meets Tier 1 Major Contractor safety compliance standard.
+      </div>
+    `;
+  }
+
+  // Render Minimalist Live Compliance Telemetry Table (3 Columns: Alert Type, Entity, Action)
+  const telemetryTbody = document.getElementById('compliance-telemetry-tbody');
+  if (telemetryTbody) {
+    const telemetryItems = [];
+
+    // Fleet items needing action
+    fleet.forEach(asset => {
+      const regoStatus = evaluateStatus(asset.roadRegoExpiry);
+      const craneStatus = evaluateStatus(asset.craneSafeDue);
+
+      if (regoStatus === 'Expired' || asset.complianceStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'Rego Expired',
+          severity: 'danger',
+          icon: 'block',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      } else if (craneStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'CraneSafe Expired',
+          severity: 'danger',
+          icon: 'lock',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      } else if (craneStatus === 'Expiring Soon' || regoStatus === 'Expiring Soon' || asset.complianceStatus === 'Expiring Soon') {
+        telemetryItems.push({
+          type: 'CraneSafe Due',
+          severity: 'warning',
+          icon: 'alarm',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      }
+    });
+
+    // Worker items needing action
+    workers.forEach(w => {
+      const hrwlStatus = evaluateStatus(w.hrwlExpiry);
+      if (hrwlStatus === 'Expired' || w.complianceStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'HRWL Expired',
+          severity: 'danger',
+          icon: 'cancel',
+          entity: `${w.name} (${w.role || 'Personnel'})`,
+          actionText: 'Verify',
+          actionFn: `verifyWorkerPrompt('${w.id}')`
+        });
+      } else if (hrwlStatus === 'Expiring Soon' || w.complianceStatus === 'Expiring Soon') {
+        telemetryItems.push({
+          type: 'HRWL Due Soon',
+          severity: 'warning',
+          icon: 'alarm',
+          entity: `${w.name} (${w.role || 'Personnel'})`,
+          actionText: 'Verify',
+          actionFn: `verifyWorkerPrompt('${w.id}')`
+        });
+      }
+    });
+
+    // Fallback verified rows if list is small
+    const compliantWorkers = workers.filter(w => w.complianceStatus === 'Valid' && evaluateStatus(w.hrwlExpiry) === 'Valid');
+    if (telemetryItems.length < 5 && compliantWorkers.length > 0) {
+      const v = compliantWorkers[0];
+      telemetryItems.push({
+        type: 'VOC Validated',
+        severity: 'valid',
+        icon: 'verified',
+        entity: `${v.name} (${v.role || 'Personnel'})`,
+        actionText: 'Verify',
+        actionFn: `verifyWorkerPrompt('${v.id}')`
+      });
+    }
+
+    const rowsToDisplay = telemetryItems.slice(0, 5);
+
+    if (rowsToDisplay.length === 0) {
+      telemetryTbody.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">
+            <span class="material-symbols-outlined" style="font-size:22px;vertical-align:middle;margin-right:6px;color:#16a34a;">check_circle</span>
+            All fleet assets and personnel are fully compliant.
+          </td>
+        </tr>
+      `;
+    } else {
+      telemetryTbody.innerHTML = rowsToDisplay.map(row => {
+        let iconColor = '#16a34a';
+        let tagBg = '#dcfce7';
+        let tagColor = '#15803d';
+
+        if (row.severity === 'danger') {
+          iconColor = '#dc2626';
+          tagBg = '#fee2e2';
+          tagColor = '#b91c1c';
+        } else if (row.severity === 'warning') {
+          iconColor = '#d97706';
+          tagBg = '#fef3c7';
+          tagColor = '#b45309';
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:15px;color:${iconColor};flex-shrink:0;">${row.icon}</span>
+                <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;padding:2px 6px;border-radius:4px;background:${tagBg};color:${tagColor};">
+                  ${row.type}
+                </span>
+              </div>
+            </td>
+            <td style="color:var(--text-primary);font-size:12.5px;font-weight:600;">
+              ${row.entity}
+            </td>
+            <td style="text-align:right;">
+              <button class="btn-secondary btn-sm" onclick="${row.actionFn}" style="min-width:68px;">
+                <span>${row.actionText}</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+}
+window.renderComplianceDashboard = renderComplianceDashboard;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. FLEET CERTIFICATIONS VIEW (Dense Data Table)
+───────────────────────────────────────────────────────────────────────────── */
+
+function renderComplianceFleetTable() {
+  ensureIonConfigComplianceData();
+  const tbody = document.getElementById('compliance-fleet-table-body');
+  if (!tbody) return;
+
+  const fleet = window.ionConfig.fleetRegistry || [];
+  const q = (window.complianceState.fleetFilter.query || '').toLowerCase().trim();
+  const filterStatus = window.complianceState.fleetFilter.status || 'ALL';
+
+  let filtered = fleet.filter(item => {
+    const id = (item.id || '').toLowerCase();
+    const cls = (item.class || item.description || '').toLowerCase();
+    const rego = (item.roadRegoExpiry || '').toLowerCase();
+    
+    const matchesSearch = !q || id.includes(q) || cls.includes(q) || rego.includes(q);
+    
+    const status = item.complianceStatus || evaluateStatus(item.roadRegoExpiry);
+    let matchesStatus = true;
+    if (filterStatus !== 'ALL') {
+      matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort
+  const sortCol = window.complianceState.fleetSort.column || 'id';
+  const sortDir = window.complianceState.fleetSort.direction || 'asc';
+  
+  filtered.sort((a, b) => {
+    let valA = a[sortCol] || '';
+    let valB = b[sortCol] || '';
+    if (sortCol === 'status') {
+      valA = a.complianceStatus || '';
+      valB = b.complianceStatus || '';
+    }
+    return sortDir === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+  });
+
+  // Update count badge
+  const countBadge = document.getElementById('compliance-fleet-count');
+  if (countBadge) countBadge.textContent = `${filtered.length} of ${fleet.length} Assets`;
+
+  // Render Table Rows
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;padding:36px;color:var(--text-muted);">
+          <span class="material-symbols-outlined" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.5;">search_off</span>
+          No fleet assets match the selected filter criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(item => {
+    const status = item.complianceStatus || evaluateStatus(item.roadRegoExpiry);
+    const badgeHtml = getPillBadgeHTML(status);
+    const regoExp = item.roadRegoExpiry || 'N/A';
+    const craneSafe = item.craneSafeDue || 'N/A';
+    const majorDue = item.majorInspectionDue || 'N/A';
+
+    return `
+      <tr class="compliance-table-row">
+        <td style="font-weight:700;color:var(--text-primary);">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${item.color || item.hex || '#0284c7'};margin-right:8px;vertical-align:middle;"></span>
+          ${item.id}
+        </td>
+        <td style="color:var(--text-secondary);font-weight:500;">
+          ${item.class || item.description || 'Fleet Plant'}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:${regoExp.includes('2026-08') ? '#dc2626;font-weight:700;' : 'var(--text-primary);'}">
+          ${regoExp}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:${craneSafe.includes('2026-07') ? '#dc2626;font-weight:700;' : 'var(--text-primary);'}">
+          ${craneSafe}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-secondary);">
+          ${majorDue}
+        </td>
+        <td style="text-align:center;">
+          ${badgeHtml}
+        </td>
+        <td style="text-align:right;">
+          <button class="btn-secondary btn-sm" onclick="auditAssetPrompt('${item.id}')" title="Audit CraneSafe Expiry">
+            <span>Audit</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.renderComplianceFleetTable = renderComplianceFleetTable;
+
+function filterComplianceFleetTable() {
+  const q = document.getElementById('compliance-fleet-search')?.value || '';
+  const s = document.getElementById('compliance-fleet-status-filter')?.value || 'ALL';
+  window.complianceState.fleetFilter.query = q;
+  window.complianceState.fleetFilter.status = s;
+  renderComplianceFleetTable();
+}
+window.filterComplianceFleetTable = filterComplianceFleetTable;
+
+function sortComplianceFleetTable(col) {
+  if (window.complianceState.fleetSort.column === col) {
+    window.complianceState.fleetSort.direction = window.complianceState.fleetSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    window.complianceState.fleetSort.column = col;
+    window.complianceState.fleetSort.direction = 'asc';
+  }
+  renderComplianceFleetTable();
+}
+window.sortComplianceFleetTable = sortComplianceFleetTable;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. PERSONNEL LICENCES VIEW (Dense Data Table)
+───────────────────────────────────────────────────────────────────────────── */
+
+function renderCompliancePersonnelTable() {
+  ensureIonConfigComplianceData();
+  const tbody = document.getElementById('compliance-worker-table-body');
+  if (!tbody) return;
+
+  const workers = window.ionConfig.workerRegistry || [];
+  const q = (window.complianceState.workerFilter.query || '').toLowerCase().trim();
+  const filterStatus = window.complianceState.workerFilter.status || 'ALL';
+
+  let filtered = workers.filter(worker => {
+    const name = (worker.name || '').toLowerCase();
+    const role = (worker.role || '').toLowerCase();
+    const hrwl = (worker.licenseClass || worker.hrwlClass || '').toLowerCase();
+
+    const matchesSearch = !q || name.includes(q) || role.includes(q) || hrwl.includes(q);
+
+    const status = worker.complianceStatus || evaluateStatus(worker.hrwlExpiry);
+    let matchesStatus = true;
+    if (filterStatus !== 'ALL') {
+      matchesStatus = status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort
+  const sortCol = window.complianceState.workerSort.column || 'name';
+  const sortDir = window.complianceState.workerSort.direction || 'asc';
+
+  filtered.sort((a, b) => {
+    let valA = a[sortCol] || '';
+    let valB = b[sortCol] || '';
+    if (sortCol === 'status') {
+      valA = a.complianceStatus || '';
+      valB = b.complianceStatus || '';
+    }
+    return sortDir === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+  });
+
+  // Update count badge
+  const countBadge = document.getElementById('compliance-worker-count');
+  if (countBadge) countBadge.textContent = `${filtered.length} of ${workers.length} Personnel`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;padding:36px;color:var(--text-muted);">
+          <span class="material-symbols-outlined" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.5;">person_search</span>
+          No personnel match the selected filter criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(worker => {
+    const status = worker.complianceStatus || evaluateStatus(worker.hrwlExpiry);
+    const badgeHtml = getPillBadgeHTML(status);
+    const hrwlClass = worker.licenseClass || worker.hrwlClass || 'N/A';
+    const expiryDate = worker.hrwlExpiry || 'N/A';
+    const vocDate = worker.vocDate || 'N/A';
+
+    return `
+      <tr class="compliance-table-row">
+        <td style="font-weight:700;color:var(--text-primary);">
+          ${worker.name}
+        </td>
+        <td style="color:var(--text-secondary);font-weight:500;">
+          ${worker.role || 'Operator'}
+        </td>
+        <td style="font-family:monospace;font-weight:600;color:var(--text-primary);">
+          ${hrwlClass}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:${expiryDate.includes('2025-') || expiryDate.includes('2026-06') ? '#dc2626;font-weight:700;' : 'var(--text-primary);'}">
+          ${expiryDate}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-secondary);">
+          ${vocDate}
+        </td>
+        <td style="text-align:center;">
+          ${badgeHtml}
+        </td>
+        <td style="text-align:right;">
+          <button class="btn-secondary btn-sm" onclick="verifyWorkerPrompt('${worker.id}')" title="Verify WorkSafe Licence">
+            <span>Verify</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.renderCompliancePersonnelTable = renderCompliancePersonnelTable;
+
+function filterComplianceWorkerTable() {
+  const q = document.getElementById('compliance-worker-search')?.value || '';
+  const s = document.getElementById('compliance-worker-status-filter')?.value || 'ALL';
+  window.complianceState.workerFilter.query = q;
+  window.complianceState.workerFilter.status = s;
+  renderCompliancePersonnelTable();
+}
+window.filterComplianceWorkerTable = filterComplianceWorkerTable;
+
+function sortComplianceWorkerTable(col) {
+  if (window.complianceState.workerSort.column === col) {
+    window.complianceState.workerSort.direction = window.complianceState.workerSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    window.complianceState.workerSort.column = col;
+    window.complianceState.workerSort.direction = 'asc';
+  }
+  renderCompliancePersonnelTable();
+}
+window.sortComplianceWorkerTable = sortComplianceWorkerTable;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. DOCUMENT VAULT VIEW (Sub-Nav Tab 4)
+───────────────────────────────────────────────────────────────────────────── */
+
+function renderComplianceVault() {
+  const tbody = document.getElementById('compliance-vault-table-body');
+  if (!tbody) return;
+
+  const docs = window.complianceVault || [];
+  const q = (window.complianceState.vaultFilter.query || '').toLowerCase().trim();
+  const cat = window.complianceState.vaultFilter.category || 'ALL';
+
+  let filtered = docs.filter(doc => {
+    const title = (doc.title || '').toLowerCase();
+    const entity = (doc.entity || '').toLowerCase();
+    const category = (doc.category || '').toLowerCase();
+
+    const matchesSearch = !q || title.includes(q) || entity.includes(q);
+    const matchesCat = cat === 'ALL' || category === cat.toLowerCase();
+
+    return matchesSearch && matchesCat;
+  });
+
+  const countBadge = document.getElementById('compliance-vault-count');
+  if (countBadge) countBadge.textContent = `${filtered.length} Archived Documents`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;padding:36px;color:var(--text-muted);">
+          <span class="material-symbols-outlined" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.5;">folder_off</span>
+          No documents match the search criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(doc => {
+    const badgeHtml = getPillBadgeHTML(doc.status);
+    return `
+      <tr class="compliance-table-row">
+        <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+          <span class="material-symbols-outlined" style="color:var(--accent-primary,#0284c7);font-size:18px;">description</span>
+          <span>${doc.title}</span>
+        </td>
+        <td style="color:var(--text-secondary);font-size:12px;font-weight:600;">
+          ${doc.category}
+        </td>
+        <td style="color:var(--text-primary);font-size:12px;">
+          ${doc.entity}
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-secondary);">
+          ${doc.expiryDate}
+        </td>
+        <td style="text-align:center;">
+          ${badgeHtml}
+        </td>
+        <td style="text-align:right;">
+          <button class="btn-secondary btn-sm" onclick="downloadMockDocument('${doc.id}', '${doc.title}')" title="Download Document">
+            <span class="material-symbols-outlined" style="font-size:15px;">download</span>
+            <span>PDF</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.renderComplianceVault = renderComplianceVault;
+
+function filterComplianceVaultTable() {
+  const q = document.getElementById('compliance-vault-search')?.value || '';
+  const c = document.getElementById('compliance-vault-category-filter')?.value || 'ALL';
+  window.complianceState.vaultFilter.query = q;
+  window.complianceState.vaultFilter.category = c;
+  renderComplianceVault();
+}
+window.filterComplianceVaultTable = filterComplianceVaultTable;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5. MODAL DIALOGS & ACTION HANDLERS
+───────────────────────────────────────────────────────────────────────────── */
+
+function viewComplianceRecord(id, type) {
+  const modal = document.getElementById('compliance-record-modal');
+  if (!modal) return;
+
+  let title = 'Audit Record';
+  let details = '';
+
+  if (type === 'fleet') {
+    const asset = (window.ionConfig.fleetRegistry || []).find(a => a.id === id);
+    if (asset) {
+      title = `Fleet Asset Audit: ${asset.id}`;
+      details = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="settings-field">
+            <label>Asset ID</label>
+            <input type="text" readonly value="${asset.id}" />
+          </div>
+          <div class="settings-field">
+            <label>Equipment Class</label>
+            <input type="text" readonly value="${asset.class || asset.description}" />
+          </div>
+          <div class="settings-field">
+            <label>Road Registration Expiry</label>
+            <input type="text" readonly value="${asset.roadRegoExpiry || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>Annual CraneSafe Due</label>
+            <input type="text" readonly value="${asset.craneSafeDue || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>10-Year Major Inspection Due</label>
+            <input type="text" readonly value="${asset.majorInspectionDue || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>Compliance Status</label>
+            <div>${getPillBadgeHTML(asset.complianceStatus)}</div>
+          </div>
+        </div>
+      `;
+    }
+  } else if (type === 'worker') {
+    const worker = (window.ionConfig.workerRegistry || []).find(w => w.id === id);
+    if (worker) {
+      title = `Personnel Licence Verification: ${worker.name}`;
+      details = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="settings-field">
+            <label>Worker ID &amp; Name</label>
+            <input type="text" readonly value="${worker.id} - ${worker.name}" />
+          </div>
+          <div class="settings-field">
+            <label>Role</label>
+            <input type="text" readonly value="${worker.role}" />
+          </div>
+          <div class="settings-field">
+            <label>HRWL Class</label>
+            <input type="text" readonly value="${worker.licenseClass || worker.hrwlClass || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>Licence Expiry Date</label>
+            <input type="text" readonly value="${worker.hrwlExpiry || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>VOC (Competency) Date</label>
+            <input type="text" readonly value="${worker.vocDate || 'N/A'}" />
+          </div>
+          <div class="settings-field">
+            <label>Current Status</label>
+            <div>${getPillBadgeHTML(worker.complianceStatus)}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  const titleEl = document.getElementById('compliance-modal-title');
+  const bodyEl = document.getElementById('compliance-modal-content') || document.getElementById('compliance-modal-body');
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl) bodyEl.innerHTML = details;
+
+  modal.style.display = 'flex';
+}
+window.viewComplianceRecord = viewComplianceRecord;
+
+function closeComplianceRecordModal() {
+  const modal = document.getElementById('compliance-record-modal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeComplianceRecordModal = closeComplianceRecordModal;
+
+function triggerDocuWareUpload() {
+  alert('Initiating DocuWare API Sync... Select PDF to upload.');
+}
+window.triggerDocuWareUpload = triggerDocuWareUpload;
+window.openUploadComplianceDocModal = triggerDocuWareUpload;
+
+/**
+ * Interactive Action: Audit Asset CraneSafe Expiry
+ * Prompts user for new date, updates window.ionConfig.fleetRegistry, and re-renders table.
+ */
+function auditAssetPrompt(assetId) {
+  ensureIonConfigComplianceData();
+  const asset = (window.ionConfig.fleetRegistry || []).find(a => a.id === assetId);
+  if (!asset) return;
+
+  const defaultVal = (asset.craneSafeDue && !asset.craneSafeDue.includes('N/A')) ? asset.craneSafeDue : '2027-09-30';
+  const inputDate = prompt('Enter new CraneSafe Expiry Date (YYYY-MM-DD)', defaultVal);
+  
+  if (inputDate === null) return; // User cancelled
+  const trimmed = inputDate.trim();
+  if (!trimmed) return;
+
+  // Basic regex check for YYYY-MM-DD
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(trimmed)) {
+    alert('Please enter date in YYYY-MM-DD format (e.g. 2027-09-30).');
+    return;
+  }
+
+  // Update asset in window.ionConfig.fleetRegistry
+  asset.craneSafeDue = trimmed;
+  
+  // Recalculate status based on new CraneSafe date and road rego
+  const craneSafeStatus = evaluateStatus(trimmed);
+  const regoStatus = evaluateStatus(asset.roadRegoExpiry);
+  
+  if (regoStatus === 'Expired' || craneSafeStatus === 'Expired') {
+    asset.complianceStatus = 'Expired';
+  } else if (regoStatus === 'Expiring Soon' || craneSafeStatus === 'Expiring Soon') {
+    asset.complianceStatus = 'Expiring Soon';
+  } else {
+    asset.complianceStatus = 'Valid';
+  }
+
+  if (typeof window.showToast === 'function') {
+    window.showToast(`Updated CraneSafe for ${asset.id} to ${trimmed} (${asset.complianceStatus})`, 'success', 'Audit Complete');
+  }
+
+  // Immediately re-render Fleet Certifications table
+  renderComplianceFleetTable();
+  // Also re-render Dashboard to update counters, cards, and telemetry table
+  renderComplianceDashboard();
+}
+window.auditAssetPrompt = auditAssetPrompt;
+
+/**
+ * Interactive Action: Verify Worker via WorkSafe QLD
+ * Confirms verification, updates worker status to 'Valid' in window.ionConfig.workerRegistry, and re-renders table.
+ */
+function verifyWorkerPrompt(workerId) {
+  ensureIonConfigComplianceData();
+  const worker = (window.ionConfig.workerRegistry || []).find(w => w.id === workerId);
+  if (!worker) return;
+
+  const confirmed = confirm('Has this HRWL been verified via WorkSafe QLD?');
+  if (confirmed) {
+    // Update worker status in window.ionConfig.workerRegistry to 'Valid'
+    worker.complianceStatus = 'Valid';
+    worker.status = 'Valid';
+    worker.licenceStatus = 'Valid';
+    worker.vocStatus = 'Valid';
+
+    // If expiry was expired or expiring soon, update to 5-year renewal date
+    if (evaluateStatus(worker.hrwlExpiry) === 'Expired' || evaluateStatus(worker.hrwlExpiry) === 'Expiring Soon') {
+      worker.hrwlExpiry = '2031-09-18';
+    }
+
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Worker ${worker.name} verified via WorkSafe QLD. Status: Valid.`, 'success', 'Licence Verified');
+    }
+
+    // Immediately re-render Personnel Licences table
+    renderCompliancePersonnelTable();
+    // Also re-render Dashboard to update counters, cards, and telemetry table
+    renderComplianceDashboard();
+  }
+}
+window.verifyWorkerPrompt = verifyWorkerPrompt;
+
+function openUploadComplianceDocModal() {
+  triggerDocuWareUpload();
+}
+
+function closeUploadComplianceDocModal() {
+  const modal = document.getElementById('compliance-upload-modal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeUploadComplianceDocModal = closeUploadComplianceDocModal;
+
+function saveUploadedComplianceDoc(event) {
+  if (event && event.preventDefault) event.preventDefault();
+  const title = document.getElementById('comp-doc-title')?.value || document.getElementById('upload-doc-title')?.value || 'Safety Document';
+  const category = document.getElementById('comp-doc-category')?.value || document.getElementById('upload-doc-category')?.value || 'HSEQ';
+  const entity = document.getElementById('comp-doc-entity')?.value || document.getElementById('upload-doc-entity')?.value || 'General Fleet';
+  const expiry = document.getElementById('comp-doc-expiry')?.value || document.getElementById('upload-doc-expiry')?.value || '2027-12-31';
+
+  const newDoc = {
+    id: `DOC-${Date.now().toString().slice(-4)}`,
+    title,
+    category,
+    entity,
+    expiryDate: expiry,
+    status: 'Valid',
+    fileType: 'PDF'
+  };
+
+  window.complianceVault.unshift(newDoc);
+  closeUploadComplianceDocModal();
+  if (typeof window.showToast === 'function') {
+    window.showToast(`Document "${title}" successfully stored in Compliance Vault.`, 'success', 'Vault Updated');
+  }
+  if (window.complianceState.currentSubTab === 'vault') {
+    renderComplianceVault();
+  }
+}
+window.saveUploadedComplianceDoc = saveUploadedComplianceDoc;
+window.handleComplianceDocUpload = saveUploadedComplianceDoc;
+
+
+function downloadMockDocument(docId, docTitle) {
+  if (typeof window.showToast === 'function') {
+    window.showToast(`Downloading verified audit certificate: ${docTitle}...`, 'info', 'Document Download');
+  }
+}
+window.downloadMockDocument = downloadMockDocument;
+
+function exportComplianceFleetCSV() {
+  const fleet = window.ionConfig.fleetRegistry || [];
+  let csv = 'Asset ID,Class,Road Registration Expiry,Annual CraneSafe Due,10-Year Major Due,Status\n';
+  fleet.forEach(item => {
+    csv += `"${item.id}","${item.class || item.description}","${item.roadRegoExpiry || ''}","${item.craneSafeDue || ''}","${item.majorInspectionDue || ''}","${item.complianceStatus || ''}"\n`;
+  });
+  downloadCSV(csv, 'fleet_certifications_audit.csv');
+}
+window.exportComplianceFleetCSV = exportComplianceFleetCSV;
+
+function exportComplianceWorkerCSV() {
+  const workers = window.ionConfig.workerRegistry || [];
+  let csv = 'Worker Name,Role,HRWL Class,Licence Expiry Date,VOC Date,Status\n';
+  workers.forEach(w => {
+    csv += `"${w.name}","${w.role || ''}","${w.licenseClass || w.hrwlClass || ''}","${w.hrwlExpiry || ''}","${w.vocDate || ''}","${w.complianceStatus || ''}"\n`;
+  });
+  downloadCSV(csv, 'personnel_licences_audit.csv');
+}
+window.exportComplianceWorkerCSV = exportComplianceWorkerCSV;
+
+function exportComplianceAuditReport() {
+  if (typeof window.showToast === 'function') {
+    window.showToast('Generating Comprehensive Tier 1 Compliance & Safety Audit Report...', 'info', 'Audit Export');
+  }
+  setTimeout(() => {
+    const fleet = window.ionConfig.fleetRegistry || [];
+    const workers = window.ionConfig.workerRegistry || [];
+    let csv = 'TIER 1 HSEQ COMPLIANCE AUDIT REPORT\nDate: 2026-09-18\nOrganization: ELEVAT.ion Operations Pty Ltd\nAudit Readiness: 94% Compliant\n\nFLEET AUDIT STATUS\nAsset ID,Class,Road Registration,CraneSafe,10-Yr Major,Status\n';
+    fleet.forEach(item => {
+      csv += `"${item.id}","${item.class || item.description}","${item.roadRegoExpiry || ''}","${item.craneSafeDue || ''}","${item.majorInspectionDue || ''}","${item.complianceStatus || ''}"\n`;
+    });
+    csv += '\nPERSONNEL LICENCE AUDIT STATUS\nWorker Name,Role,HRWL Class,Licence Expiry,VOC Date,Status\n';
+    workers.forEach(w => {
+      csv += `"${w.name}","${w.role || ''}","${w.licenseClass || w.hrwlClass || ''}","${w.hrwlExpiry || ''}","${w.vocDate || ''}","${w.complianceStatus || ''}"\n`;
+    });
+    downloadCSV(csv, 'elevat_ion_safety_compliance_audit_report.csv');
+  }, 400);
+}
+window.exportComplianceAuditReport = exportComplianceAuditReport;
+
+function downloadCSV(content, filename) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
 /**
  * app.js — HireEngine Main Application Module
  * Orchestrates all UI rendering, calendar views, modal workflows, and navigation.
  * Imports core business logic from dedicated modules.
  */
-import { clientsRegistry, projectsRegistry, addClient, addProject, assetRegistry, addAsset, removeAssetById, updateAssetById,
- complianceRegistry, updateComplianceRecord,
- workerRegistry, getLicenseStatus, daysUntilExpiry, getWorkerById, addWorker, updateWorkerById, removeWorkerById,
- bookings, addBooking, updateBooking, removeBooking, getBookingById, getAssetHex,
- HOURLY_RATES, HIRE_TYPES } from './dataModels.js';
-import { ComplianceEngine } from './complianceEngine.js';
-import { DispatchEngine } from './dispatchEngine.js';
-import { initDragAndDrop } from './dndEngine.js';
-import { pushToDocuWare, generateSWMSPayload, generatePreStartPayload, generateFieldDocketPayload, getDocPipelineStatus } from './documentAutomation.js';
-import './complianceModule.js';
+
+
+
+
+
+
 
 // ==========================================================================
 // REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)

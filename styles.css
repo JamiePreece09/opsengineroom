@@ -7039,7 +7039,7 @@ body.dark-mode .compliance-table-card {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 999;
+  z-index: 2500;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -7064,7 +7064,7 @@ body.dark-mode .compliance-table-card {
   background: var(--bg-primary, #FFFFFF);
   border-left: 1px solid var(--border-light, #e2e8f0);
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
-  z-index: 1000;
+  z-index: 2510;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
