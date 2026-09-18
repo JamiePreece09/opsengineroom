@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ionSite</title>
-  <meta name="description" content="Enterprise heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
-  <meta property="og:title" content="ionSite">
-  <meta property="og:description" content="Enterprise heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
-  <link rel="icon" type="image/png" href="ion-cad-plant-logo.png">
+  <title>PRECIS.ion</title>
+  <meta name="description" content="PRECIS.ion heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
+  <meta property="og:title" content="PRECIS.ion">
+  <meta property="og:description" content="PRECIS.ion heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
+  <link rel="icon" type="image/png" href="ion-crane-badge.png">
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Google Material Symbols & Icons CDN -->
@@ -66,9 +66,20 @@
       <button class="gcal-icon-btn" onclick="toggleSidebarRail()" title="Toggle Navigation Rail">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;" title="ionSite - Plant Hire & Crane Dispatch">
-        <img src="ion-cad-plant-logo.png" alt="ion Plant Hire Dispatch" class="gcal-brand-logo-img">
-        <span class="gcal-brand-text"><strong style="color:var(--ion-cyan, #00ADEF);font-weight:800;">ion</strong><span style="color:var(--text-primary);font-weight:700;">Site</span></span>
+      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;" title="PRECIS.ion — Operations & Dispatch Command Center">
+        <div class="precision-reticle-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ion-cyan, #00ADEF)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="3.5" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.2"/>
+            <line x1="12" y1="1" x2="12" y2="5"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="1" y1="12" x2="5" y2="12"/>
+            <line x1="19" y1="12" x2="23" y2="12"/>
+          </svg>
+        </div>
+        <span class="precision-brand-name">
+          <span class="brand-precis">PRECIS</span><span class="brand-dot">.</span><span class="brand-ion">ion</span>
+        </span>
       </div>
     </div>
     
@@ -164,6 +175,15 @@
         <div class="gcal-nav-item" id="nav-settings" onclick="switchTab('settings')" title="System Settings & Integrations">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span class="sidebar-label">System Settings</span>
+        </div>
+      </div>
+
+      <!-- Subtle Opaque Blueprint Watermark in Side Panel -->
+      <div class="gcal-sidebar-watermark" title="PRECIS.ion Industrial Engine">
+        <div class="gcal-sidebar-watermark-art"></div>
+        <div class="gcal-sidebar-watermark-info">
+          <div class="gcal-sidebar-watermark-title">PRECIS<span>.ion</span></div>
+          <div class="gcal-sidebar-watermark-desc">Industrial Dispatch System</div>
         </div>
       </div>
     </aside>

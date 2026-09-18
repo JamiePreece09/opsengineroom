@@ -2710,7 +2710,7 @@ tr.expired-row td {
 }
 
 
-/* ionSite Enterprise Layout */
+/* PRECIS.ion Enterprise Layout */
 .app-layout {
     display: flex;
     flex-direction: column;
@@ -2744,49 +2744,128 @@ tr.expired-row td {
 .gcal-nav-right { flex: 1; justify-content: flex-end; }
 
 .gcal-brand {
-    font-size: 20px;
-    font-weight: 700;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    font-family: 'Avenir', sans-serif;
+    gap: 10px;
     user-select: none;
+    cursor: pointer;
+    text-decoration: none;
 }
 
-.gcal-brand-logo-img {
-    height: 38px;
-    width: auto;
-    max-width: 90px;
-    object-fit: contain;
-    border-radius: 6px;
-    background: #111417;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-    display: block;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-}
-
-.gcal-brand:hover .gcal-brand-logo-img {
-    transform: scale(1.04);
-    box-shadow: 0 0 12px rgba(0, 173, 239, 0.45);
-}
-
-.gcal-brand-text {
+.precision-reticle-icon {
     display: flex;
     align-items: center;
-    letter-spacing: -0.5px;
+    justify-content: center;
+    filter: drop-shadow(0 0 6px rgba(0, 173, 239, 0.45));
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+}
+
+.gcal-brand:hover .precision-reticle-icon {
+    transform: rotate(45deg) scale(1.08);
+    filter: drop-shadow(0 0 10px rgba(0, 173, 239, 0.85));
+}
+
+.precision-brand-name {
+    display: inline-flex;
+    align-items: center;
     font-size: 20px;
     line-height: 1;
+    font-weight: 800;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.3px;
 }
 
-.gcal-brand strong,
-.gcal-brand span strong,
-.gcal-brand strong[style] {
-    color: var(--ion-cyan, #00ADEF) !important;
+.brand-precis {
+    color: var(--text-primary, #1e293b);
+    font-weight: 800;
+    letter-spacing: 0.2px;
 }
 
-.gcal-brand svg {
-    stroke: var(--ion-cyan, #00ADEF) !important;
+.brand-dot {
+    color: var(--ion-cyan, #00ADEF);
+    font-weight: 900;
+    margin: 0 0.5px;
+}
+
+.brand-ion {
+    color: var(--ion-cyan, #00ADEF);
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    text-shadow: 0 0 12px rgba(0, 173, 239, 0.35);
+}
+
+[data-theme="dark"] .brand-precis,
+body.dark-mode .brand-precis {
+    color: #F8FAFC;
+}
+
+/* Sidebar CAD Blueprint Watermark & Version Card */
+.gcal-sidebar-watermark {
+    margin-top: auto;
+    padding: 12px 10px 10px;
+    border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 173, 239, 0.04) 100%);
+    cursor: default;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.gcal-sidebar-watermark:hover {
+    background: linear-gradient(180deg, rgba(0, 173, 239, 0.02) 0%, rgba(0, 173, 239, 0.08) 100%);
+    border-color: rgba(0, 173, 239, 0.25);
+}
+
+.gcal-sidebar-watermark-art {
+    height: 62px;
+    width: 100%;
+    background: url('ion-cad-plant-logo.png') center / contain no-repeat;
+    opacity: 0.28;
+    mix-blend-mode: luminosity;
+    filter: grayscale(80%);
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, filter 0.3s ease;
+}
+
+.gcal-sidebar-watermark:hover .gcal-sidebar-watermark-art {
+    opacity: 0.85;
+    transform: scale(1.03);
+    filter: grayscale(0%) drop-shadow(0 0 10px rgba(0, 173, 239, 0.35));
+}
+
+.gcal-sidebar-watermark-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+    z-index: 1;
+}
+
+.gcal-sidebar-watermark-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: var(--text-sidebar, #94A3B8);
+}
+
+.gcal-sidebar-watermark-title span {
+    color: var(--ion-cyan, #00ADEF);
+    text-shadow: 0 0 8px rgba(0, 173, 239, 0.4);
+}
+
+.gcal-sidebar-watermark-desc {
+    font-size: 9px;
+    color: var(--text-muted, #64748B);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.gcal-sidebar.collapsed .gcal-sidebar-watermark {
+    display: none;
 }
 
 .gcal-app-body {
@@ -2916,6 +2995,29 @@ tr.expired-row td {
     overflow: hidden;
     position: relative;
     background: var(--primary-bg);
+}
+
+/* Subtle Opaque Architectural CAD Watermark for the App Viewport */
+.gcal-main-content::after {
+    content: '';
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    width: 380px;
+    height: 212px;
+    background: url('ion-cad-plant-logo.png') center / contain no-repeat;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: luminosity;
+    filter: grayscale(100%);
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] .gcal-main-content::after,
+body.dark-mode .gcal-main-content::after {
+    opacity: 0.065;
+    filter: grayscale(80%) brightness(1.2);
 }
 
 .gcal-btn {
