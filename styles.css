@@ -2798,47 +2798,43 @@ body.dark-mode .brand-elevat {
     color: #F8FAFC;
 }
 
-/* Sidebar Bottom Brand Showcase - Edge-to-Edge Flush */
+/* Sidebar Bottom Brand Showcase - Seamless Panel Blend */
 .gcal-sidebar-watermark {
     margin-top: auto;
     margin-left: -10px;
     margin-right: -10px;
     margin-bottom: -14px;
-    padding: 12px 0 10px 0;
+    padding: 14px 8px 12px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
-    border-top: 1px solid rgba(0, 173, 239, 0.35);
-    background: radial-gradient(ellipse at 50% 60%, rgba(0, 173, 239, 0.22) 0%, rgba(20, 6, 40, 0.85) 65%, rgba(10, 2, 22, 0.98) 100%);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 173, 239, 0.3);
+    border-top: 1px solid var(--border-sidebar, #3C166B);
+    background: transparent;
     cursor: default;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .gcal-sidebar-watermark:hover {
-    background: radial-gradient(ellipse at 50% 60%, rgba(0, 173, 239, 0.32) 0%, rgba(26, 7, 50, 0.9) 65%, rgba(12, 2, 25, 1) 100%);
-    border-top-color: rgba(0, 173, 239, 0.7);
-    box-shadow: 0 -6px 28px rgba(0, 173, 239, 0.25), inset 0 1px 0 rgba(0, 173, 239, 0.6);
+    background: rgba(255, 255, 255, 0.02);
+    border-top-color: rgba(255, 255, 255, 0.12);
 }
 
 .gcal-sidebar-watermark-art {
-    height: 124px;
+    height: 112px;
     width: 100%;
     background: url('ion-cad-plant-logo.png') center / contain no-repeat;
-    opacity: 1;
+    opacity: 0.95;
     mix-blend-mode: screen;
-    filter: brightness(1.35) contrast(1.25) drop-shadow(0 0 18px rgba(0, 173, 239, 0.9)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
-    position: relative;
-    z-index: 1;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+    filter: drop-shadow(0 0 10px rgba(0, 173, 239, 0.5));
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease, opacity 0.25s ease;
 }
 
 .gcal-sidebar-watermark:hover .gcal-sidebar-watermark-art {
-    transform: scale(1.05);
-    filter: brightness(1.45) contrast(1.3) drop-shadow(0 0 28px rgba(0, 173, 239, 1)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.8));
+    transform: scale(1.04);
+    opacity: 1;
+    filter: drop-shadow(0 0 16px rgba(0, 173, 239, 0.8));
 }
 
 .gcal-sidebar.collapsed .gcal-sidebar-watermark {
