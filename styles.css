@@ -1799,7 +1799,7 @@ body {
   align-items: start;
 }
 
-.kanban-col, .jb-lane {
+.kanban-col, .kanban-lane, .jb-lane {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg, 8px);
