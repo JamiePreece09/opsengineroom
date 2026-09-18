@@ -582,7 +582,7 @@
         <span class="material-symbols-outlined" style="font-size:18px;">download</span>
         <span>Audit Report</span>
       </button>
-      <button class="btn-primary" onclick="openUploadComplianceDocModal()" style="display:inline-flex;align-items:center;gap:6px;">
+      <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
         <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
         <span>Upload Document</span>
       </button>
@@ -614,7 +614,7 @@
     <!-- 3 Large Flat Metric Cards -->
     <div class="compliance-metric-cards-grid">
       <!-- Card 1: Expiring within 30 Days -->
-      <div class="compliance-metric-card" id="card-expiring-30d">
+      <div class="compliance-metric-card expiring-card" id="card-expiring-30d">
         <div class="compliance-card-header">
           <div class="compliance-card-icon-wrap warning">
             <span class="material-symbols-outlined">notification_important</span>
@@ -635,7 +635,7 @@
         </div>
       </div>
 
-      <!-- Card 2: Critical Non-Compliance (Solid Red Outline) -->
+      <!-- Card 2: Critical Non-Compliance -->
       <div class="compliance-metric-card critical-card" id="card-critical-compliance">
         <div class="compliance-card-header">
           <div class="compliance-card-icon-wrap critical">
@@ -656,7 +656,7 @@
         </div>
       </div>
 
-      <!-- Card 3: Audit Readiness (Solid Green Outline) -->
+      <!-- Card 3: Audit Readiness -->
       <div class="compliance-metric-card audit-card" id="card-audit-readiness">
         <div class="compliance-card-header">
           <div class="compliance-card-icon-wrap ready">
@@ -681,14 +681,25 @@
 
     <!-- Active Compliance Feeds & Audit Verification Panels -->
     <div class="compliance-summary-grid">
-      <!-- Priority Alerts Feed -->
+      <!-- Live Compliance Telemetry Table -->
       <div class="compliance-panel">
         <div class="compliance-panel-title">
           <span class="material-symbols-outlined">warning</span>
-          <span>Live Compliance Telemetry &amp; Alerts</span>
+          <span>Live Compliance Telemetry</span>
         </div>
-        <div class="compliance-alerts-list" id="compliance-alerts-container">
-          <!-- Populated by JS -->
+        <div class="compliance-telemetry-table-wrap">
+          <table class="compliance-telemetry-table">
+            <thead>
+              <tr>
+                <th style="width:38%;">Alert Type</th>
+                <th style="width:42%;">Entity</th>
+                <th style="text-align:right;width:20%;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="compliance-telemetry-tbody">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -895,7 +906,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="badge badge-neutral" id="compliance-vault-count" style="font-weight:700;">8 Documents</span>
-        <button class="btn-primary" onclick="openUploadComplianceDocModal()" style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:16px;">upload_file</span>
           <span>Upload File</span>
         </button>

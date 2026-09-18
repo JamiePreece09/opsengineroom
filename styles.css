@@ -5738,21 +5738,34 @@ body.dark-mode #change-password-modal input:focus {
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   box-shadow: none !important;
   transition: transform 0.15s ease, border-color 0.15s ease;
+  min-height: 215px;
 }
 
-/* Critical Non-Compliance: Solid Red Outline */
-.compliance-metric-card.critical-card {
-  border: 2px solid #dc2626 !important;
-  background: var(--bg-primary);
+/* Card 1: Expiring within 30 Days (Subtle amber tint & top accent bar) */
+.compliance-metric-card.expiring-card,
+#card-expiring-30d {
+  border-top: 3px solid #d97706 !important;
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.04) 0%, var(--bg-primary) 35%);
 }
 
-/* Audit Readiness: Solid Green Outline */
-.compliance-metric-card.audit-card {
-  border: 2px solid #16a34a !important;
-  background: var(--bg-primary);
+/* Card 2: Critical Non-Compliance (Subtle red tint & top accent bar - no harsh outline) */
+.compliance-metric-card.critical-card,
+#card-critical-compliance {
+  border: 1px solid var(--border-light) !important;
+  border-top: 3px solid #dc2626 !important;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.04) 0%, var(--bg-primary) 35%);
+}
+
+/* Card 3: Audit Readiness (Subtle green tint & top accent bar - no harsh outline) */
+.compliance-metric-card.audit-card,
+#card-audit-readiness {
+  border: 1px solid var(--border-light) !important;
+  border-top: 3px solid #16a34a !important;
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.04) 0%, var(--bg-primary) 35%);
 }
 
 .compliance-card-header {
@@ -5911,6 +5924,47 @@ body.dark-mode #change-password-modal input:focus {
 .compliance-panel-title .material-symbols-outlined {
   font-size: 18px;
   color: var(--accent-copper, #c2410c);
+}
+
+/* Live Compliance Telemetry Minimalist Table */
+.compliance-telemetry-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--bg-primary);
+}
+
+.compliance-telemetry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.compliance-telemetry-table th {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.compliance-telemetry-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.compliance-telemetry-table tr:last-child td {
+  border-bottom: none;
+}
+
+.compliance-telemetry-table tr:hover {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .compliance-alerts-list {
@@ -6140,16 +6194,54 @@ body.dark-mode .compliance-metric-card {
   border-color: #3D4543 !important;
 }
 
+[data-theme="dark"] .compliance-metric-card.expiring-card,
+body.dark-mode .compliance-metric-card.expiring-card,
+[data-theme="dark"] #card-expiring-30d,
+body.dark-mode #card-expiring-30d {
+  border-color: #3D4543 !important;
+  border-top: 3px solid #f59e0b !important;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.06) 0%, #181A1C 35%) !important;
+}
+
 [data-theme="dark"] .compliance-metric-card.critical-card,
-body.dark-mode .compliance-metric-card.critical-card {
-  border: 2px solid #ef4444 !important;
-  background: #181A1C !important;
+body.dark-mode .compliance-metric-card.critical-card,
+[data-theme="dark"] #card-critical-compliance,
+body.dark-mode #card-critical-compliance {
+  border-color: #3D4543 !important;
+  border-top: 3px solid #ef4444 !important;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.06) 0%, #181A1C 35%) !important;
 }
 
 [data-theme="dark"] .compliance-metric-card.audit-card,
-body.dark-mode .compliance-metric-card.audit-card {
-  border: 2px solid #10b981 !important;
+body.dark-mode .compliance-metric-card.audit-card,
+[data-theme="dark"] #card-audit-readiness,
+body.dark-mode #card-audit-readiness {
+  border-color: #3D4543 !important;
+  border-top: 3px solid #10b981 !important;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, #181A1C 35%) !important;
+}
+
+[data-theme="dark"] .compliance-telemetry-table-wrap,
+body.dark-mode .compliance-telemetry-table-wrap {
   background: #181A1C !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-telemetry-table th,
+body.dark-mode .compliance-telemetry-table th {
+  background: #202426 !important;
+  border-bottom-color: #3D4543 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme="dark"] .compliance-telemetry-table td,
+body.dark-mode .compliance-telemetry-table td {
+  border-bottom-color: #2a2e30 !important;
+}
+
+[data-theme="dark"] .compliance-telemetry-table tr:hover,
+body.dark-mode .compliance-telemetry-table tr:hover {
+  background: rgba(255, 255, 255, 0.025) !important;
 }
 
 [data-theme="dark"] .compliance-card-icon-wrap.warning,

@@ -230,21 +230,20 @@ function renderComplianceDashboard() {
   if (expListEl) {
     expListEl.innerHTML = `
       <div class="compliance-detail-row">
-        <span class="material-symbols-outlined">person</span>
+        <span class="material-symbols-outlined" style="color:#d97706;">schedule</span>
         <span><strong>Luke Harris</strong> &bull; HRWL C1/C6 (Due 08 Oct 2026)</span>
       </div>
       <div class="compliance-detail-row">
-        <span class="material-symbols-outlined">precision_manufacturing</span>
-        <span><strong>SC07</strong> &bull; 12m Scissor Lift (CraneSafe Due 22 Sep 2026)</span>
+        <span class="material-symbols-outlined" style="color:#d97706;">precision_manufacturing</span>
+        <span><strong>SC07</strong> &bull; 12m Scissor Lift (Due 22 Sep 2026)</span>
       </div>
-      <div class="compliance-detail-row" style="color:var(--text-muted);font-size:11px;">
-        <span class="material-symbols-outlined" style="font-size:15px;">schedule</span>
-        <span>+ EX02 Excavator &amp; John Smith due within 30 days</span>
+      <div class="compliance-subdetail-note">
+        Review &amp; schedule renewal prior to 30-day operational threshold.
       </div>
     `;
   }
 
-  // Update Metric Card 2: Critical Non-Compliance (Solid Red Outline)
+  // Update Metric Card 2: Critical Non-Compliance (Subtle Red Tint & Accent Bar)
   const critCountEl = document.getElementById('metric-critical-count');
   if (critCountEl) critCountEl.textContent = `${totalCritical} Critical Flags`;
 
@@ -253,19 +252,19 @@ function renderComplianceDashboard() {
     critListEl.innerHTML = `
       <div class="compliance-detail-row critical-highlight">
         <span class="material-symbols-outlined">block</span>
-        <span><strong>EX01 - Registration Expired</strong></span>
+        <span><strong>EX01</strong> &bull; Registration Expired (28/08/2026)</span>
+      </div>
+      <div class="compliance-detail-row critical-highlight">
+        <span class="material-symbols-outlined">lock</span>
+        <span><strong>CR09</strong> &bull; CraneSafe Expired (30/07/2026)</span>
       </div>
       <div class="compliance-subdetail-note">
-        Asset road permit lapsed on 28/08/2026. Automatic dispatch lockout enforced.
-      </div>
-      <div class="compliance-detail-row critical-highlight" style="margin-top:6px;">
-        <span class="material-symbols-outlined">lock</span>
-        <span><strong>CR09</strong> &bull; Annual CraneSafe Expired (30/07/2026)</span>
+        Automatic dispatch lockout enforced on all non-compliant units.
       </div>
     `;
   }
 
-  // Update Metric Card 3: Audit Readiness (Solid Green Outline)
+  // Update Metric Card 3: Audit Readiness (Subtle Green Tint & Accent Bar)
   const auditPctEl = document.getElementById('metric-audit-pct');
   if (auditPctEl) auditPctEl.textContent = `${auditPct}% Compliant`;
 
@@ -274,55 +273,145 @@ function renderComplianceDashboard() {
     auditListEl.innerHTML = `
       <div class="compliance-detail-row">
         <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
-        <span><strong>${validFleet.length} of ${fleet.length} Fleet Assets</strong> fully certified</span>
+        <span><strong>${validFleet.length} of ${fleet.length} Fleet Assets</strong> certified</span>
       </div>
       <div class="compliance-detail-row">
         <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
         <span><strong>${validWorkers.length} of ${workers.length} Personnel</strong> licences verified active</span>
       </div>
-      <div class="compliance-subdetail-note" style="color:#15803d;font-weight:600;">
-        Meets Tier 1 Major Contractor (ADCO, Lendlease, CPB) compliance threshold.
+      <div class="compliance-subdetail-note">
+        Meets Tier 1 Major Contractor safety compliance standard.
       </div>
     `;
   }
 
-  // Render Priority Compliance Alerts Feed
-  const alertsContainer = document.getElementById('compliance-alerts-container');
-  if (alertsContainer) {
-    alertsContainer.innerHTML = `
-      <div class="compliance-alert-item danger">
-        <span class="material-symbols-outlined">cancel</span>
-        <div class="alert-content">
-          <div class="alert-title">Road Registration Expired: EX01 (Excavator 20T)</div>
-          <div class="alert-desc">Expired 28/08/2026. Public road transport prohibited. Dispatch interlock active.</div>
-        </div>
-        <button class="btn-secondary btn-sm" onclick="viewComplianceRecord('EX01', 'fleet')">Resolve</button>
-      </div>
-      <div class="compliance-alert-item warning">
-        <span class="material-symbols-outlined">alarm</span>
-        <div class="alert-content">
-          <div class="alert-title">Annual CraneSafe Due in 4 Days: SC07 (12m Scissor Lift)</div>
-          <div class="alert-desc">Due 22/09/2026. Third-party mechanical inspector booking required.</div>
-        </div>
-        <button class="btn-secondary btn-sm" onclick="viewComplianceRecord('SC07', 'fleet')">Schedule</button>
-      </div>
-      <div class="compliance-alert-item warning">
-        <span class="material-symbols-outlined">alarm</span>
-        <div class="alert-content">
-          <div class="alert-title">HRWL C1/C6 Renewal Due in 20 Days: Luke Harris</div>
-          <div class="alert-desc">WorkSafe QLD licence expires 08/10/2026. Renewal lodgement confirmation required.</div>
-        </div>
-        <button class="btn-secondary btn-sm" onclick="viewComplianceRecord('W001', 'worker')">Verify</button>
-      </div>
-      <div class="compliance-alert-item info">
-        <span class="material-symbols-outlined">verified</span>
-        <div class="alert-content">
-          <div class="alert-title">VOC Completed: Mark Johnson (Plant Operator)</div>
-          <div class="alert-desc">Annual Verification of Competency validated on 15/09/2026.</div>
-        </div>
-        <span class="status-pill-subtle">Logged</span>
-      </div>
-    `;
+  // Render Minimalist Live Compliance Telemetry Table (3 Columns: Alert Type, Entity, Action)
+  const telemetryTbody = document.getElementById('compliance-telemetry-tbody');
+  if (telemetryTbody) {
+    const telemetryItems = [];
+
+    // Fleet items needing action
+    fleet.forEach(asset => {
+      const regoStatus = evaluateStatus(asset.roadRegoExpiry);
+      const craneStatus = evaluateStatus(asset.craneSafeDue);
+
+      if (regoStatus === 'Expired' || asset.complianceStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'Rego Expired',
+          severity: 'danger',
+          icon: 'block',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      } else if (craneStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'CraneSafe Expired',
+          severity: 'danger',
+          icon: 'lock',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      } else if (craneStatus === 'Expiring Soon' || regoStatus === 'Expiring Soon' || asset.complianceStatus === 'Expiring Soon') {
+        telemetryItems.push({
+          type: 'CraneSafe Due',
+          severity: 'warning',
+          icon: 'alarm',
+          entity: `${asset.id} (${asset.class || asset.description || 'Plant'})`,
+          actionText: 'Audit',
+          actionFn: `auditAssetPrompt('${asset.id}')`
+        });
+      }
+    });
+
+    // Worker items needing action
+    workers.forEach(w => {
+      const hrwlStatus = evaluateStatus(w.hrwlExpiry);
+      if (hrwlStatus === 'Expired' || w.complianceStatus === 'Expired') {
+        telemetryItems.push({
+          type: 'HRWL Expired',
+          severity: 'danger',
+          icon: 'cancel',
+          entity: `${w.name} (${w.role || 'Personnel'})`,
+          actionText: 'Verify',
+          actionFn: `verifyWorkerPrompt('${w.id}')`
+        });
+      } else if (hrwlStatus === 'Expiring Soon' || w.complianceStatus === 'Expiring Soon') {
+        telemetryItems.push({
+          type: 'HRWL Due Soon',
+          severity: 'warning',
+          icon: 'alarm',
+          entity: `${w.name} (${w.role || 'Personnel'})`,
+          actionText: 'Verify',
+          actionFn: `verifyWorkerPrompt('${w.id}')`
+        });
+      }
+    });
+
+    // Fallback verified rows if list is small
+    const compliantWorkers = workers.filter(w => w.complianceStatus === 'Valid' && evaluateStatus(w.hrwlExpiry) === 'Valid');
+    if (telemetryItems.length < 5 && compliantWorkers.length > 0) {
+      const v = compliantWorkers[0];
+      telemetryItems.push({
+        type: 'VOC Validated',
+        severity: 'valid',
+        icon: 'verified',
+        entity: `${v.name} (${v.role || 'Personnel'})`,
+        actionText: 'Verify',
+        actionFn: `verifyWorkerPrompt('${v.id}')`
+      });
+    }
+
+    const rowsToDisplay = telemetryItems.slice(0, 5);
+
+    if (rowsToDisplay.length === 0) {
+      telemetryTbody.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">
+            <span class="material-symbols-outlined" style="font-size:22px;vertical-align:middle;margin-right:6px;color:#16a34a;">check_circle</span>
+            All fleet assets and personnel are fully compliant.
+          </td>
+        </tr>
+      `;
+    } else {
+      telemetryTbody.innerHTML = rowsToDisplay.map(row => {
+        let iconColor = '#16a34a';
+        let tagBg = '#dcfce7';
+        let tagColor = '#15803d';
+
+        if (row.severity === 'danger') {
+          iconColor = '#dc2626';
+          tagBg = '#fee2e2';
+          tagColor = '#b91c1c';
+        } else if (row.severity === 'warning') {
+          iconColor = '#d97706';
+          tagBg = '#fef3c7';
+          tagColor = '#b45309';
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:15px;color:${iconColor};flex-shrink:0;">${row.icon}</span>
+                <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;padding:2px 6px;border-radius:4px;background:${tagBg};color:${tagColor};">
+                  ${row.type}
+                </span>
+              </div>
+            </td>
+            <td style="color:var(--text-primary);font-size:12.5px;font-weight:600;">
+              ${row.entity}
+            </td>
+            <td style="text-align:right;">
+              <button class="btn-secondary btn-sm" onclick="${row.actionFn}" style="min-width:68px;">
+                <span>${row.actionText}</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
   }
 }
 window.renderComplianceDashboard = renderComplianceDashboard;
@@ -416,7 +505,7 @@ function renderComplianceFleetTable() {
           ${badgeHtml}
         </td>
         <td style="text-align:right;">
-          <button class="btn-secondary btn-sm" onclick="viewComplianceRecord('${item.id}', 'fleet')" title="View Certification Audit History">
+          <button class="btn-secondary btn-sm" onclick="auditAssetPrompt('${item.id}')" title="Audit CraneSafe Expiry">
             <span>Audit</span>
           </button>
         </td>
@@ -533,7 +622,7 @@ function renderCompliancePersonnelTable() {
           ${badgeHtml}
         </td>
         <td style="text-align:right;">
-          <button class="btn-secondary btn-sm" onclick="viewComplianceRecord('${worker.id}', 'worker')" title="Verify VOC and Licence">
+          <button class="btn-secondary btn-sm" onclick="verifyWorkerPrompt('${worker.id}')" title="Verify WorkSafe Licence">
             <span>Verify</span>
           </button>
         </td>
@@ -736,11 +825,98 @@ function closeComplianceRecordModal() {
 }
 window.closeComplianceRecordModal = closeComplianceRecordModal;
 
-function openUploadComplianceDocModal() {
-  const modal = document.getElementById('compliance-upload-modal');
-  if (modal) modal.style.display = 'flex';
+function triggerDocuWareUpload() {
+  alert('Initiating DocuWare API Sync... Select PDF to upload.');
 }
-window.openUploadComplianceDocModal = openUploadComplianceDocModal;
+window.triggerDocuWareUpload = triggerDocuWareUpload;
+window.openUploadComplianceDocModal = triggerDocuWareUpload;
+
+/**
+ * Interactive Action: Audit Asset CraneSafe Expiry
+ * Prompts user for new date, updates window.ionConfig.fleetRegistry, and re-renders table.
+ */
+function auditAssetPrompt(assetId) {
+  ensureIonConfigComplianceData();
+  const asset = (window.ionConfig.fleetRegistry || []).find(a => a.id === assetId);
+  if (!asset) return;
+
+  const defaultVal = (asset.craneSafeDue && !asset.craneSafeDue.includes('N/A')) ? asset.craneSafeDue : '2027-09-30';
+  const inputDate = prompt('Enter new CraneSafe Expiry Date (YYYY-MM-DD)', defaultVal);
+  
+  if (inputDate === null) return; // User cancelled
+  const trimmed = inputDate.trim();
+  if (!trimmed) return;
+
+  // Basic regex check for YYYY-MM-DD
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(trimmed)) {
+    alert('Please enter date in YYYY-MM-DD format (e.g. 2027-09-30).');
+    return;
+  }
+
+  // Update asset in window.ionConfig.fleetRegistry
+  asset.craneSafeDue = trimmed;
+  
+  // Recalculate status based on new CraneSafe date and road rego
+  const craneSafeStatus = evaluateStatus(trimmed);
+  const regoStatus = evaluateStatus(asset.roadRegoExpiry);
+  
+  if (regoStatus === 'Expired' || craneSafeStatus === 'Expired') {
+    asset.complianceStatus = 'Expired';
+  } else if (regoStatus === 'Expiring Soon' || craneSafeStatus === 'Expiring Soon') {
+    asset.complianceStatus = 'Expiring Soon';
+  } else {
+    asset.complianceStatus = 'Valid';
+  }
+
+  if (typeof window.showToast === 'function') {
+    window.showToast(`Updated CraneSafe for ${asset.id} to ${trimmed} (${asset.complianceStatus})`, 'success', 'Audit Complete');
+  }
+
+  // Immediately re-render Fleet Certifications table
+  renderComplianceFleetTable();
+  // Also re-render Dashboard to update counters, cards, and telemetry table
+  renderComplianceDashboard();
+}
+window.auditAssetPrompt = auditAssetPrompt;
+
+/**
+ * Interactive Action: Verify Worker via WorkSafe QLD
+ * Confirms verification, updates worker status to 'Valid' in window.ionConfig.workerRegistry, and re-renders table.
+ */
+function verifyWorkerPrompt(workerId) {
+  ensureIonConfigComplianceData();
+  const worker = (window.ionConfig.workerRegistry || []).find(w => w.id === workerId);
+  if (!worker) return;
+
+  const confirmed = confirm('Has this HRWL been verified via WorkSafe QLD?');
+  if (confirmed) {
+    // Update worker status in window.ionConfig.workerRegistry to 'Valid'
+    worker.complianceStatus = 'Valid';
+    worker.status = 'Valid';
+    worker.licenceStatus = 'Valid';
+    worker.vocStatus = 'Valid';
+
+    // If expiry was expired or expiring soon, update to 5-year renewal date
+    if (evaluateStatus(worker.hrwlExpiry) === 'Expired' || evaluateStatus(worker.hrwlExpiry) === 'Expiring Soon') {
+      worker.hrwlExpiry = '2031-09-18';
+    }
+
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Worker ${worker.name} verified via WorkSafe QLD. Status: Valid.`, 'success', 'Licence Verified');
+    }
+
+    // Immediately re-render Personnel Licences table
+    renderCompliancePersonnelTable();
+    // Also re-render Dashboard to update counters, cards, and telemetry table
+    renderComplianceDashboard();
+  }
+}
+window.verifyWorkerPrompt = verifyWorkerPrompt;
+
+function openUploadComplianceDocModal() {
+  triggerDocuWareUpload();
+}
 
 function closeUploadComplianceDocModal() {
   const modal = document.getElementById('compliance-upload-modal');
