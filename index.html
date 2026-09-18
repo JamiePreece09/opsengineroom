@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PRECIS.ion</title>
-  <meta name="description" content="PRECIS.ion heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
-  <meta property="og:title" content="PRECIS.ion">
-  <meta property="og:description" content="PRECIS.ion heavy equipment plant hire and crane dispatch operations management system with live job board, compliance tracking, and asset analytics.">
+  <title>ELEVAT.ion — Smart Scheduling for Construction & Cranes</title>
+  <meta name="description" content="ELEVAT.ion — Smart scheduling and dispatch command platform for heavy plant and mobile cranes.">
+  <meta property="og:title" content="ELEVAT.ion">
+  <meta property="og:description" content="ELEVAT.ion — Smart scheduling and dispatch command platform for heavy plant and mobile cranes.">
   <link rel="icon" type="image/png" href="ion-crane-badge.png">
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -66,19 +66,39 @@
       <button class="gcal-icon-btn" onclick="toggleSidebarRail()" title="Toggle Navigation Rail">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;" title="PRECIS.ion — Operations & Dispatch Command Center">
-        <div class="precision-reticle-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ion-cyan, #00ADEF)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/>
-            <circle cx="12" cy="12" r="3.5" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.2"/>
-            <line x1="12" y1="1" x2="12" y2="5"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="1" y1="12" x2="5" y2="12"/>
-            <line x1="19" y1="12" x2="23" y2="12"/>
+      <div class="gcal-brand" onclick="switchTab('scheduler')" style="cursor:pointer;" title="ELEVAT.ion — Smart Scheduling for Construction & Cranes">
+        <div class="elevation-crane-icon">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 3-Axle All-Terrain Crane Wheels -->
+            <circle cx="8" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
+            <circle cx="8" cy="25" r="1" fill="#FFFFFF"/>
+            <circle cx="15" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
+            <circle cx="15" cy="25" r="1" fill="#FFFFFF"/>
+            <circle cx="22" cy="25" r="2.5" fill="var(--ion-cyan, #00ADEF)"/>
+            <circle cx="22" cy="25" r="1" fill="#FFFFFF"/>
+            
+            <!-- Carrier Chassis Deck -->
+            <path d="M4 21h22l2-3.5H9L6 21H4z" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.25" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linejoin="round"/>
+            
+            <!-- Front Driver Cab & Windshield -->
+            <path d="M19 17.5v-4h4.5l2.5 4H19z" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.4" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M21 14.5l1.8 3h-3.8v-3h2z" fill="#FFFFFF" fill-opacity="0.7"/>
+
+            <!-- Slew Turret / Counterweight -->
+            <rect x="5.5" y="15" width="4.5" height="4" rx="1" fill="var(--ion-cyan, #00ADEF)" fill-opacity="0.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.2"/>
+
+            <!-- Angled Telescopic Boom with Highlight -->
+            <line x1="9" y1="16.5" x2="25" y2="5.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="12" y1="14.2" x2="25" y2="5.5" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity="0.9"/>
+            
+            <!-- Sheave Head, Cable & Crane Hook -->
+            <circle cx="25" cy="5.5" r="1.8" fill="var(--ion-cyan, #00ADEF)"/>
+            <line x1="25" y1="7.3" x2="25" y2="13" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.4"/>
+            <path d="M23.5 13h3a1.5 1.5 0 0 1 1.5 1.5c0 1.2-1 2-2 2s-1.8-.8-1.8-1.5" stroke="var(--ion-cyan, #00ADEF)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
           </svg>
         </div>
-        <span class="precision-brand-name">
-          <span class="brand-precis">PRECIS</span><span class="brand-dot">.</span><span class="brand-ion">ion</span>
+        <span class="elevation-brand-name">
+          <span class="brand-elevat">ELEVAT</span><span class="brand-dot">.</span><span class="brand-ion">ion</span>
         </span>
       </div>
     </div>
@@ -178,16 +198,9 @@
         </div>
       </div>
 
-      <!-- Prominent Brand Showcase Card in Side Panel -->
-      <div class="gcal-sidebar-watermark" title="PRECIS.ion Industrial Fleet Engine">
+      <!-- Edge-to-Edge Brand Artwork Showcase in Side Panel -->
+      <div class="gcal-sidebar-watermark" title="ELEVAT.ion Heavy Fleet Engine">
         <div class="gcal-sidebar-watermark-art"></div>
-        <div class="gcal-sidebar-watermark-info">
-          <div class="gcal-sidebar-watermark-title">PRECIS<span>.ion</span></div>
-          <div class="gcal-sidebar-watermark-badge">
-            <span class="pulse-dot"></span>
-            <span>HEAVY FLEET OPS</span>
-          </div>
-        </div>
       </div>
     </aside>
 
