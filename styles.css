@@ -2802,38 +2802,40 @@ body.dark-mode .brand-precis {
 /* Sidebar CAD Blueprint Watermark & Version Card */
 .gcal-sidebar-watermark {
     margin-top: auto;
-    padding: 12px 10px 10px;
-    border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+    padding: 14px 10px 12px;
+    border-top: 1px solid rgba(0, 173, 239, 0.25);
     display: flex;
     flex-direction: column;
     gap: 8px;
     position: relative;
     overflow: hidden;
-    border-radius: 8px;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 173, 239, 0.04) 100%);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(20, 5, 40, 0.4) 0%, rgba(0, 173, 239, 0.08) 100%);
+    border: 1px solid rgba(0, 173, 239, 0.2);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     cursor: default;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .gcal-sidebar-watermark:hover {
-    background: linear-gradient(180deg, rgba(0, 173, 239, 0.02) 0%, rgba(0, 173, 239, 0.08) 100%);
-    border-color: rgba(0, 173, 239, 0.25);
+    background: linear-gradient(180deg, rgba(20, 5, 40, 0.6) 0%, rgba(0, 173, 239, 0.14) 100%);
+    border-color: rgba(0, 173, 239, 0.45);
+    box-shadow: 0 6px 20px rgba(0, 173, 239, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .gcal-sidebar-watermark-art {
-    height: 62px;
+    height: 94px;
     width: 100%;
     background: url('ion-cad-plant-logo.png') center / contain no-repeat;
-    opacity: 0.28;
-    mix-blend-mode: luminosity;
-    filter: grayscale(80%);
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, filter 0.3s ease;
+    opacity: 1;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 16px rgba(0, 173, 239, 0.5));
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
 }
 
 .gcal-sidebar-watermark:hover .gcal-sidebar-watermark-art {
-    opacity: 0.85;
-    transform: scale(1.03);
-    filter: grayscale(0%) drop-shadow(0 0 10px rgba(0, 173, 239, 0.35));
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 24px rgba(0, 173, 239, 0.8));
 }
 
 .gcal-sidebar-watermark-info {
@@ -2846,22 +2848,23 @@ body.dark-mode .brand-precis {
 }
 
 .gcal-sidebar-watermark-title {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 800;
-    letter-spacing: 0.6px;
-    color: var(--text-sidebar, #94A3B8);
+    letter-spacing: 0.8px;
+    color: #FFFFFF;
 }
 
 .gcal-sidebar-watermark-title span {
     color: var(--ion-cyan, #00ADEF);
-    text-shadow: 0 0 8px rgba(0, 173, 239, 0.4);
+    text-shadow: 0 0 10px rgba(0, 173, 239, 0.6);
 }
 
 .gcal-sidebar-watermark-desc {
-    font-size: 9px;
-    color: var(--text-muted, #64748B);
-    letter-spacing: 0.2px;
+    font-size: 9.5px;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.6px;
     text-transform: uppercase;
+    font-weight: 600;
 }
 
 .gcal-sidebar.collapsed .gcal-sidebar-watermark {
@@ -2997,28 +3000,7 @@ body.dark-mode .brand-precis {
     background: var(--primary-bg);
 }
 
-/* Subtle Opaque Architectural CAD Watermark for the App Viewport */
-.gcal-main-content::after {
-    content: '';
-    position: absolute;
-    bottom: 24px;
-    right: 28px;
-    width: 380px;
-    height: 212px;
-    background: url('ion-cad-plant-logo.png') center / contain no-repeat;
-    opacity: 0.035;
-    pointer-events: none;
-    z-index: 0;
-    mix-blend-mode: luminosity;
-    filter: grayscale(100%);
-    transition: opacity 0.3s ease;
-}
 
-[data-theme="dark"] .gcal-main-content::after,
-body.dark-mode .gcal-main-content::after {
-    opacity: 0.065;
-    filter: grayscale(80%) brightness(1.2);
-}
 
 .gcal-btn {
     border: 1px solid var(--border-light);
