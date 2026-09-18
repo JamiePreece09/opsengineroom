@@ -2748,9 +2748,35 @@ tr.expired-row td {
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-family: 'Avenir', sans-serif;
     user-select: none;
+}
+
+.gcal-brand-logo-img {
+    height: 38px;
+    width: auto;
+    max-width: 90px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #111417;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    display: block;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.gcal-brand:hover .gcal-brand-logo-img {
+    transform: scale(1.04);
+    box-shadow: 0 0 12px rgba(0, 173, 239, 0.45);
+}
+
+.gcal-brand-text {
+    display: flex;
+    align-items: center;
+    letter-spacing: -0.5px;
+    font-size: 20px;
+    line-height: 1;
 }
 
 .gcal-brand strong,
