@@ -12,51 +12,52 @@ import { ComplianceEngine } from './complianceEngine.js';
 import { DispatchEngine } from './dispatchEngine.js';
 import { initDragAndDrop } from './dndEngine.js';
 import { pushToDocuWare, generateSWMSPayload, generatePreStartPayload, generateFieldDocketPayload, getDocPipelineStatus } from './documentAutomation.js';
+import './complianceModule.js';
 
 // ==========================================================================
 // REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)
 // ==========================================================================
 window.ionConfig = {
   fleetRegistry: [
-    { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5 },
-    { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true },
-    { id: 'MC2', class: 'Kato City Compact Crane 60T', category: 'city', color: '#d97706', hex: '#d97706', label: 'MC2 - 60T City Crane', description: 'Kato City Compact Crane 60T', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4 },
-    { id: 'CR01', class: 'Kobelco Lattice Crawler 250T', category: 'crawler', color: '#7c3aed', hex: '#7c3aed', label: 'CR01 - 250T Crawler', description: 'Kobelco Lattice Crawler 250T', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2 },
-    { id: 'AT10', class: 'Demag All-Terrain Crane 55T', category: 'all_terrain', color: '#dc2626', hex: '#dc2626', label: 'AT10 - 55T Demag', description: 'Demag All-Terrain Crane 55T', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0 },
-    { id: 'EX01', class: 'Excavator 20T', category: 'excavator', color: '#0ea5e9', hex: '#0ea5e9', label: 'EX01 - 20T Excavator', description: 'Excavator 20T', workerName: 'Alex Morgan', workerStatus: 'available', hoursToday: 3 },
-    { id: 'EX02', class: 'Excavator 35T', category: 'excavator', color: '#06b6d4', hex: '#06b6d4', label: 'EX02 - 35T Excavator', description: 'Excavator 35T', workerName: 'Pat Taylor', workerStatus: 'available', hoursToday: 6 },
-    { id: 'SK03', class: 'Skid Steer Loader', category: 'skid_steer', color: '#8b5cf6', hex: '#8b5cf6', label: 'SK03 - Skid Steer', description: 'Skid Steer Loader', workerName: 'Ben Walker', workerStatus: 'available', hoursToday: 1 },
-    { id: 'DZ04', class: 'Dozer D6', category: 'dozer', color: '#475569', hex: '#475569', label: 'DZ04 - Dozer D6', description: 'Dozer D6', workerName: 'Tom Clarke', workerStatus: 'available', hoursToday: 0 },
-    { id: 'FL05', class: 'Forklift 5T', category: 'forklift', color: '#6366f1', hex: '#6366f1', label: 'FL05 - Forklift 5T', description: 'Forklift 5T', workerName: 'Gary White', workerStatus: 'available', hoursToday: 4 },
-    { id: 'FL06', class: 'Forklift 10T', category: 'forklift', color: '#2563eb', hex: '#2563eb', label: 'FL06 - Forklift 10T', description: 'Forklift 10T', workerName: 'Liam Hughes', workerStatus: 'available', hoursToday: 2 },
-    { id: 'SC07', class: 'Scissor Lift 12m', category: 'elevated_platform', color: '#059669', hex: '#059669', label: 'SC07 - Scissor Lift', description: 'Scissor Lift 12m', workerName: 'Brad Nguyen', workerStatus: 'available', hoursToday: 0 },
-    { id: 'BM08', class: 'Boom Lift 17m', category: 'elevated_platform', color: '#b45309', hex: '#b45309', label: 'BM08 - Boom Lift', description: 'Boom Lift 17m', workerName: 'John Smith', workerStatus: 'available', hoursToday: 5 },
-    { id: 'CR09', class: 'Crawler Crane 50T', category: 'crawler', color: '#334155', hex: '#334155', label: 'CR09 - Crawler 50T', description: 'Crawler Crane 50T', workerName: 'Sean O\'Connor', workerStatus: 'available', hoursToday: 7 },
-    { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1 }
+    { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
+    { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true, roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
+    { id: 'MC2', class: 'Kato City Compact Crane 60T', category: 'city', color: '#d97706', hex: '#d97706', label: 'MC2 - 60T City Crane', description: 'Kato City Compact Crane 60T', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-11-30', craneSafeDue: '2027-01-18', majorInspectionDue: '2030-04-25', complianceStatus: 'Valid' },
+    { id: 'CR01', class: 'Kobelco Lattice Crawler 250T', category: 'crawler', color: '#7c3aed', hex: '#7c3aed', label: 'CR01 - 250T Crawler', description: 'Kobelco Lattice Crawler 250T', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-12-12', majorInspectionDue: '2033-07-20', complianceStatus: 'Valid' },
+    { id: 'AT10', class: 'Demag All-Terrain Crane 55T', category: 'all_terrain', color: '#dc2626', hex: '#dc2626', label: 'AT10 - 55T Demag', description: 'Demag All-Terrain Crane 55T', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-12-05', craneSafeDue: '2027-05-15', majorInspectionDue: '2028-09-10', complianceStatus: 'Valid' },
+    { id: 'EX01', class: 'Excavator 20T', category: 'excavator', color: '#0ea5e9', hex: '#0ea5e9', label: 'EX01 - 20T Excavator', description: 'Excavator 20T', workerName: 'Alex Morgan', workerStatus: 'available', hoursToday: 3, roadRegoExpiry: '2026-08-28', craneSafeDue: '2026-11-15', majorInspectionDue: '2031-06-18', complianceStatus: 'Expired' },
+    { id: 'EX02', class: 'Excavator 35T', category: 'excavator', color: '#06b6d4', hex: '#06b6d4', label: 'EX02 - 35T Excavator', description: 'Excavator 35T', workerName: 'Pat Taylor', workerStatus: 'available', hoursToday: 6, roadRegoExpiry: '2026-10-02', craneSafeDue: '2026-09-20', majorInspectionDue: '2032-02-28', complianceStatus: 'Expiring Soon' },
+    { id: 'SK03', class: 'Skid Steer Loader', category: 'skid_steer', color: '#8b5cf6', hex: '#8b5cf6', label: 'SK03 - Skid Steer', description: 'Skid Steer Loader', workerName: 'Ben Walker', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2027-05-10', craneSafeDue: '2026-12-01', majorInspectionDue: '2034-01-12', complianceStatus: 'Valid' },
+    { id: 'DZ04', class: 'Dozer D6', category: 'dozer', color: '#475569', hex: '#475569', label: 'DZ04 - Dozer D6', description: 'Dozer D6', workerName: 'Tom Clarke', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: 'N/A (Off-Road Tracked)', craneSafeDue: '2027-01-20', majorInspectionDue: '2033-10-05', complianceStatus: 'Valid' },
+    { id: 'FL05', class: 'Forklift 5T', category: 'forklift', color: '#6366f1', hex: '#6366f1', label: 'FL05 - Forklift 5T', description: 'Forklift 5T', workerName: 'Gary White', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-10-10', craneSafeDue: '2026-11-01', majorInspectionDue: '2030-12-15', complianceStatus: 'Valid' },
+    { id: 'FL06', class: 'Forklift 10T', category: 'forklift', color: '#2563eb', hex: '#2563eb', label: 'FL06 - Forklift 10T', description: 'Forklift 10T', workerName: 'Liam Hughes', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: '2026-10-04', craneSafeDue: '2026-11-04', majorInspectionDue: '2031-03-19', complianceStatus: 'Valid' },
+    { id: 'SC07', class: 'Scissor Lift 12m', category: 'elevated_platform', color: '#059669', hex: '#059669', label: 'SC07 - Scissor Lift', description: 'Scissor Lift 12m', workerName: 'Brad Nguyen', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-09-28', craneSafeDue: '2026-09-22', majorInspectionDue: '2029-07-11', complianceStatus: 'Expiring Soon' },
+    { id: 'BM08', class: 'Boom Lift 17m', category: 'elevated_platform', color: '#b45309', hex: '#b45309', label: 'BM08 - Boom Lift', description: 'Boom Lift 17m', workerName: 'John Smith', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2026-11-30', craneSafeDue: '2026-12-10', majorInspectionDue: '2032-11-04', complianceStatus: 'Valid' },
+    { id: 'CR09', class: 'Crawler Crane 50T', category: 'crawler', color: '#334155', hex: '#334155', label: 'CR09 - Crawler 50T', description: 'Crawler Crane 50T', workerName: 'Sean O\'Connor', workerStatus: 'available', hoursToday: 7, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-07-30', majorInspectionDue: '2027-03-10', complianceStatus: 'Expired' },
+    { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2026-12-15', craneSafeDue: 'N/A (Transport Plant)', majorInspectionDue: 'N/A', complianceStatus: 'Valid' }
   ],
   workerRegistry: [
-    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-03-15', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491', phone: '0412 001 001', email: 'l.harris@hireengine.com.au' },
-    { id: 'W002', name: 'John Smith', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234', phone: '0412 001 002', email: 'j.smith@hireengine.com.au' },
-    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120', phone: '0412 001 003', email: 'm.johnson@hireengine.com.au' },
-    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981', phone: '0412 001 004', email: 'd.wilson@hireengine.com.au' },
-    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023', phone: '0412 001 005', email: 's.davies@hireengine.com.au' },
-    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211', phone: '0412 001 006', email: 'a.morgan@hireengine.com.au' },
-    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102', phone: '0412 001 007', email: 'c.evans@hireengine.com.au' },
-    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301', phone: '0412 001 008', email: 'p.taylor@hireengine.com.au' },
-    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908', phone: '0412 001 009', email: 'b.walker@hireengine.com.au' },
-    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123', phone: '0412 001 010', email: 't.clarke@hireengine.com.au' },
-    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', department: 'Operations', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201', phone: '0412 001 011', email: 's.oconnor@hireengine.com.au' },
-    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', department: 'Operations', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409', phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au' },
-    { id: 'W013', name: 'Gary White', role: 'Rigger', department: 'Operations', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984', phone: '0412 001 013', email: 'g.white@hireengine.com.au' },
-    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', department: 'Operations', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410', phone: '0412 001 014', email: 'l.hughes@hireengine.com.au' },
-    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', department: 'Operations', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042', phone: '0412 001 015', email: 'd.kelly@hireengine.com.au' },
+    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-08', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491', phone: '0412 001 001', email: 'l.harris@hireengine.com.au', vocDate: '2026-01-15', complianceStatus: 'Expiring Soon' },
+    { id: 'W002', name: 'John Smith', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234', phone: '0412 001 002', email: 'j.smith@hireengine.com.au', vocDate: '2026-02-10', complianceStatus: 'Expiring Soon' },
+    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120', phone: '0412 001 003', email: 'm.johnson@hireengine.com.au', vocDate: '2025-11-20', complianceStatus: 'Valid' },
+    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981', phone: '0412 001 004', email: 'd.wilson@hireengine.com.au', vocDate: '2026-03-04', complianceStatus: 'Expiring Soon' },
+    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023', phone: '0412 001 005', email: 's.davies@hireengine.com.au', vocDate: '2026-04-18', complianceStatus: 'Valid' },
+    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211', phone: '0412 001 006', email: 'a.morgan@hireengine.com.au', vocDate: '2026-02-28', complianceStatus: 'Valid' },
+    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102', phone: '0412 001 007', email: 'c.evans@hireengine.com.au', vocDate: '2025-06-12', complianceStatus: 'Expired' },
+    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301', phone: '0412 001 008', email: 'p.taylor@hireengine.com.au', vocDate: '2026-01-22', complianceStatus: 'Valid' },
+    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908', phone: '0412 001 009', email: 'b.walker@hireengine.com.au', vocDate: '2025-12-05', complianceStatus: 'Valid' },
+    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123', phone: '0412 001 010', email: 't.clarke@hireengine.com.au', vocDate: '2026-05-10', complianceStatus: 'Valid' },
+    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', department: 'Operations', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201', phone: '0412 001 011', email: 's.oconnor@hireengine.com.au', vocDate: '2025-08-19', complianceStatus: 'Expired' },
+    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', department: 'Operations', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409', phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au', vocDate: '2026-02-14', complianceStatus: 'Valid' },
+    { id: 'W013', name: 'Gary White', role: 'Rigger', department: 'Operations', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984', phone: '0412 001 013', email: 'g.white@hireengine.com.au', vocDate: '2026-01-08', complianceStatus: 'Valid' },
+    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', department: 'Operations', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410', phone: '0412 001 014', email: 'l.hughes@hireengine.com.au', vocDate: '2026-03-12', complianceStatus: 'Valid' },
+    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', department: 'Operations', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042', phone: '0412 001 015', email: 'd.kelly@hireengine.com.au', vocDate: '2025-05-20', complianceStatus: 'Expired' },
     // Administration, Office & Sales Roles
-    { id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', phone: '0412 110 091', email: 's.jenkins@ionhire.com.au' },
-    { id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', phone: '0413 552 819', email: 'm.chang@ionhire.com.au' },
-    { id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', phone: '0415 889 204', email: 'j.miller@ionhire.com.au' },
-    { id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'MGMT-01', phone: '0418 332 901', email: 'd.thornton@ionhire.com.au' },
-    { id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', hrwlExpiry: '2027-12-31', hrwlStatus: 'Active', licenseClass: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', phone: '0416 771 430', email: 'r.vance@ionhire.com.au' },
-    { id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', hrwlExpiry: '', hrwlStatus: 'Exempt', licenseClass: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', phone: '0417 443 652', email: 'a.ross@ionhire.com.au' }
+    { id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', phone: '0412 110 091', email: 's.jenkins@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+    { id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', phone: '0413 552 819', email: 'm.chang@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+    { id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', phone: '0415 889 204', email: 'j.miller@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+    { id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'MGMT-01', phone: '0418 332 901', email: 'd.thornton@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+    { id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', hrwlExpiry: '2027-12-31', hrwlStatus: 'Active', licenseClass: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', phone: '0416 771 430', email: 'r.vance@ionhire.com.au', vocDate: '2026-02-01', complianceStatus: 'Valid' },
+    { id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', phone: '0417 443 652', email: 'a.ross@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' }
   ],
   schedulingRules: {
     standardHoursStart: '06:00',
@@ -6540,55 +6541,16 @@ function executeCertLockRelease(){
  showToast(`DocuWare Webhook Event Triggered!\n\nSafety compliance lock successfully RELEASED for ${currentCertAssetId}.\nAsset column is now UNLOCKED for dispatch in the Command Center.`);
 }
 
-/* ── COMPLIANCE & CERTS WITH SEARCH & FILTER ── */
+/* ── COMPLIANCE & CERTS MODULE ── */
 function renderComplianceView(){
- const container=document.getElementById('compliance-container');
- if(!container)return;
- 
- const q=(document.getElementById('compliance-search')?.value||'').toLowerCase();
- const s=(document.getElementById('compliance-status-filter')?.value||'ALL');
- 
- let html=`<table style="width:100%; border-collapse:collapse; text-align:left; background:var(--bg-primary); box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-  <thead>
-   <tr style="border-bottom:2px solid var(--border-light); background:var(--bg-secondary);">
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Asset Code</th>
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Description</th>
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Registration #</th>
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Cert Expiry</th>
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Compliance Status</th>
-    <th style="padding:16px; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; text-align:right;">Action</th>
-   </tr>
-  </thead>
-  <tbody>`;
-  
- validAssets.forEach(a=>{
-  const c=complianceRegistry[a];
-  if(!c)return;
-  if(s!=='ALL'&&c.status!==s)return;
-  if(q&&!(a.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)||c.rego.toLowerCase().includes(q)))return;
-  
-  let sc='#10b981',st='Valid Record';
-  if(c.status==='warning'){sc='#d97706';st='Service Due (30d)';}
-  else if(c.status==='expired'){sc='#dc2626';st='Cert Expired (LOCKED)';}
-  
-  html+=`<tr style="border-bottom:1px solid var(--border-light); transition:background 0.2s;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
-   <td style="padding:16px; font-weight:700; color:var(--text-primary);">${a}</td>
-   <td style="padding:16px; font-size:13px; color:var(--text-secondary);">${c.desc}</td>
-   <td style="padding:16px; font-size:13px; font-family:monospace; color:var(--text-secondary);">${c.rego}</td>
-   <td style="padding:16px; font-size:13px; color:var(--text-primary); font-weight:500;">${c.expiry}</td>
-   <td style="padding:16px; font-size:12px; font-weight:600; color:${sc};">${st}</td>
-   <td style="padding:16px; text-align:right;">`;
-  
-  if(c.status==='expired'){
-   html+=`<button class="btn-primary" style="background:var(--color-danger); color:#fff; border:none; padding:6px 12px; font-size:11px; border-radius:4px; cursor:pointer;" onclick="openCertUploadModal('${a}')">Upload Cert</button>`;
-  } else {
-   html+=`<button class="btn-primary" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-light); padding:6px 12px; font-size:11px; border-radius:4px; cursor:pointer;" onclick="openCertViewModal('${a}')">View Record</button>`;
+  if (typeof window.renderComplianceView === 'function' && window.renderComplianceView !== renderComplianceView) {
+    window.renderComplianceView();
+  } else if (typeof window.switchComplianceSubTab === 'function') {
+    window.switchComplianceSubTab(window.complianceState?.currentSubTab || 'dashboard');
   }
-  html+=`</td></tr>`;
- });
- html+=`</tbody></table>`;
- container.innerHTML=html;
 }
+window.renderComplianceView = renderComplianceView;
+
 
 /* ── NOTIFICATIONS DRAWER & LEGEND POPOVER ── */
 function toggleLegendPopover() {

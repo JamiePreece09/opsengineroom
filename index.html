@@ -570,29 +570,357 @@
     </div>
   </div>
 </div><div class="view-container" id="compliance-view">
-<div class="page-header">
-<div>
-<div class="header-breadcrumb">SAFETY &amp; ASSET AUDIT // COMPLIANCE</div>
-<h1>Compliance &amp; Certifications Registry</h1>
-<div class="subtitle">Equipment Inspections, Risk Audits &amp; HRWL Worker Registry</div>
-</div>
-</div>
-<!-- Asset Compliance section -->
-<div style="font-size:11px;font-weight:800;color:var(--accent-copper);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Fleet Asset Compliance</div>
-<div class="module-filter-bar">
-<div class="search-input-wrap">
-<svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-<input id="compliance-search" oninput="renderComplianceView()" placeholder="Search asset code, description, or registration..." type="text"/>
-</div>
-<select class="module-filter-select" id="compliance-status-filter" onchange="renderComplianceView()">
-<option value="ALL">All Compliance Statuses</option>
-<option value="valid">Valid Only</option>
-<option value="warning">Service Due (30d)</option>
-<option value="expired">Expired — Locked</option>
-</select>
-</div>
-<div id="compliance-container" style="flex:1; overflow-y:auto; padding-bottom:30px;"></div>
+  <!-- Standardized Module Header -->
+  <div class="module-header" id="compliance-module-header">
+    <div class="module-header-content">
+      <div class="module-breadcrumb">SAFETY &amp; HSEQ // COMPLIANCE VAULT</div>
+      <h1 class="module-title">Compliance &amp; Safety</h1>
+      <div class="module-subtitle">Manage asset certifications, personnel licences, and HSEQ documentation</div>
+    </div>
+    <div class="module-header-actions">
+      <button class="btn-secondary" onclick="exportComplianceAuditReport()" style="display:inline-flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Audit Report</span>
+      </button>
+      <button class="btn-primary" onclick="openUploadComplianceDocModal()" style="display:inline-flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+        <span>Upload Document</span>
+      </button>
+    </div>
+  </div>
 
+  <!-- Horizontal Sub-Navigation Menu -->
+  <div class="compliance-subnav" id="compliance-subnav">
+    <button class="compliance-subnav-btn active" id="compliance-subtab-dashboard" onclick="switchComplianceSubTab('dashboard')">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span>Compliance Dashboard</span>
+    </button>
+    <button class="compliance-subnav-btn" id="compliance-subtab-fleet" onclick="switchComplianceSubTab('fleet')">
+      <span class="material-symbols-outlined">precision_manufacturing</span>
+      <span>Fleet Certifications</span>
+    </button>
+    <button class="compliance-subnav-btn" id="compliance-subtab-personnel" onclick="switchComplianceSubTab('personnel')">
+      <span class="material-symbols-outlined">badge</span>
+      <span>Personnel Licences</span>
+    </button>
+    <button class="compliance-subnav-btn" id="compliance-subtab-vault" onclick="switchComplianceSubTab('vault')">
+      <span class="material-symbols-outlined">folder_special</span>
+      <span>Document Vault</span>
+    </button>
+  </div>
+
+  <!-- Subview 1: Compliance Dashboard (Active Monitoring) -->
+  <div class="compliance-subview" id="compliance-view-dashboard" style="display:flex;flex-direction:column;gap:20px;">
+    <!-- 3 Large Flat Metric Cards -->
+    <div class="compliance-metric-cards-grid">
+      <!-- Card 1: Expiring within 30 Days -->
+      <div class="compliance-metric-card" id="card-expiring-30d">
+        <div class="compliance-card-header">
+          <div class="compliance-card-icon-wrap warning">
+            <span class="material-symbols-outlined">notification_important</span>
+          </div>
+          <span class="compliance-card-tag warning">Expiring Soon</span>
+        </div>
+        <div class="compliance-card-title">Expiring within 30 Days</div>
+        <div class="compliance-card-value warning" id="metric-expiring-count">2 Action Items</div>
+        <div class="compliance-card-details" id="metric-expiring-list">
+          <div class="compliance-detail-row">
+            <span class="material-symbols-outlined">person</span>
+            <span><strong>Luke Harris</strong> &bull; HRWL C1/C6 (Due 08 Oct 2026)</span>
+          </div>
+          <div class="compliance-detail-row">
+            <span class="material-symbols-outlined">precision_manufacturing</span>
+            <span><strong>SC07</strong> &bull; 12m Scissor Lift (CraneSafe Due 22 Sep 2026)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Critical Non-Compliance (Solid Red Outline) -->
+      <div class="compliance-metric-card critical-card" id="card-critical-compliance">
+        <div class="compliance-card-header">
+          <div class="compliance-card-icon-wrap critical">
+            <span class="material-symbols-outlined">gpp_bad</span>
+          </div>
+          <span class="compliance-card-tag critical">Action Required</span>
+        </div>
+        <div class="compliance-card-title">Critical Non-Compliance</div>
+        <div class="compliance-card-value critical" id="metric-critical-count">2 Critical Flags</div>
+        <div class="compliance-card-details" id="metric-critical-list">
+          <div class="compliance-detail-row critical-highlight">
+            <span class="material-symbols-outlined">block</span>
+            <span><strong>EX01 - Registration Expired</strong></span>
+          </div>
+          <div class="compliance-subdetail-note">
+            Asset road permit lapsed on 28/08/2026. Automatic dispatch lockout enforced.
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Audit Readiness (Solid Green Outline) -->
+      <div class="compliance-metric-card audit-card" id="card-audit-readiness">
+        <div class="compliance-card-header">
+          <div class="compliance-card-icon-wrap ready">
+            <span class="material-symbols-outlined">verified_user</span>
+          </div>
+          <span class="compliance-card-tag ready">Audit Pass</span>
+        </div>
+        <div class="compliance-card-title">Audit Readiness</div>
+        <div class="compliance-card-value ready" id="metric-audit-pct">94% Compliant</div>
+        <div class="compliance-card-details" id="metric-audit-list">
+          <div class="compliance-detail-row">
+            <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
+            <span><strong>14 of 15 Fleet Assets</strong> certified</span>
+          </div>
+          <div class="compliance-detail-row">
+            <span class="material-symbols-outlined" style="color:#16a34a;">check_circle</span>
+            <span><strong>19 of 21 Personnel</strong> licences verified active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Compliance Feeds & Audit Verification Panels -->
+    <div class="compliance-summary-grid">
+      <!-- Priority Alerts Feed -->
+      <div class="compliance-panel">
+        <div class="compliance-panel-title">
+          <span class="material-symbols-outlined">warning</span>
+          <span>Live Compliance Telemetry &amp; Alerts</span>
+        </div>
+        <div class="compliance-alerts-list" id="compliance-alerts-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Tier 1 Contractor HSEQ Checklist -->
+      <div class="compliance-panel">
+        <div class="compliance-panel-title">
+          <span class="material-symbols-outlined">assignment_turned_in</span>
+          <span>Tier 1 Head Contractor Audit Readiness Checklist</span>
+        </div>
+        <div class="compliance-checklist-list">
+          <div class="compliance-check-item done">
+            <span class="material-symbols-outlined">check_circle</span>
+            <div>
+              <strong>Public &amp; Products Liability Insurance ($50M)</strong>
+              <span>Current &bull; Policy expires 30/06/2027</span>
+            </div>
+          </div>
+          <div class="compliance-check-item done">
+            <span class="material-symbols-outlined">check_circle</span>
+            <div>
+              <strong>Safe Work Method Statements (SWMS) Alignment</strong>
+              <span>AS/NZS ISO 45001:2018 Certified &bull; Version 4.2 active</span>
+            </div>
+          </div>
+          <div class="compliance-check-item done">
+            <span class="material-symbols-outlined">check_circle</span>
+            <div>
+              <strong>Worker HRWL Verification via WorkSafe Regulators</strong>
+              <span>100% active operational staff validated against national database</span>
+            </div>
+          </div>
+          <div class="compliance-check-item pending">
+            <span class="material-symbols-outlined">pending_actions</span>
+            <div>
+              <strong>Road Permit Clearance for EX01 Excavator</strong>
+              <span>Pending QLD Transport and Main Roads registration payment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subview 2: Fleet Certifications (Data Table) -->
+  <div class="compliance-subview" id="compliance-view-fleet" style="display:none;flex-direction:column;gap:14px;">
+    <!-- Filter & Search Toolbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
+        <div class="search-input-wrap" style="flex:1;">
+          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+          <input id="compliance-fleet-search" oninput="filterComplianceFleetTable()" placeholder="Search asset ID, class, or registration..." type="text"/>
+        </div>
+        <select class="module-filter-select" id="compliance-fleet-status-filter" onchange="filterComplianceFleetTable()" style="min-width:180px;">
+          <option value="ALL">All Statuses</option>
+          <option value="Valid">Valid Only</option>
+          <option value="Expiring Soon">Expiring Soon (30d)</option>
+          <option value="Expired">Expired (Locked)</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="badge badge-neutral" id="compliance-fleet-count" style="font-weight:700;">15 Assets</span>
+        <button class="btn-secondary" onclick="exportComplianceFleetCSV()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">file_download</span>
+          <span>Export CSV</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dense Data Table Container -->
+    <div class="compliance-table-card">
+      <table class="compliance-data-table" id="compliance-fleet-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortComplianceFleetTable('id')">
+              <div class="th-wrap">
+                <span>Asset ID</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceFleetTable('class')">
+              <div class="th-wrap">
+                <span>Class / Description</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceFleetTable('roadRegoExpiry')">
+              <div class="th-wrap">
+                <span>Road Registration Expiry</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceFleetTable('craneSafeDue')">
+              <div class="th-wrap">
+                <span>Annual CraneSafe Due</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceFleetTable('majorInspectionDue')">
+              <div class="th-wrap">
+                <span>10-Year Major Due</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="compliance-fleet-table-body">
+          <!-- Dynamically populated from window.ionConfig.fleetRegistry -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subview 3: Personnel Licences (Data Table) -->
+  <div class="compliance-subview" id="compliance-view-personnel" style="display:none;flex-direction:column;gap:14px;">
+    <!-- Filter & Search Toolbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
+        <div class="search-input-wrap" style="flex:1;">
+          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+          <input id="compliance-worker-search" oninput="filterComplianceWorkerTable()" placeholder="Search worker name, role, or licence class..." type="text"/>
+        </div>
+        <select class="module-filter-select" id="compliance-worker-status-filter" onchange="filterComplianceWorkerTable()" style="min-width:180px;">
+          <option value="ALL">All Statuses</option>
+          <option value="Valid">Valid Only</option>
+          <option value="Expiring Soon">Expiring Soon (30d)</option>
+          <option value="Expired">Expired</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="badge badge-neutral" id="compliance-worker-count" style="font-weight:700;">21 Personnel</span>
+        <button class="btn-secondary" onclick="exportComplianceWorkerCSV()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">file_download</span>
+          <span>Export CSV</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dense Data Table Container -->
+    <div class="compliance-table-card">
+      <table class="compliance-data-table" id="compliance-worker-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortComplianceWorkerTable('name')">
+              <div class="th-wrap">
+                <span>Worker Name</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceWorkerTable('role')">
+              <div class="th-wrap">
+                <span>Role</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceWorkerTable('licenseClass')">
+              <div class="th-wrap">
+                <span>HRWL Class</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceWorkerTable('hrwlExpiry')">
+              <div class="th-wrap">
+                <span>Licence Expiry Date</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th class="sortable" onclick="sortComplianceWorkerTable('vocDate')">
+              <div class="th-wrap">
+                <span>VOC (Verification of Competency) Date</span>
+                <span class="material-symbols-outlined sort-indicator">unfold_more</span>
+              </div>
+            </th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="compliance-worker-table-body">
+          <!-- Dynamically populated from window.ionConfig.workerRegistry -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subview 4: Document Vault -->
+  <div class="compliance-subview" id="compliance-view-vault" style="display:none;flex-direction:column;gap:14px;">
+    <!-- Filter & Search Toolbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px;">
+        <div class="search-input-wrap" style="flex:1;">
+          <svg fill="none" height="15" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="15"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+          <input id="compliance-vault-search" oninput="filterComplianceVaultTable()" placeholder="Search document title, entity, or reference..." type="text"/>
+        </div>
+        <select class="module-filter-select" id="compliance-vault-category-filter" onchange="filterComplianceVaultTable()" style="min-width:180px;">
+          <option value="ALL">All Categories</option>
+          <option value="SWMS">SWMS</option>
+          <option value="Risk Assessment">Risk Assessment</option>
+          <option value="Certification">Plant Certification</option>
+          <option value="Licensing">Licensing</option>
+          <option value="Insurance">Insurance</option>
+          <option value="Registration">Road Registration</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="badge badge-neutral" id="compliance-vault-count" style="font-weight:700;">8 Documents</span>
+        <button class="btn-primary" onclick="openUploadComplianceDocModal()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">upload_file</span>
+          <span>Upload File</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dense Data Table Container -->
+    <div class="compliance-table-card">
+      <table class="compliance-data-table" id="compliance-vault-table">
+        <thead>
+          <tr>
+            <th>Document Title</th>
+            <th>Category</th>
+            <th>Applicable Asset / Entity</th>
+            <th>Review / Expiry Date</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="compliance-vault-table-body">
+          <!-- Dynamically populated from window.complianceVault -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div><div class="view-container" id="analytics-view">
 <div class="page-header">
 <div>
@@ -1741,9 +2069,78 @@
       </div>
     </form>
   </div>
+<!-- Compliance Record View Modal -->
+<div class="modal-overlay" id="compliance-record-modal" style="display:none;" onclick="if(event.target===this)closeComplianceRecordModal()">
+  <div class="modal-box" style="max-width:540px;width:100%;" onclick="event.stopPropagation()">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-primary);font-size:22px;">verified</span>
+        <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text-primary);" id="compliance-modal-title">Compliance Record</h3>
+      </div>
+      <button class="drawer-close-btn" onclick="closeComplianceRecordModal()" title="Close">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+      </button>
+    </div>
+    <div id="compliance-modal-content" style="padding:16px 0;font-size:13px;color:var(--text-primary);line-height:1.6;"></div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding-top:14px;border-top:1px solid var(--border-light);">
+      <button type="button" class="btn-secondary" onclick="closeComplianceRecordModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Compliance Document Modal -->
+<div class="modal-overlay" id="compliance-upload-modal" style="display:none;" onclick="if(event.target===this)closeUploadComplianceDocModal()">
+  <div class="modal-box" style="max-width:500px;width:100%;" onclick="event.stopPropagation()">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-primary);font-size:22px;">upload_file</span>
+        <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text-primary);">Upload Compliance Document</h3>
+      </div>
+      <button class="drawer-close-btn" onclick="closeUploadComplianceDocModal()" title="Close">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+      </button>
+    </div>
+    <form id="compliance-upload-form" onsubmit="handleComplianceDocUpload(event)" style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
+      <div class="settings-field">
+        <label for="comp-doc-title">Document Title</label>
+        <input type="text" id="comp-doc-title" required placeholder="e.g. Major Inspection Certificate 2026" />
+      </div>
+      <div class="settings-field">
+        <label for="comp-doc-category">Category</label>
+        <select id="comp-doc-category" required style="width:100%;height:36px;padding:0 10px;background:var(--bg-card);border:1px solid var(--border-light);border-radius:4px;color:var(--text-primary);">
+          <option value="SWMS">Safe Work Method Statement (SWMS)</option>
+          <option value="Risk Assessment">Risk Assessment / Lift Plan</option>
+          <option value="Certification">Plant Certification / CraneSafe</option>
+          <option value="Licensing">Personnel High Risk Work Licence</option>
+          <option value="Insurance">Certificate of Currency (Insurance)</option>
+          <option value="Registration">Road Registration / Heavy Vehicle Permit</option>
+        </select>
+      </div>
+      <div class="settings-field">
+        <label for="comp-doc-entity">Applicable Asset or Worker ID</label>
+        <input type="text" id="comp-doc-entity" required placeholder="e.g. EX01 or W001" />
+      </div>
+      <div class="settings-field">
+        <label for="comp-doc-expiry">Expiry or Next Due Date</label>
+        <input type="date" id="comp-doc-expiry" required />
+      </div>
+      <div class="settings-field">
+        <label for="comp-doc-file">Select PDF or Scanned Document</label>
+        <input type="file" id="comp-doc-file" accept=".pdf,.png,.jpg,.jpeg" style="padding:6px;border:1px dashed var(--border-light);border-radius:4px;" />
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+        <button type="button" class="btn-secondary" onclick="closeUploadComplianceDocModal()">Cancel</button>
+        <button type="submit" class="btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">cloud_upload</span>
+          <span>Index to Vault</span>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>
+
 
 <!-- Dependency scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

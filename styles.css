@@ -5672,4 +5672,577 @@ body.dark-mode #change-password-modal input:focus {
   box-shadow: 0 0 0 2px rgba(60, 180, 229, 0.25) !important;
 }
 
+/* ==========================================================================
+   COMPLIANCE VAULT MODULE (Strict Flat UI, High Contrast, Dark Mode)
+   ========================================================================== */
+
+/* Sub-Navigation */
+.compliance-subnav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 0 12px 0;
+  margin: 0 0 20px 0;
+  box-sizing: border-box;
+}
+
+.compliance-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compliance-subnav-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+}
+
+.compliance-subnav-btn.active {
+  color: #ffffff;
+  background: var(--accent-copper, #c2410c);
+  border-color: var(--accent-copper, #c2410c);
+}
+
+.compliance-subnav-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Metric Cards Grid */
+.compliance-metric-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 960px) {
+  .compliance-metric-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compliance-metric-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: none !important;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+/* Critical Non-Compliance: Solid Red Outline */
+.compliance-metric-card.critical-card {
+  border: 2px solid #dc2626 !important;
+  background: var(--bg-primary);
+}
+
+/* Audit Readiness: Solid Green Outline */
+.compliance-metric-card.audit-card {
+  border: 2px solid #16a34a !important;
+  background: var(--bg-primary);
+}
+
+.compliance-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compliance-card-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.compliance-card-icon-wrap.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.compliance-card-icon-wrap.critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.compliance-card-icon-wrap.ready {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.compliance-card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.compliance-card-tag.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.compliance-card-tag.critical {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.compliance-card-tag.ready {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.compliance-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compliance-card-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-family: var(--font-display, inherit);
+}
+
+.compliance-card-value.warning {
+  color: #b45309;
+}
+
+.compliance-card-value.critical {
+  color: #dc2626;
+}
+
+.compliance-card-value.ready {
+  color: #16a34a;
+}
+
+.compliance-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.compliance-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.compliance-detail-row .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.compliance-detail-row.critical-highlight {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.compliance-detail-row.critical-highlight .material-symbols-outlined {
+  color: #dc2626;
+}
+
+.compliance-subdetail-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-left: 24px;
+  line-height: 1.3;
+}
+
+/* Compliance Summary Grid */
+.compliance-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .compliance-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compliance-panel {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.compliance-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compliance-panel-title .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--accent-copper, #c2410c);
+}
+
+.compliance-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compliance-alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+}
+
+.compliance-alert-item.danger {
+  border-left: 4px solid #dc2626;
+}
+.compliance-alert-item.danger .material-symbols-outlined {
+  color: #dc2626;
+}
+
+.compliance-alert-item.warning {
+  border-left: 4px solid #d97706;
+}
+.compliance-alert-item.warning .material-symbols-outlined {
+  color: #d97706;
+}
+
+.compliance-alert-item.info {
+  border-left: 4px solid #0284c7;
+}
+.compliance-alert-item.info .material-symbols-outlined {
+  color: #0284c7;
+}
+
+.compliance-alert-item .alert-content {
+  flex: 1;
+}
+
+.compliance-alert-item .alert-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.compliance-alert-item .alert-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.compliance-checklist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compliance-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.compliance-check-item.done .material-symbols-outlined {
+  color: #16a34a;
+  font-size: 20px;
+}
+
+.compliance-check-item.pending .material-symbols-outlined {
+  color: #d97706;
+  font-size: 20px;
+}
+
+.compliance-check-item div strong {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.compliance-check-item div span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* Compliance Tables & Solid Traffic Light Pill Badges */
+.compliance-table-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.compliance-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.compliance-data-table th {
+  background: var(--bg-secondary);
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.compliance-data-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.compliance-data-table th.sortable:hover {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.compliance-data-table th .th-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compliance-data-table th .sort-indicator {
+  font-size: 16px;
+  opacity: 0.5;
+}
+
+.compliance-data-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.15s ease;
+}
+
+.compliance-data-table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.compliance-data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.compliance-data-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+/* Solid Traffic Light Pill Badges (Strictly NO transparent glows) */
+.compliance-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+
+.compliance-pill-badge.pill-valid {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1px solid #15803d !important;
+}
+
+.compliance-pill-badge.pill-warning {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border: 1px solid #b45309 !important;
+}
+
+.compliance-pill-badge.pill-danger {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #b91c1c !important;
+}
+
+/* Dark Mode Overrides for Compliance Module */
+[data-theme="dark"] .compliance-subnav,
+body.dark-mode .compliance-subnav {
+  background: #121416 !important;
+  border-bottom: 1px solid #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-subnav-btn,
+body.dark-mode .compliance-subnav-btn {
+  background: #242729 !important;
+  color: #B0B8C1 !important;
+  border: 1px solid #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-subnav-btn.active,
+body.dark-mode .compliance-subnav-btn.active {
+  background: var(--ion-cyan, #3CB4E5) !important;
+  border-color: var(--ion-cyan, #3CB4E5) !important;
+  color: #121416 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .compliance-subnav-btn:hover,
+body.dark-mode .compliance-subnav-btn:hover {
+  color: #FFFFFF !important;
+  border-color: #555E5B !important;
+}
+
+[data-theme="dark"] .compliance-metric-card,
+body.dark-mode .compliance-metric-card {
+  background: #181A1C !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-metric-card.critical-card,
+body.dark-mode .compliance-metric-card.critical-card {
+  border: 2px solid #ef4444 !important;
+  background: #181A1C !important;
+}
+
+[data-theme="dark"] .compliance-metric-card.audit-card,
+body.dark-mode .compliance-metric-card.audit-card {
+  border: 2px solid #10b981 !important;
+  background: #181A1C !important;
+}
+
+[data-theme="dark"] .compliance-card-icon-wrap.warning,
+body.dark-mode .compliance-card-icon-wrap.warning {
+  background: #36260a !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .compliance-card-icon-wrap.critical,
+body.dark-mode .compliance-card-icon-wrap.critical {
+  background: #3b1212 !important;
+  color: #ef4444 !important;
+}
+
+[data-theme="dark"] .compliance-card-icon-wrap.ready,
+body.dark-mode .compliance-card-icon-wrap.ready {
+  background: #0d2e1b !important;
+  color: #10b981 !important;
+}
+
+[data-theme="dark"] .compliance-card-value.warning,
+body.dark-mode .compliance-card-value.warning {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .compliance-card-value.critical,
+body.dark-mode .compliance-card-value.critical {
+  color: #ef4444 !important;
+}
+
+[data-theme="dark"] .compliance-card-value.ready,
+body.dark-mode .compliance-card-value.ready {
+  color: #10b981 !important;
+}
+
+[data-theme="dark"] .compliance-panel,
+body.dark-mode .compliance-panel {
+  background: #181A1C !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-alert-item,
+body.dark-mode .compliance-alert-item,
+[data-theme="dark"] .compliance-check-item,
+body.dark-mode .compliance-check-item {
+  background: #121416 !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-table-card,
+body.dark-mode .compliance-table-card {
+  background: #181A1C !important;
+  border-color: #3D4543 !important;
+}
+
+[data-theme="dark"] .compliance-data-table th,
+body.dark-mode .compliance-data-table th {
+  background: #121416 !important;
+  border-bottom: 1px solid #3D4543 !important;
+  color: #B0B8C1 !important;
+}
+
+[data-theme="dark"] .compliance-data-table tbody tr,
+body.dark-mode .compliance-data-table tbody tr {
+  border-bottom: 1px solid #242729 !important;
+}
+
+[data-theme="dark"] .compliance-data-table tbody tr:hover,
+body.dark-mode .compliance-data-table tbody tr:hover {
+  background: #242729 !important;
+}
+
+/* Dark Mode Traffic Light Badges - Solid, Flat, WCAG AAA */
+[data-theme="dark"] .compliance-pill-badge.pill-valid,
+body.dark-mode .compliance-pill-badge.pill-valid {
+  background: #166534 !important;
+  color: #dcfce7 !important;
+  border: 1px solid #22c55e !important;
+}
+
+[data-theme="dark"] .compliance-pill-badge.pill-warning,
+body.dark-mode .compliance-pill-badge.pill-warning {
+  background: #854d0e !important;
+  color: #fef3c7 !important;
+  border: 1px solid #eab308 !important;
+}
+
+[data-theme="dark"] .compliance-pill-badge.pill-danger,
+body.dark-mode .compliance-pill-badge.pill-danger {
+  background: #991b1b !important;
+  color: #fee2e2 !important;
+  border: 1px solid #ef4444 !important;
+}
+
+
 
