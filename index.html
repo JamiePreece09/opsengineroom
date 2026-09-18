@@ -14,17 +14,36 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
   <script>
+    // Robust DOM alias resolution for backwards compatibility
+    (function() {
+      const aliasMap = {
+        'calendar-view': 'scheduler-view',
+        'operator-view': 'admin-view',
+        'analytics-view': 'reports-view'
+      };
+      const reverseAliasMap = {
+        'scheduler-view': 'calendar-view',
+        'admin-view': 'operator-view',
+        'reports-view': 'analytics-view'
+      };
+      const origGetElementById = Document.prototype.getElementById;
+      Document.prototype.getElementById = function(id) {
+        let el = origGetElementById.call(this, id);
+        if (!el && aliasMap[id]) el = origGetElementById.call(this, aliasMap[id]);
+        if (!el && reverseAliasMap[id]) el = origGetElementById.call(this, reverseAliasMap[id]);
+        return el;
+      };
+    })();
+
     // Early resilient navigation dispatcher
     window.switchTab = function(tab) {
-      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.gcal-nav-item').forEach(el => el.classList.remove('active'));
       const viewMap = {
-        'scheduler': 'calendar-view',
-        'calendar': 'calendar-view',
+        'scheduler': 'scheduler-view',
+        'calendar': 'scheduler-view',
         'compliance': 'compliance-view',
         'job-board': 'job-board-view',
-        'reports': 'analytics-view',
-        'analytics': 'analytics-view',
+        'reports': 'reports-view',
+        'analytics': 'reports-view',
         'administration': 'admin-view',
         'admin': 'admin-view',
         'operator': 'admin-view',
@@ -44,14 +63,38 @@
         'settings': 'nav-settings',
         'system-settings': 'nav-settings'
       };
-      const targetViewId = viewMap[tab] || 'calendar-view';
-      let viewEl = document.getElementById(targetViewId);
-      if (!viewEl && targetViewId === 'admin-view') {
-        viewEl = document.getElementById('operator-view');
+
+      const navItems = document.querySelectorAll('.gcal-nav-item');
+      navItems.forEach(el => el.classList.remove('active'));
+
+      const allViews = [
+        document.getElementById('scheduler-view') || document.getElementById('calendar-view'),
+        document.getElementById('job-board-view'),
+        document.getElementById('compliance-view'),
+        document.getElementById('reports-view') || document.getElementById('analytics-view'),
+        document.getElementById('admin-view') || document.getElementById('operator-view'),
+        document.getElementById('settings-view')
+      ].filter(Boolean);
+
+      allViews.forEach(el => {
+        el.classList.remove('active');
+        el.style.display = 'none';
+      });
+
+      const targetViewId = viewMap[tab] || 'scheduler-view';
+      const targetNavId = navMap[tab] || 'nav-scheduler';
+
+      const viewEl = document.getElementById(targetViewId);
+      const navEl = document.getElementById(targetNavId);
+
+      if (viewEl) {
+        viewEl.classList.add('active');
+        viewEl.style.display = 'flex';
       }
-      const navEl = document.getElementById(navMap[tab] || 'nav-scheduler');
-      if (viewEl) viewEl.classList.add('active');
-      if (navEl) navEl.classList.add('active');
+      if (navEl) {
+        navEl.classList.add('active');
+      }
+
       if (typeof window._appSwitchTab === 'function') {
         window._appSwitchTab(tab);
       }
@@ -172,27 +215,27 @@
     <aside class="gcal-sidebar" id="app-sidebar">
       <div class="gcal-sidebar-section">
         <div class="gcal-sidebar-heading">Navigation</div>
-        <div class="gcal-nav-item active" id="nav-scheduler" onclick="switchTab('scheduler')" title="Scheduler & Dispatch Timeline">
+        <div class="gcal-nav-item active" id="nav-scheduler" data-view="scheduler-view" onclick="switchTab('scheduler')" title="Scheduler &amp; Dispatch Timeline">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="0" ry="0"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           <span class="sidebar-label">Scheduler</span>
         </div>
-        <div class="gcal-nav-item" id="nav-job-board" onclick="switchTab('job-board')" title="Job Board & Dispatch Pipeline">
+        <div class="gcal-nav-item" id="nav-job-board" data-view="job-board-view" onclick="switchTab('job-board')" title="Job Board &amp; Dispatch Pipeline">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="0" ry="0"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
           <span class="sidebar-label">Job Board</span>
         </div>
-        <div class="gcal-nav-item" id="nav-compliance" onclick="switchTab('compliance')" title="Compliance & Equipment Audits">
+        <div class="gcal-nav-item" id="nav-compliance" data-view="compliance-view" onclick="switchTab('compliance')" title="Compliance &amp; Equipment Audits">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
           <span class="sidebar-label">Compliance</span>
         </div>
-        <div class="gcal-nav-item" id="nav-reports" onclick="switchTab('reports')" title="Executive Reports & Analytics">
+        <div class="gcal-nav-item" id="nav-reports" data-view="reports-view" onclick="switchTab('reports')" title="Executive Reports &amp; Analytics">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span class="sidebar-label">Reports</span>
         </div>
-        <div class="gcal-nav-item" id="nav-administration" onclick="switchTab('administration')" title="HRWL Workers & Driver Portal">
+        <div class="gcal-nav-item" id="nav-administration" data-view="admin-view" onclick="switchTab('administration')" title="HRWL Workers &amp; Driver Portal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span class="sidebar-label">Administration</span>
         </div>
-        <div class="gcal-nav-item" id="nav-settings" onclick="switchTab('settings')" title="System Settings & Integrations">
+        <div class="gcal-nav-item" id="nav-settings" data-view="settings-view" onclick="switchTab('settings')" title="System Settings &amp; Integrations">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span class="sidebar-label">System Settings</span>
         </div>
@@ -206,7 +249,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="gcal-main-content">
-      <div class="view-container active" id="calendar-view">
+      <div class="view-container active" id="scheduler-view" data-alias-id="calendar-view">
         <div class="module-viewport-containment">
           <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Quick Book Right -->
           <div class="module-header" id="scheduler-module-header">
@@ -279,7 +322,7 @@
 
           <div id="job-board-container" class="job-board-container" ondragover="window.handleJobBoardContainerDragOver(event)" style="flex:1;overflow-x:auto;"></div>
         </div>
-      </div><div class="view-container" id="operator-view">
+      </div><div class="view-container" id="admin-view" data-alias-id="operator-view">
   <div class="module-viewport-containment">
     <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Actions Right -->
     <div class="module-header" id="admin-module-header">
@@ -961,7 +1004,7 @@
     </div>
   </div>
   </div>
-</div><div class="view-container" id="analytics-view">
+</div><div class="view-container" id="reports-view" data-alias-id="analytics-view">
 <div class="module-viewport-containment">
   <div class="module-header" id="analytics-module-header">
     <div class="module-header-content">
@@ -980,8 +1023,6 @@
       </button>
     </div>
   </div>
-</div>
-</div>
 <div class="analytics-toolbar">
 <div class="filters">
 <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">Reporting Period:</span>

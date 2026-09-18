@@ -276,8 +276,8 @@ body {
 }
 
 
-#analytics-view { overflow-y: auto; padding-right: 8px; }
-#settings-view { overflow-y: auto; padding-right: 8px; }
+#analytics-view.active, #reports-view.active { overflow-y: auto; padding-right: 8px; }
+#settings-view.active { overflow-y: auto; padding-right: 8px; }
 
 /* Glass Panel */
 .glass-panel {
@@ -3104,14 +3104,13 @@ body.dark-mode .brand-elevat {
 .view-container { display: none; height: 100%; width: 100%; flex-direction: column; overflow: hidden; background: var(--bg-primary); }
 .view-container.active { display: flex; flex: 1; min-height: 0; }
 
-#calendar-view.active { flex-direction: column; flex: 1; min-height: 0; }
+#calendar-view.active, #scheduler-view.active { flex-direction: column; flex: 1; min-height: 0; }
 #admin-view, #operator-view { display: none; height: 100%; width: 100%; flex-direction: column; overflow: hidden; background: var(--bg-primary); padding: 0 !important; margin: 0 !important; }
-#admin-view.active, #operator-view.active { display: flex !important; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; padding: 0 !important; margin: 0 !important; }
 #admin-view.active, #operator-view.active { display: flex !important; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; padding: 0 !important; margin: 0 !important; }
 #settings-view.active { flex-direction: column; overflow-y: auto; padding: 24px; }
 #job-board-view.active { flex-direction: column; }
 #compliance-view.active { flex-direction: column; }
-#analytics-view.active { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+#reports-view.active, #analytics-view.active { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 
 /* ── Enterprise Administration Header & Subnav Alignment ── */
 #admin-view .module-header,
@@ -6347,14 +6346,27 @@ body.dark-mode .compliance-pill-badge.pill-danger {
   overflow-x: hidden !important;
 }
 
-.view-container {
+.view-container,
+#scheduler-view, #calendar-view,
+#job-board-view,
+#compliance-view,
+#reports-view, #analytics-view,
+#admin-view, #operator-view,
+#settings-view {
+  display: none !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   box-sizing: border-box !important;
   padding: 0 !important;
 }
 
-.view-container.active {
+.view-container.active,
+#scheduler-view.active, #calendar-view.active,
+#job-board-view.active,
+#compliance-view.active,
+#reports-view.active, #analytics-view.active,
+#admin-view.active, #operator-view.active,
+#settings-view.active {
   display: flex !important;
   flex: 1;
   min-height: 0;

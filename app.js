@@ -207,54 +207,159 @@ window.quickCallContact = function(client, phone) {
 };
 
 function switchTab(tab) {
-  const viewMap = {
-    'scheduler': 'calendar-view',
-    'calendar': 'calendar-view',
-    'compliance': 'compliance-view',
-    'job-board': 'job-board-view',
-    'reports': 'analytics-view',
-    'analytics': 'analytics-view',
-    'administration': 'operator-view',
-    'operator': 'operator-view',
-    'settings': 'settings-view',
-    'system-settings': 'settings-view'
-  };
-  const navMap = {
+  const tabToNavId = {
     'scheduler': 'nav-scheduler',
     'calendar': 'nav-scheduler',
-    'compliance': 'nav-compliance',
     'job-board': 'nav-job-board',
+    'compliance': 'nav-compliance',
     'reports': 'nav-reports',
     'analytics': 'nav-reports',
     'administration': 'nav-administration',
+    'admin': 'nav-administration',
     'operator': 'nav-administration',
     'settings': 'nav-settings',
     'system-settings': 'nav-settings'
   };
-  document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.gcal-nav-item').forEach(el => el.classList.remove('active'));
-  const viewId = viewMap[tab] || 'calendar-view';
-  const navId = navMap[tab] || 'nav-scheduler';
-  const viewEl = document.getElementById(viewId);
-  const navEl = document.getElementById(navId);
-  if (viewEl) viewEl.classList.add('active');
-  if (navEl) navEl.classList.add('active');
-  if (tab === 'job-board') renderJobBoard();
-  else if (tab === 'reports' || tab === 'analytics') renderAnalytics();
-  else if (tab === 'administration' || tab === 'operator') {
+
+  const tabToViewId = {
+    'scheduler': 'scheduler-view',
+    'calendar': 'scheduler-view',
+    'job-board': 'job-board-view',
+    'compliance': 'compliance-view',
+    'reports': 'reports-view',
+    'analytics': 'reports-view',
+    'administration': 'admin-view',
+    'admin': 'admin-view',
+    'operator': 'admin-view',
+    'settings': 'settings-view',
+    'system-settings': 'settings-view'
+  };
+
+  const navId = tabToNavId[tab] || 'nav-scheduler';
+  const targetViewId = tabToViewId[tab] || 'scheduler-view';
+
+  // 1. Removes the active/highlight styling from all sidebar navigation items
+  const navItems = document.querySelectorAll('.gcal-sidebar .gcal-nav-item, #app-sidebar .gcal-nav-item, .gcal-nav-item');
+  navItems.forEach(item => item.classList.remove('active'));
+
+  // 2. Applies the active/highlight styling to the specific item that was just clicked
+  const activeNav = document.getElementById(navId);
+  if (activeNav) activeNav.classList.add('active');
+
+  // 3. Strictly sets style.display = 'none' on ALL main view containers
+  const viewContainers = [
+    document.getElementById('scheduler-view') || document.getElementById('calendar-view'),
+    document.getElementById('job-board-view'),
+    document.getElementById('compliance-view'),
+    document.getElementById('reports-view') || document.getElementById('analytics-view'),
+    document.getElementById('admin-view') || document.getElementById('operator-view'),
+    document.getElementById('settings-view')
+  ].filter(Boolean);
+
+  viewContainers.forEach(container => {
+    container.classList.remove('active');
+    container.style.display = 'none';
+  });
+
+  // Also query all .view-container to ensure complete hiding
+  document.querySelectorAll('.view-container').forEach(container => {
+    container.classList.remove('active');
+    container.style.display = 'none';
+  });
+
+  // 4. Sets style.display = 'flex' (or block) ONLY on the specific view container associated with the clicked navigation item
+  let activeView = document.getElementById(targetViewId);
+  if (!activeView) {
+    if (targetViewId === 'scheduler-view') activeView = document.getElementById('calendar-view');
+    else if (targetViewId === 'reports-view') activeView = document.getElementById('analytics-view');
+    else if (targetViewId === 'admin-view') activeView = document.getElementById('operator-view');
+  }
+
+  if (activeView) {
+    activeView.classList.add('active');
+    activeView.style.display = 'flex';
+  }
+
+  // Trigger component renderers
+  if (tab === 'job-board') {
+    if (typeof renderJobBoard === 'function') renderJobBoard();
+  } else if (tab === 'reports' || tab === 'analytics') {
+    if (typeof renderAnalytics === 'function') renderAnalytics();
+  } else if (tab === 'administration' || tab === 'admin' || tab === 'operator') {
     if (typeof renderAdminModule === 'function') {
       renderAdminModule(); 
     } else if (typeof renderOperatorPortal === 'function') {
       renderOperatorPortal();
-      if(typeof renderWorkersView === 'function') renderWorkersView();
+      if (typeof renderWorkersView === 'function') renderWorkersView();
     }
+  } else if (tab === 'settings' || tab === 'system-settings') {
+    if (typeof renderSystemSettingsView === 'function') renderSystemSettingsView();
+  } else if (tab === 'compliance') {
+    if (typeof renderComplianceView === 'function') renderComplianceView();
+  } else if (tab === 'scheduler' || tab === 'calendar') {
+    if (typeof renderCalendar === 'function') renderCalendar();
   }
-  else if (tab === 'settings' || tab === 'system-settings') { if(typeof renderSystemSettingsView === 'function') renderSystemSettingsView(); }
-  else if (tab === 'compliance') renderComplianceView();
-  else if (tab === 'scheduler' || tab === 'calendar') renderCalendar();
 }
 window.switchTab = switchTab;
 window._appSwitchTab = switchTab;
+
+function initGlobalViewRouting() {
+  const navItems = document.querySelectorAll('.gcal-sidebar .gcal-nav-item, #app-sidebar .gcal-nav-item');
+  const viewMap = {
+    'nav-scheduler': document.getElementById('scheduler-view') || document.getElementById('calendar-view'),
+    'nav-job-board': document.getElementById('job-board-view'),
+    'nav-compliance': document.getElementById('compliance-view'),
+    'nav-reports': document.getElementById('reports-view') || document.getElementById('analytics-view'),
+    'nav-administration': document.getElementById('admin-view') || document.getElementById('operator-view'),
+    'nav-settings': document.getElementById('settings-view')
+  };
+
+  const tabNameMap = {
+    'nav-scheduler': 'scheduler',
+    'nav-job-board': 'job-board',
+    'nav-compliance': 'compliance',
+    'nav-reports': 'reports',
+    'nav-administration': 'administration',
+    'nav-settings': 'settings'
+  };
+
+  navItems.forEach(item => {
+    // Avoid double-binding
+    if (item._hasNavClickListener) return;
+    item._hasNavClickListener = true;
+    item.addEventListener('click', function(e) {
+      const tabName = this.getAttribute('data-tab') || tabNameMap[this.id];
+      if (tabName) {
+        switchTab(tabName);
+      } else {
+        const targetView = viewMap[this.id];
+        if (targetView) {
+          navItems.forEach(nav => nav.classList.remove('active'));
+          this.classList.add('active');
+          const allViews = [
+            document.getElementById('scheduler-view') || document.getElementById('calendar-view'),
+            document.getElementById('job-board-view'),
+            document.getElementById('compliance-view'),
+            document.getElementById('reports-view') || document.getElementById('analytics-view'),
+            document.getElementById('admin-view') || document.getElementById('operator-view'),
+            document.getElementById('settings-view')
+          ].filter(Boolean);
+          allViews.forEach(v => {
+            v.classList.remove('active');
+            v.style.display = 'none';
+          });
+          targetView.classList.add('active');
+          targetView.style.display = 'flex';
+        }
+      }
+    });
+  });
+
+  // 2. Initial State Enforcement:
+  // Ensure this routing function fires once on DOMContentLoaded, forcing the app to explicitly hide all views except the Scheduler, which should be set to active and visible by default.
+  switchTab('scheduler');
+}
+window.initGlobalViewRouting = initGlobalViewRouting;
 
 function getBookingColor(b){
  // Layer 1 (Block Background): Inherits asset column color so dispatcher instantly identifies asset!
@@ -7192,7 +7297,7 @@ function initApp() {
 
   // 1. Scheduler Immediate Population from window.ionConfig
   if (typeof renderCalendar === 'function') renderCalendar();
-  if (typeof applyDatePreset === 'function') applyDatePreset();
+  if (typeof applyDatePreset === 'function') applyDatePreset(true);
   if (typeof renderWorkersView === 'function') renderWorkersView();
 
   // 2. Job Board Immediate Population
@@ -7218,12 +7323,19 @@ function initApp() {
 
   // 6. Contextual Control Drawer & Dynamic Grid Zoom Init
   if (typeof setSchedulerZoom === 'function') setSchedulerZoom(80);
+
+  // 7. Initial State Enforcement & View Routing
+  if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
+  document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
+  });
 } else {
   initApp();
+  if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
