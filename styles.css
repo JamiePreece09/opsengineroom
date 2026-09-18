@@ -2798,43 +2798,35 @@ body.dark-mode .brand-elevat {
     color: #F8FAFC;
 }
 
-/* Sidebar Bottom Brand Showcase - Seamless Panel Blend */
+/* Sidebar Bottom Brand Showcase - Completely Integrated Native Blend */
 .gcal-sidebar-watermark {
     margin-top: auto;
     margin-left: -10px;
     margin-right: -10px;
     margin-bottom: -14px;
-    padding: 14px 8px 12px 8px;
+    padding: 10px 6px 6px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    border-top: 1px solid var(--border-sidebar, #3C166B);
+    border: none;
     background: transparent;
     cursor: default;
-    transition: background 0.25s ease, border-color 0.25s ease;
-}
-
-.gcal-sidebar-watermark:hover {
-    background: rgba(255, 255, 255, 0.02);
-    border-top-color: rgba(255, 255, 255, 0.12);
+    transition: opacity 0.25s ease;
 }
 
 .gcal-sidebar-watermark-art {
-    height: 112px;
+    height: 106px;
     width: 100%;
-    background: url('ion-cad-plant-logo.png') center / contain no-repeat;
-    opacity: 0.95;
-    mix-blend-mode: screen;
-    filter: drop-shadow(0 0 10px rgba(0, 173, 239, 0.5));
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease, opacity 0.25s ease;
+    background: url('ion-cad-plant-transparent.png') center / contain no-repeat;
+    opacity: 0.96;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
 }
 
 .gcal-sidebar-watermark:hover .gcal-sidebar-watermark-art {
-    transform: scale(1.04);
+    transform: scale(1.03);
     opacity: 1;
-    filter: drop-shadow(0 0 16px rgba(0, 173, 239, 0.8));
 }
 
 .gcal-sidebar.collapsed .gcal-sidebar-watermark {
