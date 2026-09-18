@@ -17,257 +17,442 @@ import './complianceModule.js';
 // ==========================================================================
 // REQUIREMENT 1: GLOBAL CONFIG ENGINE (Single Source of Truth)
 // ==========================================================================
-window.ionConfig = {
-  activeFilters: {
-    timeSpan: 'Day',
-    zoom: 80,
-    assetClass: 'ALL',
-    client: 'ALL',
-    startDate: '',
-    endDate: '',
-    hireType: 'all',
-    craneClass: 'ALL',
-    complianceAuditScope: 'ALL',
-    craneSafeDue: 'ALL',
-    regoDue: 'ALL',
-    hrwlClass: 'ALL',
-    verificationStatus: 'ALL'
-  },
-  fleetRegistry: [
-    { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
-    { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true, roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
-    { id: 'MC2', class: 'Kato City Compact Crane 60T', category: 'city', color: '#d97706', hex: '#d97706', label: 'MC2 - 60T City Crane', description: 'Kato City Compact Crane 60T', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-11-30', craneSafeDue: '2027-01-18', majorInspectionDue: '2030-04-25', complianceStatus: 'Valid' },
-    { id: 'CR01', class: 'Kobelco Lattice Crawler 250T', category: 'crawler', color: '#7c3aed', hex: '#7c3aed', label: 'CR01 - 250T Crawler', description: 'Kobelco Lattice Crawler 250T', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-12-12', majorInspectionDue: '2033-07-20', complianceStatus: 'Valid' },
-    { id: 'AT10', class: 'Demag All-Terrain Crane 55T', category: 'all_terrain', color: '#dc2626', hex: '#dc2626', label: 'AT10 - 55T Demag', description: 'Demag All-Terrain Crane 55T', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-12-05', craneSafeDue: '2027-05-15', majorInspectionDue: '2028-09-10', complianceStatus: 'Valid' },
-    { id: 'EX01', class: 'Excavator 20T', category: 'excavator', color: '#0ea5e9', hex: '#0ea5e9', label: 'EX01 - 20T Excavator', description: 'Excavator 20T', workerName: 'Alex Morgan', workerStatus: 'available', hoursToday: 3, roadRegoExpiry: '2026-08-28', craneSafeDue: '2026-11-15', majorInspectionDue: '2031-06-18', complianceStatus: 'Expired' },
-    { id: 'EX02', class: 'Excavator 35T', category: 'excavator', color: '#06b6d4', hex: '#06b6d4', label: 'EX02 - 35T Excavator', description: 'Excavator 35T', workerName: 'Pat Taylor', workerStatus: 'available', hoursToday: 6, roadRegoExpiry: '2026-10-02', craneSafeDue: '2026-09-20', majorInspectionDue: '2032-02-28', complianceStatus: 'Expiring Soon' },
-    { id: 'SK03', class: 'Skid Steer Loader', category: 'skid_steer', color: '#8b5cf6', hex: '#8b5cf6', label: 'SK03 - Skid Steer', description: 'Skid Steer Loader', workerName: 'Ben Walker', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2027-05-10', craneSafeDue: '2026-12-01', majorInspectionDue: '2034-01-12', complianceStatus: 'Valid' },
-    { id: 'DZ04', class: 'Dozer D6', category: 'dozer', color: '#475569', hex: '#475569', label: 'DZ04 - Dozer D6', description: 'Dozer D6', workerName: 'Tom Clarke', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: 'N/A (Off-Road Tracked)', craneSafeDue: '2027-01-20', majorInspectionDue: '2033-10-05', complianceStatus: 'Valid' },
-    { id: 'FL05', class: 'Forklift 5T', category: 'forklift', color: '#6366f1', hex: '#6366f1', label: 'FL05 - Forklift 5T', description: 'Forklift 5T', workerName: 'Gary White', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-10-10', craneSafeDue: '2026-11-01', majorInspectionDue: '2030-12-15', complianceStatus: 'Valid' },
-    { id: 'FL06', class: 'Forklift 10T', category: 'forklift', color: '#2563eb', hex: '#2563eb', label: 'FL06 - Forklift 10T', description: 'Forklift 10T', workerName: 'Liam Hughes', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: '2026-10-04', craneSafeDue: '2026-11-04', majorInspectionDue: '2031-03-19', complianceStatus: 'Valid' },
-    { id: 'SC07', class: 'Scissor Lift 12m', category: 'elevated_platform', color: '#059669', hex: '#059669', label: 'SC07 - Scissor Lift', description: 'Scissor Lift 12m', workerName: 'Brad Nguyen', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-09-28', craneSafeDue: '2026-09-22', majorInspectionDue: '2029-07-11', complianceStatus: 'Expiring Soon' },
-    { id: 'BM08', class: 'Boom Lift 17m', category: 'elevated_platform', color: '#b45309', hex: '#b45309', label: 'BM08 - Boom Lift', description: 'Boom Lift 17m', workerName: 'John Smith', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2026-11-30', craneSafeDue: '2026-12-10', majorInspectionDue: '2032-11-04', complianceStatus: 'Valid' },
-    { id: 'CR09', class: 'Crawler Crane 50T', category: 'crawler', color: '#334155', hex: '#334155', label: 'CR09 - Crawler 50T', description: 'Crawler Crane 50T', workerName: 'Sean O\'Connor', workerStatus: 'available', hoursToday: 7, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-07-30', majorInspectionDue: '2027-03-10', complianceStatus: 'Expired' },
-    { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2026-12-15', craneSafeDue: 'N/A (Transport Plant)', majorInspectionDue: 'N/A', complianceStatus: 'Valid' }
-  ],
-  workerRegistry: [
-    { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-08', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491', phone: '0412 001 001', email: 'l.harris@hireengine.com.au', vocDate: '2026-01-15', complianceStatus: 'Expiring Soon' },
-    { id: 'W002', name: 'John Smith', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234', phone: '0412 001 002', email: 'j.smith@hireengine.com.au', vocDate: '2026-02-10', complianceStatus: 'Expiring Soon' },
-    { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120', phone: '0412 001 003', email: 'm.johnson@hireengine.com.au', vocDate: '2025-11-20', complianceStatus: 'Valid' },
-    { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981', phone: '0412 001 004', email: 'd.wilson@hireengine.com.au', vocDate: '2026-03-04', complianceStatus: 'Expiring Soon' },
-    { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023', phone: '0412 001 005', email: 's.davies@hireengine.com.au', vocDate: '2026-04-18', complianceStatus: 'Valid' },
-    { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211', phone: '0412 001 006', email: 'a.morgan@hireengine.com.au', vocDate: '2026-02-28', complianceStatus: 'Valid' },
-    { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102', phone: '0412 001 007', email: 'c.evans@hireengine.com.au', vocDate: '2025-06-12', complianceStatus: 'Expired' },
-    { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301', phone: '0412 001 008', email: 'p.taylor@hireengine.com.au', vocDate: '2026-01-22', complianceStatus: 'Valid' },
-    { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908', phone: '0412 001 009', email: 'b.walker@hireengine.com.au', vocDate: '2025-12-05', complianceStatus: 'Valid' },
-    { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123', phone: '0412 001 010', email: 't.clarke@hireengine.com.au', vocDate: '2026-05-10', complianceStatus: 'Valid' },
-    { id: 'W011', name: 'Sean O\'Connor', role: 'Dogman', department: 'Operations', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201', phone: '0412 001 011', email: 's.oconnor@hireengine.com.au', vocDate: '2025-08-19', complianceStatus: 'Expired' },
-    { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', department: 'Operations', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409', phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au', vocDate: '2026-02-14', complianceStatus: 'Valid' },
-    { id: 'W013', name: 'Gary White', role: 'Rigger', department: 'Operations', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984', phone: '0412 001 013', email: 'g.white@hireengine.com.au', vocDate: '2026-01-08', complianceStatus: 'Valid' },
-    { id: 'W014', name: 'Liam Hughes', role: 'Rigger', department: 'Operations', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410', phone: '0412 001 014', email: 'l.hughes@hireengine.com.au', vocDate: '2026-03-12', complianceStatus: 'Valid' },
-    { id: 'W015', name: 'Dan Kelly', role: 'Rigger', department: 'Operations', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042', phone: '0412 001 015', email: 'd.kelly@hireengine.com.au', vocDate: '2025-05-20', complianceStatus: 'Expired' },
-    // Administration, Office & Sales Roles
-    { id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', phone: '0412 110 091', email: 's.jenkins@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
-    { id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', phone: '0413 552 819', email: 'm.chang@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
-    { id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', phone: '0415 889 204', email: 'j.miller@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
-    { id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'MGMT-01', phone: '0418 332 901', email: 'd.thornton@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
-    { id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', hrwlExpiry: '2027-12-31', hrwlStatus: 'Active', licenseClass: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', phone: '0416 771 430', email: 'r.vance@ionhire.com.au', vocDate: '2026-02-01', complianceStatus: 'Valid' },
-    { id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', phone: '0417 443 652', email: 'a.ross@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' }
-  ],
-  schedulingRules: {
-    standardHoursStart: '06:00',
-    standardHoursEnd: '18:00',
-    standardHoursDuration: 8.0,
-    overtimeMultiplier: 1.5,
-    doubleTimeMultiplier: 2.0,
-    restPeriodHours: 10
-  },
-  integrations: {
-    edmsEndpoint: 'https://api.edms-provider.com/v1/documents',
-    edmsOrgId: 'ORG-VAULT-8802',
-    edmsStatus: 'Connected',
-    erpWebhook: 'https://api.erp-system.com/webhooks/v1/ledger-sync',
-    erpStatus: 'Active',
-    erpTenant: 'ION Operations Pty Ltd',
-    localisation: 'Australia/Brisbane (AEST, UTC+10)',
-    get docuwareEndpoint() { return this.edmsEndpoint; },
-    get docuwareOrgId() { return this.edmsOrgId; },
-    get docuwareStatus() { return this.edmsStatus; },
-    get xeroWebhook() { return this.erpWebhook; },
-    get xeroStatus() { return this.erpStatus; },
-    get xeroTenant() { return this.erpTenant; }
-  },
-  jobPipeline: [
-    {
-      id: 'JOB-201',
-      jobId: 'JOB-201',
-      bookingId: 'b1',
-      assetId: 'AT11',
-      assetNumber: 'AT11',
-      client: 'ADCO Constructions',
-      clientName: 'ADCO Constructions',
-      stage: 'active',
-      revenue: 14800,
-      site: '12 Coronation Dr, Milton QLD 4064',
-      description: '100T All-Terrain precast tilt-up installation',
-      operatorName: 'Luke Harris'
-    },
-    {
-      id: 'JOB-202',
-      jobId: 'JOB-202',
-      bookingId: 'b2',
-      assetId: 'FC1',
-      assetNumber: 'FC1',
-      client: 'Downer Group',
-      clientName: 'Downer Group',
-      stage: 'scheduled',
-      revenue: 5600,
-      site: 'Centenary Hwy, Darra QLD 4076',
-      description: '20T Franna bridge beam tandem assist',
-      operatorName: 'Chris Evans'
-    },
-    {
-      id: 'JOB-203',
-      jobId: 'JOB-203',
-      bookingId: 'b3',
-      assetId: 'MC2',
-      assetNumber: 'MC2',
-      client: 'Fulton Hogan',
-      clientName: 'Fulton Hogan',
-      stage: 'pending-docket',
-      revenue: 7200,
-      site: 'Gateway Motorway, Nudgee QLD 4014',
-      description: '60T City Crane culvert placement',
-      operatorName: 'Mark Johnson'
-    },
-    {
-      id: 'JOB-204',
-      jobId: 'JOB-204',
-      bookingId: 'b4',
-      assetId: 'CR01',
-      assetNumber: 'CR01',
-      client: 'CPB Contractors',
-      clientName: 'CPB Contractors',
-      stage: 'active',
-      revenue: 28500,
-      site: 'Roma St Station Cavern, Brisbane CBD QLD 4000',
-      description: '250T Lattice Crawler station cavern heavy steel',
-      operatorName: 'Dave Wilson'
-    },
-    {
-      id: 'JOB-205',
-      jobId: 'JOB-205',
-      bookingId: 'b5',
-      assetId: 'AT10',
-      assetNumber: 'AT10',
-      client: 'Lendlease Group',
-      clientName: 'Lendlease Group',
-      stage: 'pending-docket',
-      revenue: 11200,
-      site: 'Queens Wharf, Brisbane CBD QLD 4000',
-      description: '55T Demag tower crane dismantle component handling',
-      operatorName: 'Sam Davies'
-    },
-    {
-      id: 'JOB-206',
-      jobId: 'JOB-206',
-      bookingId: 'b6',
-      assetId: 'EX01',
-      assetNumber: 'EX01',
-      client: 'Multiplex Constructions',
-      clientName: 'Multiplex Constructions',
-      stage: 'pending-docket',
-      revenue: 6400,
-      site: '55 Eagle St Commercial Tower, Brisbane QLD 4000',
-      description: '20T Excavator deep foundation pad excavation',
-      operatorName: 'Alex Morgan'
-    },
-    {
-      id: 'JOB-207',
-      jobId: 'JOB-207',
-      bookingId: 'b7',
-      assetId: 'AT11',
-      assetNumber: 'AT11',
-      client: 'Hutchinson Builders',
-      clientName: 'Hutchinson Builders',
-      stage: 'ready-invoicing',
-      revenue: 19500,
-      site: 'Grey St, South Brisbane QLD 4101',
-      description: '100T All-Terrain roof HVAC plant installation',
-      operatorName: 'Luke Harris'
-    },
-    {
-      id: 'JOB-208',
-      jobId: 'JOB-208',
-      bookingId: 'b8',
-      assetId: 'CR01',
-      assetNumber: 'CR01',
-      client: 'Lendlease Group',
-      clientName: 'Lendlease Group',
-      stage: 'ready-invoicing',
-      revenue: 34000,
-      site: 'Queens Wharf Integrated Resort, Brisbane QLD 4000',
-      description: '250T Lattice Crawler atrium roof truss heavy dual-lift',
-      operatorName: 'Dave Wilson'
-    },
-    {
-      id: 'JOB-209',
-      jobId: 'JOB-209',
-      bookingId: 'b9',
-      assetId: 'FC1',
-      assetNumber: 'FC1',
-      client: 'ADCO Constructions',
-      clientName: 'ADCO Constructions',
-      stage: 'ready-invoicing',
-      revenue: 8900,
-      site: 'Coronation Dr Basement, Milton QLD 4064',
-      description: '20T Franna plant room machinery repositioning',
-      operatorName: 'Chris Evans'
-    },
-    {
-      id: 'JOB-210',
-      jobId: 'JOB-210',
-      bookingId: 'b10',
-      assetId: 'MC2',
-      assetNumber: 'MC2',
-      client: 'Downer Group',
-      clientName: 'Downer Group',
-      stage: 'ready-invoicing',
-      revenue: 9800,
-      site: 'Springfield Subdivision, Springfield Central QLD 4300',
-      description: '60T City Crane drainage pit and pipe placement',
-      operatorName: 'Mark Johnson'
-    },
-    {
-      id: 'JOB-211',
-      jobId: 'JOB-211',
-      bookingId: 'b11',
-      assetId: 'EX02',
-      assetNumber: 'EX02',
-      client: 'Fulton Hogan',
-      clientName: 'Fulton Hogan',
-      stage: 'scheduled',
-      revenue: 8400,
-      site: 'Gateway Overpass, Nudgee QLD 4014',
-      description: '35T Excavator batter trimming and rock placement',
-      operatorName: 'Pat Taylor'
-    },
-    {
-      id: 'JOB-212',
-      jobId: 'JOB-212',
-      bookingId: 'b12',
-      assetId: 'SK03',
-      assetNumber: 'SK03',
-      client: 'ADCO Constructions',
-      clientName: 'ADCO Constructions',
-      stage: 'pending-docket',
-      revenue: 4200,
-      site: 'Chermside Health Hub, Chermside QLD 4032',
-      description: 'Skid Steer trench backfill compaction',
-      operatorName: 'Ben Walker'
+const DEFAULT_JOB_LANES = [
+  { id: 'scheduled', label: 'Scheduled', order: 1, color: '#00ADEF', materialIcon: 'calendar_month' },
+  { id: 'active', label: 'Active On-Site', order: 2, color: '#F37023', materialIcon: 'play_circle' },
+  { id: 'pending-docket', label: 'Pending Docket', order: 3, color: '#F59E0B', materialIcon: 'fact_check' },
+  { id: 'ready-invoicing', label: 'Ready for Invoicing', order: 4, color: '#10B981', materialIcon: 'receipt_long' }
+];
+
+function getInitialJobLanes() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('ion_workflow_lanes');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
     }
-  ]
+  } catch (e) {
+    console.warn('Could not read ion_workflow_lanes from localStorage:', e);
+  }
+  return DEFAULT_JOB_LANES;
+}
+
+window.ionConfig = {
+  settings: {
+    jobLanes: getInitialJobLanes(),
+    assetClasses: ['All-Terrain Crane', 'Crawler Crane', 'Franna', 'Excavator'],
+    schedulingRules: {
+      standardHoursStart: '06:00',
+      standardHoursEnd: '18:00',
+      standardHoursDuration: 8.0,
+      overtimeMultiplier: 1.5,
+      doubleTimeMultiplier: 2.0,
+      restPeriodHours: 10
+    },
+    integrations: {
+      edmsEndpoint: 'https://api.edms-provider.com/v1/documents',
+      edmsOrgId: 'ORG-VAULT-8802',
+      edmsStatus: 'Connected',
+      erpWebhook: 'https://api.erp-system.com/webhooks/v1/ledger-sync',
+      erpStatus: 'Active',
+      erpTenant: 'ION Operations Pty Ltd',
+      localisation: 'Australia/Brisbane (AEST, UTC+10)',
+      get docuwareEndpoint() { return this.edmsEndpoint; },
+      get docuwareOrgId() { return this.edmsOrgId; },
+      get docuwareStatus() { return this.edmsStatus; },
+      get xeroWebhook() { return this.erpWebhook; },
+      get xeroStatus() { return this.erpStatus; },
+      get xeroTenant() { return this.erpTenant; }
+    }
+  },
+  data: {
+    jobs: [
+      {
+        id: 'JOB-201',
+        jobId: 'JOB-201',
+        bookingId: 'b1',
+        assetId: 'AT11',
+        assetNumber: 'AT11',
+        client: 'ADCO Constructions',
+        clientName: 'ADCO Constructions',
+        clientPhone: '0412 889 901',
+        stage: 'active',
+        status: 'Active On-Site',
+        revenue: 14800,
+        site: '12 Coronation Dr, Milton QLD 4064',
+        siteAddress: '12 Coronation Dr, Milton QLD 4064',
+        description: '100T All-Terrain precast tilt-up installation',
+        jobDescription: '100T All-Terrain precast tilt-up installation',
+        operatorName: 'Luke Harris',
+        startTime: '2026-09-18T07:00:00.000Z',
+        endTime: '2026-09-18T13:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: true,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W001', workerName: 'Luke Harris', licenseType: 'C1' }]
+      },
+      {
+        id: 'JOB-202',
+        jobId: 'JOB-202',
+        bookingId: 'b2',
+        assetId: 'FC1',
+        assetNumber: 'FC1',
+        client: 'Downer Group',
+        clientName: 'Downer Group',
+        clientPhone: '0413 774 210',
+        stage: 'scheduled',
+        status: 'Scheduled / Dispatched',
+        revenue: 5600,
+        site: 'Centenary Hwy, Darra QLD 4076',
+        siteAddress: 'Centenary Hwy, Darra QLD 4076',
+        description: '20T Franna bridge beam tandem assist',
+        jobDescription: '20T Franna bridge beam tandem assist',
+        operatorName: 'Chris Evans',
+        startTime: '2026-09-18T07:30:00.000Z',
+        endTime: '2026-09-18T15:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W007', workerName: 'Chris Evans', licenseType: 'C1' }]
+      },
+      {
+        id: 'JOB-203',
+        jobId: 'JOB-203',
+        bookingId: 'b3',
+        assetId: 'MC2',
+        assetNumber: 'MC2',
+        client: 'Fulton Hogan',
+        clientName: 'Fulton Hogan',
+        clientPhone: '0411 332 990',
+        stage: 'pending-docket',
+        status: 'Pending Docket',
+        revenue: 7200,
+        site: 'Gateway Motorway, Nudgee QLD 4014',
+        siteAddress: 'Gateway Motorway, Nudgee QLD 4014',
+        description: '60T City Crane culvert placement',
+        jobDescription: '60T City Crane culvert placement',
+        operatorName: 'Mark Johnson',
+        startTime: '2026-09-18T15:30:00.000Z',
+        endTime: '2026-09-18T17:30:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W003', workerName: 'Mark Johnson', licenseType: 'C2' }]
+      },
+      {
+        id: 'JOB-204',
+        jobId: 'JOB-204',
+        bookingId: 'b4',
+        assetId: 'CR01',
+        assetNumber: 'CR01',
+        client: 'CPB Contractors',
+        clientName: 'CPB Contractors',
+        clientPhone: '0419 663 219',
+        stage: 'active',
+        status: 'Active On-Site',
+        revenue: 28500,
+        site: 'Roma St Station Cavern, Brisbane CBD QLD 4000',
+        siteAddress: 'Roma St Station Cavern, Brisbane CBD QLD 4000',
+        description: '250T Lattice Crawler station cavern heavy steel',
+        jobDescription: '250T Lattice Crawler station cavern heavy steel',
+        operatorName: 'Dave Wilson',
+        startTime: '2026-09-18T08:00:00.000Z',
+        endTime: '2026-09-18T12:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W004', workerName: 'Dave Wilson', licenseType: 'C2' }]
+      },
+      {
+        id: 'JOB-205',
+        jobId: 'JOB-205',
+        bookingId: 'b5',
+        assetId: 'AT10',
+        assetNumber: 'AT10',
+        client: 'Lendlease Group',
+        clientName: 'Lendlease Group',
+        clientPhone: '0418 554 112',
+        stage: 'pending-docket',
+        status: 'Pending Docket',
+        revenue: 11200,
+        site: 'Queens Wharf, Brisbane CBD QLD 4000',
+        siteAddress: 'Queens Wharf, Brisbane CBD QLD 4000',
+        description: '55T Demag tower crane dismantle component handling',
+        jobDescription: '55T Demag tower crane dismantle component handling',
+        operatorName: 'Sam Davies',
+        startTime: '2026-09-18T06:00:00.000Z',
+        endTime: '2026-09-18T14:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W005', workerName: 'Sam Davies', licenseType: 'CO' }]
+      },
+      {
+        id: 'JOB-206',
+        jobId: 'JOB-206',
+        bookingId: 'b6',
+        assetId: 'EX01',
+        assetNumber: 'EX01',
+        client: 'Multiplex Constructions',
+        clientName: 'Multiplex Constructions',
+        clientPhone: '0414 220 891',
+        stage: 'pending-docket',
+        status: 'Pending Docket',
+        revenue: 6400,
+        site: '55 Eagle St Commercial Tower, Brisbane QLD 4000',
+        siteAddress: '55 Eagle St Commercial Tower, Brisbane QLD 4000',
+        description: '20T Excavator deep foundation pad excavation',
+        jobDescription: '20T Excavator deep foundation pad excavation',
+        operatorName: 'Alex Morgan',
+        startTime: '2026-09-18T09:00:00.000Z',
+        endTime: '2026-09-18T13:00:00.000Z',
+        hireType: 'dry',
+        isHighPriority: false,
+        isDelayed: false
+      },
+      {
+        id: 'JOB-207',
+        jobId: 'JOB-207',
+        bookingId: 'b7',
+        assetId: 'AT11',
+        assetNumber: 'AT11',
+        client: 'Hutchinson Builders',
+        clientName: 'Hutchinson Builders',
+        clientPhone: '0415 119 443',
+        stage: 'ready-invoicing',
+        status: 'Ready for Invoicing',
+        revenue: 19500,
+        site: 'Grey St, South Brisbane QLD 4101',
+        siteAddress: 'Grey St, South Brisbane QLD 4101',
+        description: '100T All-Terrain roof HVAC plant installation',
+        jobDescription: '100T All-Terrain roof HVAC plant installation',
+        operatorName: 'Luke Harris',
+        startTime: '2026-09-18T10:00:00.000Z',
+        endTime: '2026-09-18T14:30:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W001', workerName: 'Luke Harris', licenseType: 'C1' }]
+      },
+      {
+        id: 'JOB-208',
+        jobId: 'JOB-208',
+        bookingId: 'b8',
+        assetId: 'CR01',
+        assetNumber: 'CR01',
+        client: 'Lendlease Group',
+        clientName: 'Lendlease Group',
+        clientPhone: '0418 554 112',
+        stage: 'ready-invoicing',
+        status: 'Ready for Invoicing',
+        revenue: 34000,
+        site: 'Queens Wharf Integrated Resort, Brisbane QLD 4000',
+        siteAddress: 'Queens Wharf Integrated Resort, Brisbane QLD 4000',
+        description: '250T Lattice Crawler atrium roof truss heavy dual-lift',
+        jobDescription: '250T Lattice Crawler atrium roof truss heavy dual-lift',
+        operatorName: 'Dave Wilson',
+        startTime: '2026-09-18T08:00:00.000Z',
+        endTime: '2026-09-18T16:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W004', workerName: 'Dave Wilson', licenseType: 'C2' }]
+      },
+      {
+        id: 'JOB-209',
+        jobId: 'JOB-209',
+        bookingId: 'b9',
+        assetId: 'FC1',
+        assetNumber: 'FC1',
+        client: 'ADCO Constructions',
+        clientName: 'ADCO Constructions',
+        clientPhone: '0412 889 901',
+        stage: 'ready-invoicing',
+        status: 'Ready for Invoicing',
+        revenue: 8900,
+        site: 'Coronation Dr Basement, Milton QLD 4064',
+        siteAddress: 'Coronation Dr Basement, Milton QLD 4064',
+        description: '20T Franna plant room machinery repositioning',
+        jobDescription: '20T Franna plant room machinery repositioning',
+        operatorName: 'Chris Evans',
+        startTime: '2026-09-17T07:00:00.000Z',
+        endTime: '2026-09-17T15:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W007', workerName: 'Chris Evans', licenseType: 'C1' }]
+      },
+      {
+        id: 'JOB-210',
+        jobId: 'JOB-210',
+        bookingId: 'b10',
+        assetId: 'MC2',
+        assetNumber: 'MC2',
+        client: 'Downer Group',
+        clientName: 'Downer Group',
+        clientPhone: '0413 774 210',
+        stage: 'ready-invoicing',
+        status: 'Ready for Invoicing',
+        revenue: 9800,
+        site: 'Springfield Subdivision, Springfield Central QLD 4300',
+        siteAddress: 'Springfield Subdivision, Springfield Central QLD 4300',
+        description: '60T City Crane drainage pit and pipe placement',
+        jobDescription: '60T City Crane drainage pit and pipe placement',
+        operatorName: 'Mark Johnson',
+        startTime: '2026-09-17T06:30:00.000Z',
+        endTime: '2026-09-17T16:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: true,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W003', workerName: 'Mark Johnson', licenseType: 'C2' }]
+      },
+      {
+        id: 'JOB-211',
+        jobId: 'JOB-211',
+        bookingId: 'b11',
+        assetId: 'EX02',
+        assetNumber: 'EX02',
+        client: 'Fulton Hogan',
+        clientName: 'Fulton Hogan',
+        clientPhone: '0411 332 990',
+        stage: 'scheduled',
+        status: 'Scheduled / Dispatched',
+        revenue: 8400,
+        site: 'Gateway Overpass, Nudgee QLD 4014',
+        siteAddress: 'Gateway Overpass, Nudgee QLD 4014',
+        description: '35T Excavator batter trimming and rock placement',
+        jobDescription: '35T Excavator batter trimming and rock placement',
+        operatorName: 'Pat Taylor',
+        startTime: '2026-09-19T07:00:00.000Z',
+        endTime: '2026-09-19T13:00:00.000Z',
+        hireType: 'wet',
+        isHighPriority: false,
+        isDelayed: false,
+        wetHireResources: [{ role: 'Operator', workerId: 'W008', workerName: 'Pat Taylor', licenseType: 'C6' }]
+      },
+      {
+        id: 'JOB-212',
+        jobId: 'JOB-212',
+        bookingId: 'b12',
+        assetId: 'SK03',
+        assetNumber: 'SK03',
+        client: 'ADCO Constructions',
+        clientName: 'ADCO Constructions',
+        clientPhone: '0412 889 901',
+        stage: 'pending-docket',
+        status: 'Pending Docket',
+        revenue: 4200,
+        site: 'Chermside Health Hub, Chermside QLD 4032',
+        siteAddress: 'Chermside Health Hub, Chermside QLD 4032',
+        description: 'Skid Steer trench backfill compaction',
+        jobDescription: 'Skid Steer trench backfill compaction',
+        operatorName: 'Ben Walker',
+        startTime: '2026-09-19T05:30:00.000Z',
+        endTime: '2026-09-19T14:00:00.000Z',
+        hireType: 'dry',
+        isHighPriority: false,
+        isDelayed: false
+      }
+    ],
+    fleet: [
+      { id: 'AT11', class: 'Liebherr All-Terrain Crane 100T', category: 'all_terrain', color: '#0284c7', hex: '#0284c7', label: 'AT11 - 100T', description: 'Liebherr All-Terrain Crane 100T', workerName: 'Luke Harris', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2027-04-15', craneSafeDue: '2027-02-10', majorInspectionDue: '2032-08-14', complianceStatus: 'Valid' },
+      { id: 'FC1', class: 'Terex Franna Pick & Carry 20T', category: 'franna', color: '#059669', hex: '#059669', label: 'FC1 - 20T Franna', description: 'Terex Franna Pick & Carry 20T', workerName: 'Chris Evans', workerStatus: 'overtime', hoursToday: 9.5, overtimeWarning: true, roadRegoExpiry: '2027-01-20', craneSafeDue: '2027-03-05', majorInspectionDue: '2029-11-01', complianceStatus: 'Valid' },
+      { id: 'MC2', class: 'Kato City Compact Crane 60T', category: 'city', color: '#d97706', hex: '#d97706', label: 'MC2 - 60T City Crane', description: 'Kato City Compact Crane 60T', workerName: 'Mark Johnson', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-11-30', craneSafeDue: '2027-01-18', majorInspectionDue: '2030-04-25', complianceStatus: 'Valid' },
+      { id: 'CR01', class: 'Kobelco Lattice Crawler 250T', category: 'crawler', color: '#7c3aed', hex: '#7c3aed', label: 'CR01 - 250T Crawler', description: 'Kobelco Lattice Crawler 250T', workerName: 'Dave Wilson', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-12-12', majorInspectionDue: '2033-07-20', complianceStatus: 'Valid' },
+      { id: 'AT10', class: 'Demag All-Terrain Crane 55T', category: 'all_terrain', color: '#dc2626', hex: '#dc2626', label: 'AT10 - 55T Demag', description: 'Demag All-Terrain Crane 55T', workerName: 'Sam Davies', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-12-05', craneSafeDue: '2027-05-15', majorInspectionDue: '2028-09-10', complianceStatus: 'Valid' },
+      { id: 'EX01', class: 'Excavator 20T', category: 'excavator', color: '#0ea5e9', hex: '#0ea5e9', label: 'EX01 - 20T Excavator', description: 'Excavator 20T', workerName: 'Alex Morgan', workerStatus: 'available', hoursToday: 3, roadRegoExpiry: '2026-08-28', craneSafeDue: '2026-11-15', majorInspectionDue: '2031-06-18', complianceStatus: 'Expired' },
+      { id: 'EX02', class: 'Excavator 35T', category: 'excavator', color: '#06b6d4', hex: '#06b6d4', label: 'EX02 - 35T Excavator', description: 'Excavator 35T', workerName: 'Pat Taylor', workerStatus: 'available', hoursToday: 6, roadRegoExpiry: '2026-10-02', craneSafeDue: '2026-09-20', majorInspectionDue: '2032-02-28', complianceStatus: 'Expiring Soon' },
+      { id: 'SK03', class: 'Skid Steer Loader', category: 'skid_steer', color: '#8b5cf6', hex: '#8b5cf6', label: 'SK03 - Skid Steer', description: 'Skid Steer Loader', workerName: 'Ben Walker', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2027-05-10', craneSafeDue: '2026-12-01', majorInspectionDue: '2034-01-12', complianceStatus: 'Valid' },
+      { id: 'DZ04', class: 'Dozer D6', category: 'dozer', color: '#475569', hex: '#475569', label: 'DZ04 - Dozer D6', description: 'Dozer D6', workerName: 'Tom Clarke', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: 'N/A (Off-Road Tracked)', craneSafeDue: '2027-01-20', majorInspectionDue: '2033-10-05', complianceStatus: 'Valid' },
+      { id: 'FL05', class: 'Forklift 5T', category: 'forklift', color: '#6366f1', hex: '#6366f1', label: 'FL05 - Forklift 5T', description: 'Forklift 5T', workerName: 'Gary White', workerStatus: 'available', hoursToday: 4, roadRegoExpiry: '2026-10-10', craneSafeDue: '2026-11-01', majorInspectionDue: '2030-12-15', complianceStatus: 'Valid' },
+      { id: 'FL06', class: 'Forklift 10T', category: 'forklift', color: '#2563eb', hex: '#2563eb', label: 'FL06 - Forklift 10T', description: 'Forklift 10T', workerName: 'Liam Hughes', workerStatus: 'available', hoursToday: 2, roadRegoExpiry: '2026-10-04', craneSafeDue: '2026-11-04', majorInspectionDue: '2031-03-19', complianceStatus: 'Valid' },
+      { id: 'SC07', class: 'Scissor Lift 12m', category: 'elevated_platform', color: '#059669', hex: '#059669', label: 'SC07 - Scissor Lift', description: 'Scissor Lift 12m', workerName: 'Brad Nguyen', workerStatus: 'available', hoursToday: 0, roadRegoExpiry: '2026-09-28', craneSafeDue: '2026-09-22', majorInspectionDue: '2029-07-11', complianceStatus: 'Expiring Soon' },
+      { id: 'BM08', class: 'Boom Lift 17m', category: 'elevated_platform', color: '#b45309', hex: '#b45309', label: 'BM08 - Boom Lift', description: 'Boom Lift 17m', workerName: 'John Smith', workerStatus: 'available', hoursToday: 5, roadRegoExpiry: '2026-11-30', craneSafeDue: '2026-12-10', majorInspectionDue: '2032-11-04', complianceStatus: 'Valid' },
+      { id: 'CR09', class: 'Crawler Crane 50T', category: 'crawler', color: '#334155', hex: '#334155', label: 'CR09 - Crawler 50T', description: 'Crawler Crane 50T', workerName: "Sean O'Connor", workerStatus: 'available', hoursToday: 7, roadRegoExpiry: 'N/A (Site Crawler)', craneSafeDue: '2026-07-30', majorInspectionDue: '2027-03-10', complianceStatus: 'Expired' },
+      { id: 'DT10', class: 'Dump Truck', category: 'truck', color: '#9333ea', hex: '#9333ea', label: 'DT10 - Dump Truck', description: 'Dump Truck', workerName: 'Dan Kelly', workerStatus: 'available', hoursToday: 1, roadRegoExpiry: '2026-12-15', craneSafeDue: 'N/A (Transport Plant)', majorInspectionDue: 'N/A', complianceStatus: 'Valid' }
+    ],
+    workers: [
+      { id: 'W001', name: 'Luke Harris', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-08', hrwlStatus: 'Active', licenseClass: 'C1 / C6', licenseNumber: 'QLD-HRW-C1-28491', phone: '0412 001 001', email: 'l.harris@hireengine.com.au', vocDate: '2026-01-15', complianceStatus: 'Expiring Soon' },
+      { id: 'W002', name: 'John Smith', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-10-30', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-19234', phone: '0412 001 002', email: 'j.smith@hireengine.com.au', vocDate: '2026-02-10', complianceStatus: 'Expiring Soon' },
+      { id: 'W003', name: 'Mark Johnson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-01-08', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-44120', phone: '0412 001 003', email: 'm.johnson@hireengine.com.au', vocDate: '2025-11-20', complianceStatus: 'Valid' },
+      { id: 'W004', name: 'Dave Wilson', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-10-05', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-33981', phone: '0412 001 004', email: 'd.wilson@hireengine.com.au', vocDate: '2026-03-04', complianceStatus: 'Expiring Soon' },
+      { id: 'W005', name: 'Sam Davies', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2027-04-22', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-11023', phone: '0412 001 005', email: 's.davies@hireengine.com.au', vocDate: '2026-04-18', complianceStatus: 'Valid' },
+      { id: 'W006', name: 'Alex Morgan', role: 'Plant Operator', department: 'Operations', hrwlExpiry: '2026-12-19', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'NSW-HRW-C6-90211', phone: '0412 001 006', email: 'a.morgan@hireengine.com.au', vocDate: '2026-02-28', complianceStatus: 'Valid' },
+      { id: 'W007', name: 'Chris Evans', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2025-08-10', hrwlStatus: 'Expired', licenseClass: 'C1', licenseNumber: 'QLD-HRW-C1-55102', phone: '0412 001 007', email: 'c.evans@hireengine.com.au', vocDate: '2025-06-12', complianceStatus: 'Expired' },
+      { id: 'W008', name: 'Pat Taylor', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-02-14', hrwlStatus: 'Active', licenseClass: 'C6', licenseNumber: 'QLD-HRW-C6-88301', phone: '0412 001 008', email: 'p.taylor@hireengine.com.au', vocDate: '2026-01-22', complianceStatus: 'Valid' },
+      { id: 'W009', name: 'Ben Walker', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2026-11-25', hrwlStatus: 'Active', licenseClass: 'CO', licenseNumber: 'QLD-HRW-CO-41908', phone: '0412 001 009', email: 'b.walker@hireengine.com.au', vocDate: '2025-12-05', complianceStatus: 'Valid' },
+      { id: 'W010', name: 'Tom Clarke', role: 'Crane Operator', department: 'Operations', hrwlExpiry: '2027-05-30', hrwlStatus: 'Active', licenseClass: 'C2', licenseNumber: 'QLD-HRW-C2-77123', phone: '0412 001 010', email: 't.clarke@hireengine.com.au', vocDate: '2026-05-10', complianceStatus: 'Valid' },
+      { id: 'W011', name: "Sean O'Connor", role: 'Dogman', department: 'Operations', hrwlExpiry: '2026-06-15', hrwlStatus: 'Expired', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-33201', phone: '0412 001 011', email: 's.oconnor@hireengine.com.au', vocDate: '2025-08-19', complianceStatus: 'Expired' },
+      { id: 'W012', name: 'Brad Nguyen', role: 'Dogman', department: 'Operations', hrwlExpiry: '2027-01-20', hrwlStatus: 'Active', licenseClass: 'DG', licenseNumber: 'QLD-HRW-DG-66409', phone: '0412 001 012', email: 'b.nguyen@hireengine.com.au', vocDate: '2026-02-14', complianceStatus: 'Valid' },
+      { id: 'W013', name: 'Gary White', role: 'Rigger', department: 'Operations', hrwlExpiry: '2026-12-05', hrwlStatus: 'Active', licenseClass: 'RB', licenseNumber: 'QLD-HRW-RB-11984', phone: '0412 001 013', email: 'g.white@hireengine.com.au', vocDate: '2026-01-08', complianceStatus: 'Valid' },
+      { id: 'W014', name: 'Liam Hughes', role: 'Rigger', department: 'Operations', hrwlExpiry: '2027-03-01', hrwlStatus: 'Active', licenseClass: 'RI', licenseNumber: 'NSW-HRW-RI-55410', phone: '0412 001 014', email: 'l.hughes@hireengine.com.au', vocDate: '2026-03-12', complianceStatus: 'Valid' },
+      { id: 'W015', name: 'Dan Kelly', role: 'Rigger', department: 'Operations', hrwlExpiry: '2025-11-12', hrwlStatus: 'Expired', licenseClass: 'RA', licenseNumber: 'QLD-HRW-RA-99042', phone: '0412 001 015', email: 'd.kelly@hireengine.com.au', vocDate: '2025-05-20', complianceStatus: 'Expired' },
+      { id: 'W016', name: 'Sarah Jenkins', role: 'Fleet & Operations Administrator', department: 'Administration', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'OPS-ADMIN-01', phone: '0412 110 091', email: 's.jenkins@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+      { id: 'W017', name: 'Michael Chang', role: 'Sales & Estimating Manager', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-MGR-01', phone: '0413 552 819', email: 'm.chang@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+      { id: 'W018', name: 'Jessica Miller', role: 'Technical Estimator / Hire Desk', department: 'Sales', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Sales)', licenseNumber: 'SALES-EST-02', phone: '0415 889 204', email: 'j.miller@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+      { id: 'W019', name: 'David Thornton', role: 'General Manager / Office Admin', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Office)', licenseNumber: 'MGMT-01', phone: '0418 332 901', email: 'd.thornton@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' },
+      { id: 'W020', name: 'Rachel Vance', role: 'Safety & Compliance Officer', department: 'Safety', hrwlExpiry: '2027-12-31', hrwlStatus: 'Active', licenseClass: 'Cert IV WHS', licenseNumber: 'HSE-AUD-4491', phone: '0416 771 430', email: 'r.vance@ionhire.com.au', vocDate: '2026-02-01', complianceStatus: 'Valid' },
+      { id: 'W021', name: 'Amanda Ross', role: 'Accounts & Billing Specialist', department: 'Office', hrwlExpiry: 'Exempt', hrwlStatus: 'Exempt', licenseClass: 'N/A (Finance)', licenseNumber: 'FIN-ACC-03', phone: '0417 443 652', email: 'a.ross@ionhire.com.au', vocDate: '2026-01-10', complianceStatus: 'Valid' }
+    ],
+    activeFilters: {
+      timeSpan: 'Day',
+      zoom: 80,
+      assetClass: 'ALL',
+      client: 'ALL',
+      startDate: '',
+      endDate: '',
+      hireType: 'all',
+      craneClass: 'ALL',
+      complianceAuditScope: 'ALL',
+      craneSafeDue: 'ALL',
+      regoDue: 'ALL',
+      hrwlClass: 'ALL',
+      verificationStatus: 'ALL'
+    }
+  }
 };
+
+// Seamless Backward-Compatibility Accessors
+Object.defineProperty(window.ionConfig, 'fleetRegistry', {
+  get() { return window.ionConfig.data.fleet; },
+  set(v) { window.ionConfig.data.fleet = v; },
+  enumerable: false,
+  configurable: true
+});
+Object.defineProperty(window.ionConfig, 'jobPipeline', {
+  get() { return window.ionConfig.data.jobs; },
+  set(v) { window.ionConfig.data.jobs = v; },
+  enumerable: false,
+  configurable: true
+});
+Object.defineProperty(window.ionConfig, 'workerRegistry', {
+  get() { return window.ionConfig.data.workers; },
+  set(v) { window.ionConfig.data.workers = v; },
+  enumerable: false,
+  configurable: true
+});
+Object.defineProperty(window.ionConfig, 'activeFilters', {
+  get() { return window.ionConfig.data.activeFilters; },
+  set(v) { window.ionConfig.data.activeFilters = v; },
+  enumerable: false,
+  configurable: true
+});
+Object.defineProperty(window.ionConfig, 'schedulingRules', {
+  get() { return window.ionConfig.settings.schedulingRules; },
+  set(v) { window.ionConfig.settings.schedulingRules = v; },
+  enumerable: false,
+  configurable: true
+});
+Object.defineProperty(window.ionConfig, 'integrations', {
+  get() { return window.ionConfig.settings.integrations; },
+  set(v) { window.ionConfig.settings.integrations = v; },
+  enumerable: false,
+  configurable: true
+});
 
 // Sync window.ionConfig with dataModels.assetRegistry
 window.ionConfig.fleetRegistry.forEach(fa => {
@@ -490,6 +675,7 @@ function switchTab(tab) {
     }
   } else if (tab === 'settings' || tab === 'system-settings') {
     if (typeof renderSystemSettingsView === 'function') renderSystemSettingsView();
+    if (typeof renderSettingsView === 'function') renderSettingsView();
   } else if (tab === 'compliance') {
     if (typeof renderComplianceView === 'function') renderComplianceView();
   } else if (tab === 'scheduler' || tab === 'calendar') {
@@ -3260,76 +3446,137 @@ function indexDocuWareCert(assetId){
 
 /* ── PHASE 3: CENTRAL OPERATIONAL PIPELINE (LIFECYCLE LANES & HIGH-DENSITY ENTERPRISE CARDS) ── */
 
-const OPERATIONAL_PIPELINE_LANES = [
-  {
-    id: 'EOI / Pending',
-    title: 'EOI / Pending',
-    subtitle: 'Awaiting client confirmation or site checks',
-    materialIcon: 'hourglass_top',
-    stageIcon: 'pending_actions',
-    color: '#F59E0B'
-  },
-  {
-    id: 'Scheduled / Dispatched',
-    title: 'Scheduled / Dispatched',
+const LANE_METADATA_DEFAULTS = {
+  'scheduled': {
+    title: 'Scheduled',
     subtitle: 'Visible to field operators',
     materialIcon: 'local_shipping',
     stageIcon: 'local_shipping',
     color: '#00ADEF'
   },
-  {
-    id: 'Active On-Site',
+  'active': {
     title: 'Active On-Site',
     subtitle: 'Operator actively logging hours/SWMS',
     materialIcon: 'engineering',
     stageIcon: 'engineering',
     color: '#8B5CF6'
   },
-  {
-    id: 'Pending Docket',
+  'pending-docket': {
     title: 'Pending Docket',
     subtitle: 'Awaiting supervisor signature or internal review',
     materialIcon: 'description',
     stageIcon: 'description',
     color: '#F97316'
   },
-  {
-    id: 'Ready for Invoicing',
+  'ready-invoicing': {
     title: 'Ready for Invoicing',
     subtitle: 'Docket signed, ready for ERP/Accounting sync',
     materialIcon: 'check_circle',
     stageIcon: 'check_circle',
     color: '#10B981'
+  },
+  'invoicing': {
+    title: 'Invoicing',
+    subtitle: 'Invoicing & ledger reconciliation',
+    materialIcon: 'receipt_long',
+    stageIcon: 'receipt_long',
+    color: '#059669'
+  },
+  'eoi': {
+    title: 'EOI / Pending',
+    subtitle: 'Awaiting client confirmation or site checks',
+    materialIcon: 'hourglass_top',
+    stageIcon: 'pending_actions',
+    color: '#F59E0B'
   }
-];
+};
+
+function getActiveJobLanes() {
+  const lanes = window.ionConfig?.settings?.jobLanes;
+  if (Array.isArray(lanes) && lanes.length > 0) {
+    return [...lanes].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)).map(lane => {
+      const defaults = LANE_METADATA_DEFAULTS[lane.id] || {};
+      return {
+        id: lane.id,
+        label: lane.label || lane.title || defaults.title || lane.id,
+        title: lane.label || lane.title || defaults.title || lane.id,
+        order: Number(lane.order) || 0,
+        subtitle: lane.subtitle || defaults.subtitle || `Operations stage: ${lane.label || lane.id}`,
+        materialIcon: lane.materialIcon || defaults.materialIcon || 'view_kanban',
+        stageIcon: lane.stageIcon || defaults.stageIcon || 'assignment',
+        color: lane.color || defaults.color || '#0284c7'
+      };
+    });
+  }
+  return [
+    { id: 'scheduled', label: 'Scheduled', title: 'Scheduled', order: 1, subtitle: 'Visible to field operators', materialIcon: 'local_shipping', stageIcon: 'local_shipping', color: '#00ADEF' },
+    { id: 'active', label: 'Active On-Site', title: 'Active On-Site', order: 2, subtitle: 'Operator actively logging hours/SWMS', materialIcon: 'engineering', stageIcon: 'engineering', color: '#8B5CF6' },
+    { id: 'pending-docket', label: 'Pending Docket', title: 'Pending Docket', order: 3, subtitle: 'Awaiting supervisor signature or internal review', materialIcon: 'description', stageIcon: 'description', color: '#F97316' },
+    { id: 'ready-invoicing', label: 'Ready for Invoicing', title: 'Ready for Invoicing', order: 4, subtitle: 'Docket signed, ready for ERP/Accounting sync', materialIcon: 'check_circle', stageIcon: 'check_circle', color: '#10B981' }
+  ];
+}
+
+// Proxied dynamically to window.ionConfig.settings.jobLanes
+const OPERATIONAL_PIPELINE_LANES = new Proxy([], {
+  get(target, prop) {
+    const active = getActiveJobLanes();
+    if (prop === 'length') return active.length;
+    if (typeof prop === 'symbol' || isNaN(prop)) {
+      const val = active[prop];
+      return typeof val === 'function' ? val.bind(active) : val;
+    }
+    return active[prop];
+  }
+});
 
 function normalizePipelineStage(status) {
-  if (!status) return 'Scheduled / Dispatched';
+  if (!status) return 'scheduled';
   const s = String(status).trim();
-  if (s === 'EOI / Pending') return 'EOI / Pending';
-  if (s === 'Scheduled / Dispatched') return 'Scheduled / Dispatched';
-  if (s === 'Active On-Site') return 'Active On-Site';
-  if (s === 'Pending Docket') return 'Pending Docket';
-  if (s === 'Ready for Invoicing') return 'Ready for Invoicing';
+  const lanes = window.ionConfig?.settings?.jobLanes || [];
+  
+  const direct = lanes.find(l => l.id.toLowerCase() === s.toLowerCase());
+  if (direct) return direct.id;
+
+  const directLabel = lanes.find(l => (l.label && l.label.toLowerCase() === s.toLowerCase()) || (l.title && l.title.toLowerCase() === s.toLowerCase()));
+  if (directLabel) return directLabel.id;
 
   const lower = s.toLowerCase();
-  if (lower.includes('eoi') || lower === 'pending' || lower.includes('urgent') || lower.includes('quote') || lower.includes('enquiry')) {
-    return 'EOI / Pending';
-  }
+  // Dynamic keyword resolution against configured lanes
+  const matchLane = lanes.find(l => {
+    const lId = (l.id || '').toLowerCase();
+    const lLab = (l.label || l.title || '').toLowerCase();
+    if (lower.includes('on-site') || lower.includes('onsite') || lower.includes('active')) {
+      return lId.includes('active') || lLab.includes('active') || lLab.includes('on-site');
+    }
+    if (lower.includes('docket') || lower.includes('review') || lower.includes('verification')) {
+      return lId.includes('docket') || lId.includes('review') || lLab.includes('docket') || lLab.includes('review');
+    }
+    if (lower.includes('invoice') || lower.includes('invoiced') || lower.includes('ready') || lower.includes('hold') || lower.includes('billing')) {
+      return lId.includes('invoice') || lId.includes('hold') || lLab.includes('invoice') || lLab.includes('hold');
+    }
+    if (lower.includes('schedule') || lower.includes('dispatch') || lower.includes('booked')) {
+      return lId.includes('schedule') || lLab.includes('schedule');
+    }
+    return false;
+  });
+  if (matchLane) return matchLane.id;
+
   if (lower.includes('on-site') || lower.includes('onsite') || lower.includes('active') || lower.includes('in progress')) {
-    return 'Active On-Site';
+    return 'active';
   }
   if (lower.includes('docket') || lower.includes('verification') || lower.includes('review') || lower.includes('supervisor')) {
-    return 'Pending Docket';
+    return 'pending-docket';
   }
-  if (lower.includes('invoice') || lower.includes('invoiced') || lower.includes('complete') || lower.includes('ready') || lower.includes('billing')) {
-    return 'Ready for Invoicing';
+  if (lower.includes('invoice') || lower.includes('invoiced') || lower.includes('ready') || lower.includes('billing')) {
+    return 'ready-invoicing';
   }
-  if (lower.includes('schedule') || lower.includes('dispatch') || lower.includes('booked')) {
-    return 'Scheduled / Dispatched';
+  if (lower.includes('schedule') || lower.includes('dispatch') || lower.includes('booked') || lower.includes('pending') || lower.includes('eoi')) {
+    return 'scheduled';
   }
-  return 'Scheduled / Dispatched';
+  return lanes[0]?.id || 'scheduled';
 }
+window.normalizePipelineStage = normalizePipelineStage;
+window.normalizeJobStage = normalizePipelineStage;
 
 function getPipelineAssetColor(assetNumber) {
   if (!assetNumber) return '#00ADEF';
@@ -3635,64 +3882,473 @@ function filterJobBoardTab(stage) {
 window.filterJobBoardTab = filterJobBoardTab;
 
 function renderJobBoard() {
-  const container = document.getElementById('job-board-container');
+  const container = document.querySelector('.job-board-container') || document.getElementById('job-board-container');
   if (!container) return;
+
+  // 1. Clear the .job-board-container
+  container.innerHTML = '';
 
   const searchQuery = (document.getElementById('jb-search')?.value || '').toLowerCase().trim();
   const stageFilter = document.getElementById('jb-stage-filter')?.value || 'ALL';
 
+  // Subtab bar active state synchronization
   const tabs = [
     { id: 'jb-subtab-all', val: 'ALL' },
-    { id: 'jb-subtab-active', val: 'ACTIVE_ON_SITE' },
-    { id: 'jb-subtab-docket', val: 'PENDING_DOCKET' },
-    { id: 'jb-subtab-invoice', val: 'READY_FOR_INVOICE' }
+    { id: 'jb-subtab-active', val: 'active' },
+    { id: 'jb-subtab-docket', val: 'pending-docket' },
+    { id: 'jb-subtab-invoice', val: 'ready-invoicing' }
   ];
   tabs.forEach(t => {
     const btn = document.getElementById(t.id);
     if (btn) {
-      if (t.val === stageFilter) btn.classList.add('active');
+      const match = (t.val === 'ALL' && (stageFilter === 'ALL' || !stageFilter)) ||
+                    (t.val === stageFilter) ||
+                    (normalizePipelineStage(stageFilter) === t.val);
+      if (match) btn.classList.add('active');
       else btn.classList.remove('active');
     }
   });
 
-  let filteredBookings = Array.isArray(bookings) ? [...bookings.filter(Boolean)] : [];
+  // Ensure horizontal flex layout for dynamic Kanban lanes
+  container.style.display = 'flex';
+  container.style.gap = '14px';
+  container.style.alignItems = 'stretch';
+  container.style.width = '100%';
+  container.style.minWidth = '100%';
+  container.style.paddingBottom = '16px';
+  container.style.overflowX = 'auto';
 
-  // Ensure any job in window.ionConfig.jobPipeline is also visible on Job Board
-  if (window.ionConfig && Array.isArray(window.ionConfig.jobPipeline)) {
-    window.ionConfig.jobPipeline.forEach(pj => {
-      if (!pj) return;
-      const pjId = pj.jobId || pj.id || pj.bookingId;
-      const alreadyIn = filteredBookings.some(b => b && (b.id === pjId || b.id === pj.bookingId || b.bookingId === pjId));
-      if (!alreadyIn) {
-        filteredBookings.push({
-          id: pjId,
-          bookingId: pj.bookingId || pjId,
-          assetNumber: pj.assetNumber || pj.assetId || 'AT11',
-          clientName: pj.clientName || pj.client || 'Multiplex',
-          status: pj.status || (pj.stage === 'scheduled' ? 'Scheduled / Dispatched' : pj.stage),
-          stage: pj.stage || 'scheduled',
-          revenue: pj.revenue || 5600,
-          startTime: pj.startTime || (pj.date ? `${pj.date}T07:00:00` : new Date().toISOString()),
-          endTime: pj.endTime || (pj.date ? `${pj.date}T15:00:00` : new Date().toISOString()),
-          siteAddress: pj.site || pj.siteAddress || 'Brisbane Metro Site',
-          operatorName: pj.operatorName || 'Luke Harris',
-          jobDescription: pj.description || 'Mobile Crane Operations',
-          hireType: pj.hireType || 'wet'
-        });
-      }
-    });
+  // 2. Iterate over window.ionConfig.settings.jobLanes (sorted by order)
+  const rawLanes = (window.ionConfig?.settings?.jobLanes && Array.isArray(window.ionConfig.settings.jobLanes))
+    ? window.ionConfig.settings.jobLanes
+    : [
+        { id: 'scheduled', label: 'Scheduled', order: 1 },
+        { id: 'active', label: 'Active On-Site', order: 2 },
+        { id: 'pending-docket', label: 'Pending Docket', order: 3 },
+        { id: 'ready-invoicing', label: 'Ready for Invoicing', order: 4 }
+      ];
+
+  const sortedLanes = [...rawLanes].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+  // Map to hold lane cards containers and counts
+  const laneMap = {};
+
+  // For each lane, dynamically construct the HTML column and append it to the container
+  sortedLanes.forEach(lane => {
+    const laneId = lane.id;
+    const laneLabel = lane.label || lane.title || laneId;
+    const defaults = (typeof LANE_METADATA_DEFAULTS !== 'undefined' && LANE_METADATA_DEFAULTS[laneId]) ? LANE_METADATA_DEFAULTS[laneId] : {};
+    const laneColor = lane.color || defaults.color || '#00ADEF';
+    const laneIcon = lane.materialIcon || defaults.materialIcon || 'view_kanban';
+    const stageIcon = lane.stageIcon || defaults.stageIcon || 'assignment';
+    const laneSubtitle = lane.subtitle || defaults.subtitle || `Operational stage: ${laneLabel}`;
+    const isVisible = (stageFilter === 'ALL' || stageFilter === laneId || normalizePipelineStage(stageFilter) === laneId);
+
+    const laneCol = document.createElement('div');
+    laneCol.id = `jb-lane-${laneId.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    laneCol.className = 'kanban-lane jb-lane';
+    laneCol.setAttribute('data-stage', laneId);
+    laneCol.setAttribute('data-lane-id', laneId);
+    laneCol.style.display = isVisible ? 'flex' : 'none';
+    if (isVisible) {
+      laneCol.style.flex = (stageFilter === 'ALL' || !stageFilter) ? '1 1 280px' : '1 1 100%';
+      laneCol.style.minWidth = (stageFilter === 'ALL' || !stageFilter) ? '280px' : '100%';
+    }
+
+    laneCol.setAttribute('ondragover', `window.handleJobLaneDragOver(event, '${escapeHtml(laneId)}')`);
+    laneCol.setAttribute('ondragenter', `window.handleJobLaneDragEnter(event, '${escapeHtml(laneId)}')`);
+    laneCol.setAttribute('ondragleave', `window.handleJobLaneDragLeave(event, '${escapeHtml(laneId)}')`);
+    laneCol.setAttribute('ondrop', `window.handleJobLaneDrop(event, '${escapeHtml(laneId)}')`);
+
+    laneCol.innerHTML = `
+      <div class="jb-lane-header" style="border-top:3px solid ${laneColor};">
+        <div class="jb-lane-header-top">
+          <div class="jb-lane-title">
+            <span class="material-symbols-outlined" style="color:${laneColor};">${laneIcon}</span>
+            <span>${escapeHtml(laneLabel)}</span>
+          </div>
+          <span class="jb-lane-count" id="jb-count-${escapeHtml(laneId)}">0</span>
+        </div>
+        <div class="jb-lane-subtitle">${escapeHtml(laneSubtitle)}</div>
+      </div>
+      <div class="kanban-cards jb-lane-cards" id="jb-lane-${escapeHtml(laneId)}-cards" data-stage="${escapeHtml(laneId)}"></div>
+    `;
+
+    container.appendChild(laneCol);
+
+    laneMap[laneId] = {
+      column: laneCol,
+      cardsContainer: laneCol.querySelector('.kanban-cards'),
+      countBadge: laneCol.querySelector('.jb-lane-count'),
+      stageIcon: stageIcon,
+      count: 0
+    };
+  });
+
+  // Source jobs from window.ionConfig.data.jobs (fallback to bookings if empty)
+  let jobsList = Array.isArray(window.ionConfig?.data?.jobs) ? [...window.ionConfig.data.jobs] : [];
+  if (jobsList.length === 0 && Array.isArray(bookings) && bookings.length > 0) {
+    jobsList = bookings.map(b => ({
+      id: b.id,
+      jobId: b.id,
+      bookingId: b.id,
+      assetNumber: b.assetNumber,
+      clientName: b.clientName,
+      stage: normalizePipelineStage(b.status),
+      status: b.status,
+      siteAddress: b.siteAddress,
+      jobDescription: b.jobDescription,
+      operatorName: b.operatorName,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      hireType: b.hireType,
+      isHighPriority: b.isHighPriority,
+      isDelayed: b.isDelayed
+    }));
+    if (window.ionConfig?.data) window.ionConfig.data.jobs = jobsList;
   }
 
+  // Enterprise Drawer Filters
+  const activeFilters = window.ionConfig?.data?.activeFilters || window.ionConfig?.activeFilters || {};
+  const jbFilters = window.drawerFilters?.jobBoard || {};
+  const startDate = activeFilters.startDate || jbFilters.startDate;
+  const endDate = activeFilters.endDate || jbFilters.endDate;
+  const activeClient = (activeFilters.client && activeFilters.client !== 'ALL') ? activeFilters.client : (jbFilters.client && jbFilters.client !== 'ALL' ? jbFilters.client : null);
+
+  // 3. Finally, iterate through window.ionConfig.data.jobs and inject each job card into the lane where job.stage === lane.id
+  jobsList.forEach(job => {
+    if (!job) return;
+
+    // Search filter
+    if (searchQuery) {
+      const jId = String(job.id || job.jobId || '').toLowerCase();
+      const client = String(job.clientName || job.client || '').toLowerCase();
+      const asset = String(job.assetNumber || job.assetId || '').toLowerCase();
+      const op = String(job.operatorName || '').toLowerCase();
+      const desc = String(job.jobDescription || job.description || '').toLowerCase();
+      const addr = String(job.siteAddress || job.site || '').toLowerCase();
+      const matchesSearch = jId.includes(searchQuery) ||
+                            client.includes(searchQuery) ||
+                            asset.includes(searchQuery) ||
+                            op.includes(searchQuery) ||
+                            desc.includes(searchQuery) ||
+                            addr.includes(searchQuery);
+      if (!matchesSearch) return;
+    }
+
+    // Date & Client drawer filters
+    if (startDate && job.startTime && job.startTime < startDate) return;
+    if (endDate && job.startTime && job.startTime > (endDate + 'T23:59:59')) return;
+    if (activeClient) {
+      const cLower = activeClient.toLowerCase();
+      const cName = String(job.clientName || job.client || '').toLowerCase();
+      if (!cName.includes(cLower)) return;
+    }
+    if (jbFilters.statuses && Array.isArray(jbFilters.statuses) && jbFilters.statuses.length > 0 && !jbFilters.statuses.includes('ALL')) {
+      const st = normalizePipelineStage(job.stage || job.status).toUpperCase();
+      const raw = (job.status || '').toUpperCase();
+      if (!jbFilters.statuses.some(s => s.toUpperCase() === st || s.toUpperCase() === raw)) return;
+    }
+    if (jbFilters.hireType && jbFilters.hireType !== 'all') {
+      if ((job.hireType || '').toLowerCase() !== jbFilters.hireType.toLowerCase()) return;
+    }
+
+    const jobStage = normalizePipelineStage(job.stage || job.status);
+    const targetLane = laneMap[jobStage] || laneMap['scheduled'] || Object.values(laneMap)[0];
+    if (!targetLane || !targetLane.cardsContainer) return;
+
+    targetLane.count++;
+
+    // Construct and inject job card
+    const cardEl = renderJobCardDOM(job);
+    targetLane.cardsContainer.appendChild(cardEl);
+  });
+
+  // Update count badges and display empty lane placeholder when count is 0
+  sortedLanes.forEach(lane => {
+    const laneData = laneMap[lane.id];
+    if (!laneData) return;
+    if (laneData.countBadge) {
+      laneData.countBadge.textContent = laneData.count;
+    }
+    if (laneData.count === 0 && laneData.cardsContainer) {
+      laneData.cardsContainer.innerHTML = `
+        <div class="jb-empty-lane">
+          <span class="material-symbols-outlined">${laneData.stageIcon}</span>
+          <span>No active jobs in lane</span>
+        </div>
+      `;
+    }
+  });
+
+  // Apply active sort order directly to the DOM cards
+  if (typeof window.sortJobBoardCards === 'function') {
+    window.sortJobBoardCards();
+  }
+}
+
+// Helper to construct a single interactive Job Card element
+function renderJobCardDOM(b) {
+  const card = document.createElement('div');
+  const assetNumber = b.assetNumber || b.assetId || 'AT11';
+  const assetColor = getPipelineAssetColor(assetNumber);
+  const dateTimeStr = formatJobDateTime(b.startTime, b.endTime);
+  const opName = (b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0)
+    ? b.wetHireResources[0].workerName
+    : (b.operatorName || 'Dry Hire / Unassigned');
+  const formattedJobId = b.id ? (b.id.startsWith('#') ? b.id.toUpperCase() : '#' + b.id.toUpperCase()) : '#JOB';
+  const isPriority = Boolean(b.isHighPriority);
+  const isDelayed = Boolean(b.isDelayed || b.statusBadge === 'Delayed');
+  const isExpanded = Boolean(window.__expandedJobCards && window.__expandedJobCards[b.id]);
+  const startTimeStamp = b.startTime ? new Date(b.startTime).getTime() : 0;
+
+  // Site contact lookup
+  const matchedClient = (typeof clientsRegistry !== 'undefined' && Array.isArray(clientsRegistry))
+    ? clientsRegistry.find(c => c && c.name && c.name.toLowerCase() === (b.clientName || b.client || '').toLowerCase())
+    : null;
+  const contactPhone = b.clientPhone || matchedClient?.phone || '0412 889 900';
+  const siteLocation = b.siteAddress || b.site || 'Brisbane Metro Site';
+  const scopeNotes = b.jobDescription || b.description || 'Standard operational deployment as per client specifications.';
+
+  card.id = `jb-card-${escapeHtml(b.id)}`;
+  card.className = `jb-card ${isPriority ? 'is-high-priority' : ''}`;
+  card.draggable = true;
+  card.setAttribute('data-booking-id', escapeHtml(b.id));
+  card.setAttribute('data-start-time', startTimeStamp);
+  card.setAttribute('ondragstart', `window.handleJobCardDragStart(event, '${escapeHtml(b.id)}')`);
+  card.setAttribute('ondragend', `window.handleJobCardDragEnd(event)`);
+  card.setAttribute('onclick', `editBooking('${escapeHtml(b.id)}')`);
+  card.title = 'Click to view/edit booking • Drag to change operational stage';
+  card.style.borderLeft = `4px solid ${assetColor}`;
+  card.style.setProperty('--asset-color', assetColor);
+
+  card.innerHTML = `
+    <!-- Top Row: Job ID, Priority Star, Status Pill -->
+    <div class="jb-card-top-row">
+      <span class="jb-card-id">${escapeHtml(formattedJobId)}</span>
+      <div class="jb-card-top-actions" onclick="event.stopPropagation()">
+        <button id="jb-priority-btn-${escapeHtml(b.id)}"
+                type="button"
+                class="jb-priority-btn ${isPriority ? 'is-active' : ''}"
+                onclick="window.toggleJobPriority('${escapeHtml(b.id)}')"
+                title="${isPriority ? 'High Priority (Click to remove)' : 'Mark as High Priority'}">
+          <span class="material-symbols-outlined">star</span>
+        </button>
+        <span id="jb-status-pill-${escapeHtml(b.id)}"
+              class="jb-status-pill ${isDelayed ? 'jb-status-delayed' : 'jb-status-on-schedule'}"
+              onclick="window.toggleJobStatusBadge('${escapeHtml(b.id)}')"
+              title="Status: ${isDelayed ? 'Delayed' : 'On-Schedule'} • Click to toggle">
+          ${isDelayed ? 'Delayed' : 'On-Schedule'}
+        </span>
+      </div>
+    </div>
+
+    <!-- Middle Row: Client Name and Asset Tag -->
+    <div class="jb-card-middle-row">
+      <span class="jb-card-client" title="${escapeHtml(b.clientName || b.client || 'Unassigned')}">${escapeHtml(b.clientName || b.client || 'Unassigned Client')}</span>
+      <span class="jb-card-asset-tag">${escapeHtml(assetNumber)}</span>
+    </div>
+
+    <!-- Bottom Row: Operator, Date/Time, and Expand Chevron -->
+    <div class="jb-card-bottom-row">
+      <span class="jb-card-operator" title="Operator: ${escapeHtml(opName)}">
+        <span class="material-symbols-outlined">person</span>
+        ${escapeHtml(opName)}
+      </span>
+      <div class="jb-card-bottom-meta" onclick="event.stopPropagation()">
+        <span class="jb-card-datetime" title="Scheduled Window">
+          <span class="material-symbols-outlined">schedule</span>
+          ${escapeHtml(dateTimeStr)}
+        </span>
+        <button id="jb-expand-btn-${escapeHtml(b.id)}"
+                type="button"
+                class="jb-expand-btn ${isExpanded ? 'is-expanded' : ''}"
+                onclick="window.toggleJobCardExpand('${escapeHtml(b.id)}')"
+                title="${isExpanded ? 'Collapse details' : 'Expand site and scope details'}">
+          <span class="material-symbols-outlined">expand_more</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Expandable Details Drawer -->
+    <div class="jb-card-details-drawer ${isExpanded ? 'is-open' : ''}"
+         id="jb-card-drawer-${escapeHtml(b.id)}"
+         onclick="event.stopPropagation()">
+      <div class="jb-detail-row">
+        <span class="jb-detail-label">
+          <span class="material-symbols-outlined">call</span> Contact
+        </span>
+        <span class="jb-detail-val">
+          <a href="tel:${escapeHtml(contactPhone)}" class="jb-phone-link" onclick="event.stopPropagation()">${escapeHtml(contactPhone)}</a>
+        </span>
+      </div>
+      <div class="jb-detail-row">
+        <span class="jb-detail-label">
+          <span class="material-symbols-outlined">location_on</span> Site
+        </span>
+        <span class="jb-detail-val" title="${escapeHtml(siteLocation)}">${escapeHtml(siteLocation)}</span>
+      </div>
+      <div class="jb-detail-row jb-scope-row">
+        <span class="jb-detail-label">
+          <span class="material-symbols-outlined">assignment</span> Scope
+        </span>
+        <span class="jb-detail-val">${escapeHtml(scopeNotes)}</span>
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+function moveBookingStatus(id, targetStageOrDir) {
+  const lanes = getActiveJobLanes();
+  const laneIds = lanes.map(l => l.id);
+
+  // Target window.ionConfig.data.jobs for mutations
+  let job = window.ionConfig?.data?.jobs?.find(x => x && (x.id === id || x.jobId === id || x.bookingId === id));
+  if (!job) {
+    let b = (typeof bookings !== 'undefined' && Array.isArray(bookings)) ? bookings.find(x => x && x.id === id) : null;
+    if (b) {
+      job = {
+        id: b.id,
+        jobId: b.id,
+        bookingId: b.id,
+        assetNumber: b.assetNumber,
+        clientName: b.clientName,
+        stage: normalizePipelineStage(b.status),
+        status: b.status,
+        siteAddress: b.siteAddress,
+        jobDescription: b.jobDescription,
+        operatorName: b.operatorName,
+        startTime: b.startTime,
+        endTime: b.endTime,
+        hireType: b.hireType,
+        revenue: 5000
+      };
+      if (window.ionConfig?.data?.jobs) {
+        window.ionConfig.data.jobs.push(job);
+      }
+    }
+  }
+
+  if (!job) return;
+
+  const currentStage = normalizePipelineStage(job.stage || job.status);
+  let targetStage = currentStage;
+
+  if (targetStageOrDir === 'next' || targetStageOrDir === 'prev') {
+    let idx = laneIds.indexOf(currentStage);
+    if (idx === -1) idx = 0;
+    const nextIdx = targetStageOrDir === 'next' ? idx + 1 : idx - 1;
+    if (nextIdx < 0 || nextIdx >= laneIds.length) return;
+    targetStage = laneIds[nextIdx];
+  } else if (typeof targetStageOrDir === 'string') {
+    targetStage = normalizePipelineStage(targetStageOrDir);
+  }
+
+  // Update job record in window.ionConfig.data.jobs
+  job.stage = targetStage;
+  const stageLabels = {
+    'scheduled': 'Scheduled / Dispatched',
+    'active': 'Active On-Site',
+    'pending-docket': 'Pending Docket',
+    'ready-invoicing': 'Ready for Invoicing'
+  };
+  job.status = stageLabels[targetStage] || targetStage;
+
+  if (targetStage === 'ready-invoicing') {
+    job.docketUploaded = true;
+    job.docketStatus = 'pushed';
+    job.contractSigned = true;
+  } else if (targetStage === 'pending-docket') {
+    job.swmsStatus = 'completed';
+    job.preStartStatus = 'completed';
+    job.contractSigned = true;
+  } else if (targetStage === 'active') {
+    job.swmsStatus = 'completed';
+    job.contractSigned = true;
+  } else if (targetStage === 'scheduled') {
+    job.contractSigned = true;
+  }
+
+  // Bi-directional sync with legacy bookings array if present
+  if (typeof bookings !== 'undefined' && Array.isArray(bookings)) {
+    const b = bookings.find(x => x && (x.id === id || x.id === job.bookingId));
+    if (b) {
+      b.stage = targetStage;
+      b.status = job.status;
+      if (job.docketUploaded) b.docketUploaded = true;
+      if (job.docketStatus) b.docketStatus = job.docketStatus;
+      if (job.contractSigned) b.contractSigned = true;
+      if (job.swmsStatus) b.swmsStatus = job.swmsStatus;
+      if (job.preStartStatus) b.preStartStatus = job.preStartStatus;
+    }
+  }
+
+  // Dispatch state update to master views
+  updateGlobalState();
+
+  // High-visibility feedback toast
+  if (typeof showToast === 'function') {
+    const targetLane = lanes.find(l => l.id === targetStage);
+    const laneLabel = targetLane ? (targetLane.label || targetLane.title) : targetStage;
+    const jobIdLabel = job.id ? (job.id.startsWith('#') ? job.id.toUpperCase() : '#' + job.id.toUpperCase()) : 'Job';
+    showToast(`${jobIdLabel} (${job.clientName || 'Client'}) moved to "${laneLabel}"`);
+  }
+}
+window.moveBookingStatus = moveBookingStatus;
+
+/* ── PHASE 3.5: JOB BOARD PIPELINE CSV EXPORT ── */
+function exportCsv() {
+  let jobsList = Array.isArray(window.ionConfig?.data?.jobs) ? [...window.ionConfig.data.jobs] : [];
+  if (jobsList.length === 0 && typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
+    jobsList = bookings.map(b => ({
+      id: b.id,
+      jobId: b.id,
+      bookingId: b.id,
+      assetNumber: b.assetNumber,
+      clientName: b.clientName,
+      stage: typeof normalizePipelineStage === 'function' ? normalizePipelineStage(b.status) : (b.stage || 'scheduled'),
+      status: b.status,
+      siteAddress: b.siteAddress,
+      jobDescription: b.jobDescription,
+      operatorName: b.operatorName,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      hireType: b.hireType,
+      revenue: b.revenue || 5000,
+      isHighPriority: b.isHighPriority,
+      isDelayed: b.isDelayed
+    }));
+  }
+
+  if (!jobsList || jobsList.length === 0) {
+    if (typeof showToast === 'function') {
+      showToast('No operational jobs available to export.', 'warning', 'Export Empty');
+    }
+    return;
+  }
+
+  // Support current active filter or search context if applied
+  const searchQuery = (document.getElementById('jb-search')?.value || '').toLowerCase().trim();
+  const stageFilter = document.getElementById('jb-stage-filter')?.value || 'ALL';
+
+  let exportData = [...jobsList];
+  if (stageFilter && stageFilter !== 'ALL') {
+    exportData = exportData.filter(j => {
+      const st = typeof normalizePipelineStage === 'function' ? normalizePipelineStage(j.stage || j.status) : (j.stage || j.status);
+      return st === stageFilter || (typeof normalizePipelineStage === 'function' && normalizePipelineStage(stageFilter) === st);
+    });
+  }
   if (searchQuery) {
-    filteredBookings = filteredBookings.filter(b => {
-      if (!b) return false;
-      const bId = String(b.id || '').toLowerCase();
-      const client = String(b.clientName || '').toLowerCase();
-      const asset = String(b.assetNumber || '').toLowerCase();
-      const op = String(b.operatorName || '').toLowerCase();
-      const desc = String(b.jobDescription || '').toLowerCase();
-      const addr = String(b.siteAddress || '').toLowerCase();
-      return bId.includes(searchQuery) ||
+    exportData = exportData.filter(j => {
+      const jId = String(j.id || j.jobId || '').toLowerCase();
+      const client = String(j.clientName || j.client || '').toLowerCase();
+      const asset = String(j.assetNumber || j.assetId || '').toLowerCase();
+      const op = String(j.operatorName || '').toLowerCase();
+      const desc = String(j.jobDescription || j.description || '').toLowerCase();
+      const addr = String(j.siteAddress || j.site || '').toLowerCase();
+      return jId.includes(searchQuery) ||
              client.includes(searchQuery) ||
              asset.includes(searchQuery) ||
              op.includes(searchQuery) ||
@@ -3701,346 +4357,88 @@ function renderJobBoard() {
     });
   }
 
-  // Enterprise Contextual Drawer Filters (Reactive State Binding)
-  const activeFilters = window.ionConfig?.activeFilters || {};
-  const jbFilters = window.drawerFilters?.jobBoard || {};
-  const startDate = activeFilters.startDate || jbFilters.startDate;
-  const endDate = activeFilters.endDate || jbFilters.endDate;
-  const activeClient = (activeFilters.client && activeFilters.client !== 'ALL') ? activeFilters.client : (jbFilters.client && jbFilters.client !== 'ALL' ? jbFilters.client : null);
-
-  if (startDate) {
-    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime >= startDate);
-  }
-  if (endDate) {
-    filteredBookings = filteredBookings.filter(b => b.startTime && b.startTime <= (endDate + 'T23:59:59'));
-  }
-  if (activeClient) {
-    const cLower = activeClient.toLowerCase();
-    filteredBookings = filteredBookings.filter(b => {
-      const cName = String(b.clientName || b.client || '').toLowerCase();
-      return cName.includes(cLower);
-    });
-  }
-  if (jbFilters.statuses && Array.isArray(jbFilters.statuses) && jbFilters.statuses.length > 0 && !jbFilters.statuses.includes('ALL')) {
-    filteredBookings = filteredBookings.filter(b => {
-      const stage = normalizePipelineStage(b.status).toUpperCase();
-      const rawStatus = (b.status || '').toUpperCase();
-      return jbFilters.statuses.some(s => s.toUpperCase() === stage || s.toUpperCase() === rawStatus);
-    });
-  }
-  if (jbFilters.site && jbFilters.site !== 'ALL') {
-    const siteLower = jbFilters.site.toLowerCase();
-    filteredBookings = filteredBookings.filter(b => {
-      const addr = (b.siteAddress || '').toLowerCase();
-      const sName = (b.siteName || '').toLowerCase();
-      const cName = (b.clientName || '').toLowerCase();
-      return addr.includes(siteLower) || sName.includes(siteLower) || cName.includes(siteLower);
-    });
-  }
-  if (jbFilters.hireType && jbFilters.hireType !== 'all') {
-    filteredBookings = filteredBookings.filter(b => (b.hireType || '').toLowerCase() === jbFilters.hireType.toLowerCase());
-  }
-  if (jbFilters.craneClass && jbFilters.craneClass !== 'ALL') {
-    const targetClass = jbFilters.craneClass.toLowerCase();
-    filteredBookings = filteredBookings.filter(b => {
-      const aNum = (b.assetNumber || '').toLowerCase();
-      const desc = (b.jobDescription || '').toLowerCase();
-      if (targetClass === 'franna') return aNum.includes('fc') || desc.includes('franna') || desc.includes('pick');
-      if (targetClass === 'all_terrain') return aNum.includes('at') || desc.includes('all-terrain') || desc.includes('terrain') || desc.includes('slewing');
-      if (targetClass === 'crawler') return aNum.includes('cr') || desc.includes('crawler') || desc.includes('lattice');
-      if (targetClass === 'excavator') return aNum.includes('ex') || desc.includes('excavator') || desc.includes('earthmoving');
-      if (targetClass === 'access') return aNum.includes('sc') || aNum.includes('bm') || desc.includes('scissor') || desc.includes('boom');
-      return true;
-    });
+  if (exportData.length === 0) {
+    exportData = [...jobsList];
   }
 
-  let html = `<div class="jb-board">`;
-
-  OPERATIONAL_PIPELINE_LANES.forEach(lane => {
-    // Filter bookings belonging to this lane
-    const laneBookings = filteredBookings.filter(b => b && normalizePipelineStage(b.status) === lane.id);
-    const laneDomId = 'jb-lane-' + lane.id.replace(/[^a-zA-Z0-9]/g, '-');
-    const isVisible = (stageFilter === 'ALL' || stageFilter === lane.id || normalizePipelineStage(stageFilter) === lane.id);
-
-    html += `
-      <div id="${laneDomId}" class="jb-lane kanban-lane" data-lane-id="${escapeHtml(lane.id)}" data-stage="${escapeHtml(lane.id)}"
-           style="display:${isVisible ? 'flex' : 'none'}; ${isVisible ? (stageFilter === 'ALL' ? 'flex:1 1 280px;' : 'flex:1 1 100%;') : ''}"
-           ondragover="window.handleJobLaneDragOver(event, '${escapeHtml(lane.id)}')"
-           ondragenter="window.handleJobLaneDragEnter(event, '${escapeHtml(lane.id)}')"
-           ondragleave="window.handleJobLaneDragLeave(event, '${escapeHtml(lane.id)}')"
-           ondrop="window.handleJobLaneDrop(event, '${escapeHtml(lane.id)}')">
-        
-        <!-- Lane Header -->
-        <div class="jb-lane-header" style="border-top:3px solid ${lane.color};">
-          <div class="jb-lane-header-top">
-            <div class="jb-lane-title">
-              <span class="material-symbols-outlined" style="color:${lane.color};">${lane.materialIcon}</span>
-              <span>${escapeHtml(lane.title)}</span>
-            </div>
-            <span class="jb-lane-count">${laneBookings.length}</span>
-          </div>
-          <div class="jb-lane-subtitle">${escapeHtml(lane.subtitle)}</div>
-        </div>
-
-        <!-- Lane Cards Container -->
-        <div class="jb-lane-cards" id="${laneDomId}-cards">
-    `;
-
-    if (laneBookings.length === 0) {
-      html += `
-        <div class="jb-empty-lane">
-          <span class="material-symbols-outlined">${lane.stageIcon}</span>
-          <span>No active jobs in lane</span>
-        </div>
-      `;
-    } else {
-      laneBookings.forEach(b => {
-        const assetColor = getPipelineAssetColor(b.assetNumber);
-        const dateTimeStr = formatJobDateTime(b.startTime, b.endTime);
-        const opName = (b.hireType === 'wet' && b.wetHireResources && b.wetHireResources.length > 0)
-          ? b.wetHireResources[0].workerName
-          : (b.operatorName || 'Dry Hire / Unassigned');
-        const formattedJobId = b.id ? (b.id.startsWith('#') ? b.id.toUpperCase() : '#' + b.id.toUpperCase()) : '#JOB';
-        const isPriority = Boolean(b.isHighPriority);
-        const isDelayed = Boolean(b.isDelayed || b.statusBadge === 'Delayed');
-        const isExpanded = Boolean(window.__expandedJobCards[b.id]);
-        const startTimeStamp = b.startTime ? new Date(b.startTime).getTime() : 0;
-
-        // Site contact lookup
-        const matchedClient = (typeof clientsRegistry !== 'undefined' && Array.isArray(clientsRegistry))
-          ? clientsRegistry.find(c => c && c.name && c.name.toLowerCase() === (b.clientName || '').toLowerCase())
-          : null;
-        const contactPhone = b.clientPhone || matchedClient?.phone || '0412 889 900';
-        const siteLocation = b.siteAddress || 'Perth Metro Site';
-        const scopeNotes = b.jobDescription || 'Standard operational deployment as per client specifications.';
-
-        html += `
-          <div id="jb-card-${escapeHtml(b.id)}"
-               class="jb-card ${isPriority ? 'is-high-priority' : ''}"
-               draggable="true"
-               data-booking-id="${escapeHtml(b.id)}"
-               data-start-time="${startTimeStamp}"
-               ondragstart="window.handleJobCardDragStart(event, '${escapeHtml(b.id)}')"
-               ondragend="window.handleJobCardDragEnd(event)"
-               onclick="editBooking('${escapeHtml(b.id)}')"
-               title="Click to view/edit booking • Drag to change operational stage"
-               style="border-left: 4px solid ${assetColor}; --asset-color: ${assetColor};">
-            
-            <!-- Top Row: Job ID (bold), Priority Star, and Status Pill Badge -->
-            <div class="jb-card-top-row">
-              <span class="jb-card-id">${escapeHtml(formattedJobId)}</span>
-              <div class="jb-card-top-actions" onclick="event.stopPropagation()">
-                <button id="jb-priority-btn-${escapeHtml(b.id)}"
-                        type="button"
-                        class="jb-priority-btn ${isPriority ? 'is-active' : ''}"
-                        onclick="window.toggleJobPriority('${escapeHtml(b.id)}')"
-                        title="${isPriority ? 'High Priority (Click to remove)' : 'Mark as High Priority'}">
-                  <span class="material-symbols-outlined">star</span>
-                </button>
-                <span id="jb-status-pill-${escapeHtml(b.id)}"
-                      class="jb-status-pill ${isDelayed ? 'jb-status-delayed' : 'jb-status-on-schedule'}"
-                      onclick="window.toggleJobStatusBadge('${escapeHtml(b.id)}')"
-                      title="Status: ${isDelayed ? 'Delayed' : 'On-Schedule'} • Click to toggle">
-                  ${isDelayed ? 'Delayed' : 'On-Schedule'}
-                </span>
-              </div>
-            </div>
-
-            <!-- Middle Row: Client Name (prominent) and Asset Code Tag -->
-            <div class="jb-card-middle-row">
-              <span class="jb-card-client" title="${escapeHtml(b.clientName || 'Unassigned')}">${escapeHtml(b.clientName || 'Unassigned Client')}</span>
-              <span class="jb-card-asset-tag">${escapeHtml(b.assetNumber || 'TBD')}</span>
-            </div>
-
-            <!-- Bottom Row: Assigned Operator Name, Date/Time, and Expand Chevron -->
-            <div class="jb-card-bottom-row">
-              <span class="jb-card-operator" title="Operator: ${escapeHtml(opName)}">
-                <span class="material-symbols-outlined">person</span>
-                ${escapeHtml(opName)}
-              </span>
-              <div class="jb-card-bottom-meta" onclick="event.stopPropagation()">
-                <span class="jb-card-datetime" title="Scheduled Window">
-                  <span class="material-symbols-outlined">schedule</span>
-                  ${escapeHtml(dateTimeStr)}
-                </span>
-                <button id="jb-expand-btn-${escapeHtml(b.id)}"
-                        type="button"
-                        class="jb-expand-btn ${isExpanded ? 'is-expanded' : ''}"
-                        onclick="window.toggleJobCardExpand('${escapeHtml(b.id)}')"
-                        title="${isExpanded ? 'Collapse details' : 'Expand site and scope details'}">
-                  <span class="material-symbols-outlined">expand_more</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Expandable Details Drawer (Collapsible) -->
-            <div class="jb-card-details-drawer ${isExpanded ? 'is-open' : ''}"
-                 id="jb-card-drawer-${escapeHtml(b.id)}"
-                 onclick="event.stopPropagation()">
-              <div class="jb-detail-row">
-                <span class="jb-detail-label">
-                  <span class="material-symbols-outlined">call</span> Contact
-                </span>
-                <span class="jb-detail-val">
-                  <a href="tel:${escapeHtml(contactPhone)}" class="jb-phone-link" onclick="event.stopPropagation()">${escapeHtml(contactPhone)}</a>
-                </span>
-              </div>
-              <div class="jb-detail-row">
-                <span class="jb-detail-label">
-                  <span class="material-symbols-outlined">location_on</span> Site
-                </span>
-                <span class="jb-detail-val" title="${escapeHtml(siteLocation)}">${escapeHtml(siteLocation)}</span>
-              </div>
-              <div class="jb-detail-row jb-scope-row">
-                <span class="jb-detail-label">
-                  <span class="material-symbols-outlined">assignment</span> Scope
-                </span>
-                <span class="jb-detail-val">${escapeHtml(scopeNotes)}</span>
-              </div>
-            </div>
-
-          </div>
-        `;
-      });
-    }
-
-    html += `
-        </div>
-      </div>
-    `;
+  const lanes = typeof getActiveJobLanes === 'function' ? getActiveJobLanes() : [];
+  const laneMap = {};
+  lanes.forEach(l => {
+    laneMap[l.id] = l.label || l.title || l.id;
   });
 
-  html += `</div>`;
-  container.innerHTML = html;
+  const headers = [
+    'Job ID',
+    'Client',
+    'Asset Code',
+    'Operational Stage',
+    'Operator',
+    'Hire Type',
+    'Site Location',
+    'Start Date/Time',
+    'End Date/Time',
+    'Status',
+    'Priority',
+    'Estimated Revenue (AUD)',
+    'Scope of Work'
+  ];
 
-  // Apply active sort order directly to the DOM cards
-  window.sortJobBoardCards();
-}
+  const escapeFn = typeof escapeCSVField === 'function' ? escapeCSVField : (val => {
+    if (val === null || val === undefined) return '""';
+    return `"${String(val).replace(/"/g, '""')}"`;
+  });
 
-function moveBookingStatus(id, targetStageOrDir) {
-  let b = bookings.find(x => x && x.id === id);
-  if (!b) {
-    const dj = (typeof mockDispatchData !== 'undefined' && Array.isArray(mockDispatchData))
-      ? mockDispatchData.find(j => j.id === id)
-      : null;
-    if (dj) {
-      const datePrefix = (currentDate instanceof Date && !isNaN(currentDate.getTime()))
-        ? currentDate.toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10);
-      b = {
-        id: dj.id,
-        assetNumber: dj.assetId,
-        clientName: dj.client,
-        siteAddress: dj.siteAddress,
-        startTime: `${datePrefix}T${dj.startTime}:00`,
-        endTime: `${datePrefix}T${dj.endTime}:00`,
-        status: dj.isInspection ? 'Ready for Invoicing' : 'Scheduled / Dispatched',
-        hireType: 'wet',
-        operatorName: dj.operatorName || 'Field Operator',
-        jobDescription: dj.jobDescription || 'Operational Assignment'
-      };
-      bookings.push(b);
-    }
+  const rows = exportData.map(j => {
+    const rawStage = j.stage || j.status || 'scheduled';
+    const normalizedStage = typeof normalizePipelineStage === 'function' ? normalizePipelineStage(rawStage) : rawStage;
+    const stageTitle = laneMap[normalizedStage] || normalizedStage;
+    const isPriority = Boolean(j.isHighPriority);
+    const isDelayed = Boolean(j.isDelayed || j.statusBadge === 'Delayed');
+    const statusLabel = isDelayed ? 'Delayed' : 'On-Schedule';
+    const priorityLabel = isPriority ? 'High Priority' : 'Standard';
+    const jobId = j.id || j.jobId || j.bookingId || '';
+    const formattedId = jobId ? (String(jobId).startsWith('#') ? String(jobId).toUpperCase() : '#' + String(jobId).toUpperCase()) : '';
+
+    return [
+      escapeFn(formattedId),
+      escapeFn(j.clientName || j.client || 'Unassigned Client'),
+      escapeFn(j.assetNumber || j.assetId || 'TBD'),
+      escapeFn(stageTitle),
+      escapeFn(j.operatorName || j.workerName || 'Dry Hire / Pool'),
+      escapeFn(j.hireType ? (j.hireType.charAt(0).toUpperCase() + j.hireType.slice(1) + ' Hire') : 'Wet Hire'),
+      escapeFn(j.siteAddress || j.site || ''),
+      escapeFn(j.startTime || ''),
+      escapeFn(j.endTime || ''),
+      escapeFn(statusLabel),
+      escapeFn(priorityLabel),
+      escapeFn(j.revenue ? `$${Number(j.revenue).toLocaleString()}` : '$0'),
+      escapeFn(j.jobDescription || j.description || '')
+    ];
+  });
+
+  const csvContent = [headers.map(escapeFn).join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const dateStr = new Date().toISOString().split('T')[0];
+
+  if (typeof downloadCSVFile === 'function') {
+    downloadCSVFile(csvContent, `ion_job_board_${dateStr}.csv`);
+  } else {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ion_job_board_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
-  if (!b) return;
-
-  const laneIds = OPERATIONAL_PIPELINE_LANES.map(l => l.id);
-  const currentNormalized = normalizePipelineStage(b.status);
-  let targetStage = currentNormalized;
-
-  if (targetStageOrDir === 'next' || targetStageOrDir === 'prev') {
-    let idx = laneIds.indexOf(currentNormalized);
-    if (idx === -1) idx = 1;
-    const nextIdx = targetStageOrDir === 'next' ? idx + 1 : idx - 1;
-    if (nextIdx < 0 || nextIdx >= laneIds.length) return;
-    targetStage = laneIds[nextIdx];
-  } else if (typeof targetStageOrDir === 'string') {
-    targetStage = normalizePipelineStage(targetStageOrDir);
-  }
-
-  // State update simulation
-  b.status = targetStage;
-
-  if (targetStage === 'Ready for Invoicing') {
-    b.docketUploaded = true;
-    b.docketStatus = 'pushed';
-    b.contractSigned = true;
-  } else if (targetStage === 'Pending Docket') {
-    b.swmsStatus = 'completed';
-    b.preStartStatus = 'completed';
-    b.contractSigned = true;
-  } else if (targetStage === 'Active On-Site') {
-    b.swmsStatus = 'completed';
-    b.contractSigned = true;
-  } else if (targetStage === 'Scheduled / Dispatched') {
-    b.contractSigned = true;
-  }
-
-  // Instant UI reflection: update card stage icon if card is in DOM
-  const cardEl = document.getElementById('jb-card-' + b.id);
-  if (cardEl) {
-    const laneMeta = OPERATIONAL_PIPELINE_LANES.find(l => l.id === targetStage);
-    if (laneMeta) {
-      const stageIconEl = cardEl.querySelector('.jb-card-stage-icon');
-      if (stageIconEl) {
-        stageIconEl.innerHTML = `<span class="material-symbols-outlined" style="color:${laneMeta.color};">${laneMeta.stageIcon}</span>`;
-        stageIconEl.title = `Stage: ${laneMeta.title}`;
-      }
-    }
-  }
-
-  // Sync with window.ionConfig.jobPipeline for Executive Dashboard telemetry
-  if (window.ionConfig && Array.isArray(window.ionConfig.jobPipeline)) {
-    const stageKeyMap = {
-      'Scheduled / Dispatched': 'scheduled',
-      'Active On-Site': 'active',
-      'Pending Docket': 'pending-docket',
-      'Ready for Invoicing': 'ready-invoicing',
-      'Invoiced': 'ready-invoicing'
-    };
-    const targetStageKey = stageKeyMap[targetStage] || normalizeJobStage(targetStage);
-    let pipelineJob = window.ionConfig.jobPipeline.find(pj => pj.bookingId === b.id || pj.id === b.id || pj.jobId === b.id);
-    if (pipelineJob) {
-      pipelineJob.stage = targetStageKey;
-    } else {
-      const dur = Math.max(1, (new Date(b.endTime) - new Date(b.startTime)) / 3600000 || 8);
-      const prefix = (b.assetNumber || 'AT').replace(/[0-9]/g, '');
-      const rate = (typeof HOURLY_RATES !== 'undefined' && HOURLY_RATES[prefix]) ? HOURLY_RATES[prefix] : 200;
-      window.ionConfig.jobPipeline.push({
-        id: b.id,
-        jobId: b.id,
-        bookingId: b.id,
-        assetId: b.assetNumber || 'AT11',
-        assetNumber: b.assetNumber || 'AT11',
-        client: b.clientName || 'Client',
-        clientName: b.clientName || 'Client',
-        stage: targetStageKey,
-        revenue: Math.round(dur * rate),
-        site: b.siteAddress || 'Site Address',
-        description: b.jobDescription || 'Hire Operations',
-        operatorName: b.operatorName || 'Field Operator'
-      });
-    }
-  }
-
-  // Re-render Job Board and Calendar to maintain complete system coherence
-  renderJobBoard();
-  if (typeof renderCalendar === 'function') {
-    renderCalendar();
-  }
-  if (typeof renderAllViews === 'function') {
-    renderAllViews();
-  } else if (typeof renderExecutiveDashboard === 'function') {
-    renderExecutiveDashboard();
-  }
-
-  // Provide high-visibility feedback toast
   if (typeof showToast === 'function') {
-    const jobIdLabel = b.id ? (b.id.startsWith('#') ? b.id.toUpperCase() : '#' + b.id.toUpperCase()) : 'Job';
-    showToast(`${jobIdLabel} (${b.clientName || 'Client'}) moved to "${targetStage}"`);
+    showToast(`Successfully exported ${exportData.length} jobs to CSV.`, 'success', 'Export Complete');
   }
 }
+window.exportCsv = exportCsv;
+window.exportJobBoardCSV = exportCsv;
 
 /* ── PHASE 4: CLIENTS DIRECTORY & DOCUWARE SMART CONNECT ── */
 function openClientStatementPDF(clientName){
@@ -5767,6 +6165,8 @@ function downloadCSVFile(csvContent, filename) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+window.escapeCSVField = escapeCSVField;
+window.downloadCSVFile = downloadCSVFile;
 
 function exportAdminFleetCSV() {
   const fleet = window.ionConfig?.fleetRegistry || [];
@@ -6528,6 +6928,17 @@ function hydrateIonConfigFromStorage() {
       window.ionConfig.schedulingRules = Object.assign(window.ionConfig.schedulingRules || {}, parsed);
     }
   } catch(e) {}
+
+  try {
+    const savedLanes = localStorage.getItem('ion_workflow_lanes');
+    if (savedLanes) {
+      const parsed = JSON.parse(savedLanes);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        if (!window.ionConfig.settings) window.ionConfig.settings = {};
+        window.ionConfig.settings.jobLanes = parsed;
+      }
+    }
+  } catch(e) {}
 }
 window.hydrateIonConfigFromStorage = hydrateIonConfigFromStorage;
 
@@ -6738,8 +7149,437 @@ function renderSystemSettingsView() {
   }
 
   initSettingsSaveButtons();
+  renderSettingsView();
 }
 window.renderSystemSettingsView = renderSystemSettingsView;
+
+/**
+ * Re-indexes order numbers and updates up/down button states for all workflow stage rows
+ */
+function reindexWorkflowStageRows() {
+  const listContainer = document.getElementById('workflow-lanes-list');
+  if (!listContainer) return;
+
+  const rows = listContainer.querySelectorAll('.workflow-stage-row');
+  rows.forEach((row, idx) => {
+    const orderEl = row.querySelector('.workflow-stage-order');
+    if (orderEl) orderEl.textContent = `#${idx + 1}`;
+
+    const upBtn = row.querySelector('[data-action="move-stage-up"]');
+    const downBtn = row.querySelector('[data-action="move-stage-down"]');
+    if (upBtn) {
+      if (idx === 0) {
+        upBtn.setAttribute('disabled', 'true');
+        upBtn.style.opacity = '0.3';
+        upBtn.style.cursor = 'not-allowed';
+      } else {
+        upBtn.removeAttribute('disabled');
+        upBtn.style.opacity = '1';
+        upBtn.style.cursor = 'pointer';
+      }
+    }
+    if (downBtn) {
+      if (idx === rows.length - 1) {
+        downBtn.setAttribute('disabled', 'true');
+        downBtn.style.opacity = '0.3';
+        downBtn.style.cursor = 'not-allowed';
+      } else {
+        downBtn.removeAttribute('disabled');
+        downBtn.style.opacity = '1';
+        downBtn.style.cursor = 'pointer';
+      }
+    }
+  });
+}
+window.reindexWorkflowStageRows = reindexWorkflowStageRows;
+
+/**
+ * Initializes HTML5 Drag-and-Drop on the workflow lanes container
+ */
+function initWorkflowDragAndDrop() {
+  const container = document.getElementById('workflow-lanes-list');
+  if (!container || container.__dndInitialized) return;
+  container.__dndInitialized = true;
+
+  let draggedItem = null;
+
+  container.addEventListener('dragstart', (e) => {
+    const row = e.target.closest('.workflow-stage-row');
+    if (!row) return;
+    draggedItem = row;
+    row.classList.add('is-dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+    }
+    setTimeout(() => {
+      if (draggedItem) draggedItem.style.opacity = '0.4';
+    }, 0);
+  });
+
+  container.addEventListener('dragend', (e) => {
+    const row = e.target.closest('.workflow-stage-row') || draggedItem;
+    if (row) {
+      row.classList.remove('is-dragging');
+      row.style.opacity = '1';
+    }
+    container.querySelectorAll('.workflow-stage-row').forEach(r => {
+      r.style.borderTop = '';
+      r.style.borderBottom = '';
+      r.classList.remove('is-dragging', 'drag-over-top', 'drag-over-bottom');
+    });
+    draggedItem = null;
+    reindexWorkflowStageRows();
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    if (!draggedItem) return;
+
+    const targetRow = e.target.closest('.workflow-stage-row');
+    if (!targetRow || targetRow === draggedItem) return;
+
+    const rect = targetRow.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      targetRow.style.borderTop = '2px solid var(--accent-copper, #d97706)';
+      targetRow.style.borderBottom = '';
+    } else {
+      targetRow.style.borderBottom = '2px solid var(--accent-copper, #d97706)';
+      targetRow.style.borderTop = '';
+    }
+  });
+
+  container.addEventListener('dragleave', (e) => {
+    const targetRow = e.target.closest('.workflow-stage-row');
+    if (targetRow) {
+      targetRow.style.borderTop = '';
+      targetRow.style.borderBottom = '';
+    }
+  });
+
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    const targetRow = e.target.closest('.workflow-stage-row');
+    if (targetRow && targetRow !== draggedItem) {
+      const rect = targetRow.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        container.insertBefore(draggedItem, targetRow);
+      } else {
+        container.insertBefore(draggedItem, targetRow.nextSibling);
+      }
+    }
+    container.querySelectorAll('.workflow-stage-row').forEach(r => {
+      r.style.borderTop = '';
+      r.style.borderBottom = '';
+      r.style.opacity = '1';
+      r.classList.remove('is-dragging', 'drag-over-top', 'drag-over-bottom');
+    });
+    draggedItem = null;
+    reindexWorkflowStageRows();
+  });
+}
+window.initWorkflowDragAndDrop = initWorkflowDragAndDrop;
+
+/**
+ * Creates HTML for a workflow stage row with drag-and-drop and sort-by-order controls
+ */
+function createWorkflowStageRowHtml(lane, idx, totalCount) {
+  const label = lane.label || lane.title || lane.id;
+  const isFirst = idx === 0;
+  const isLast = idx === totalCount - 1;
+
+  return `
+    <div class="workflow-stage-row" data-stage-row draggable="true" data-stage-id="${escapeHtml(lane.id)}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-card, #ffffff);border:1px solid var(--border-light, #e2e8f0);border-radius:6px;transition:all 0.15s ease;">
+      <div class="drag-handle" style="color:var(--text-muted);cursor:grab;display:flex;align-items:center;justify-content:center;padding:2px;" title="Drag to reorder sequence">
+        <span class="material-symbols-outlined" style="font-size:20px;">drag_indicator</span>
+      </div>
+      <span class="workflow-stage-order" style="font-size:12px;font-weight:700;color:var(--accent-copper, #d97706);min-width:28px;">#${idx + 1}</span>
+      <input type="text" class="workflow-stage-input" data-original-id="${escapeHtml(lane.id)}" data-original-label="${escapeHtml(label)}" value="${escapeHtml(label)}" placeholder="Stage Name (e.g. Field Review)" style="flex:1;height:36px;padding:0 10px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);font-size:13px;" />
+      <div class="workflow-stage-arrows" style="display:flex;align-items:center;gap:2px;">
+        <button type="button" class="btn-icon btn-move-stage-up" data-action="move-stage-up" title="Move Up in Sequence" ${isFirst ? 'disabled style="opacity:0.3;cursor:not-allowed;padding:4px;"' : 'style="cursor:pointer;padding:4px;"'}>
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_upward</span>
+        </button>
+        <button type="button" class="btn-icon btn-move-stage-down" data-action="move-stage-down" title="Move Down in Sequence" ${isLast ? 'disabled style="opacity:0.3;cursor:not-allowed;padding:4px;"' : 'style="cursor:pointer;padding:4px;"'}>
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_downward</span>
+        </button>
+      </div>
+      <button type="button" class="btn-icon btn-remove-stage" data-action="remove-workflow-stage" title="Remove stage" style="background:transparent;border:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+      </button>
+    </div>
+  `;
+}
+
+/**
+ * Appends a new workflow stage from input field
+ */
+function addWorkflowStageFromInput(providedLabel) {
+  const input = document.getElementById('new-workflow-stage-name');
+  const label = (providedLabel !== undefined ? providedLabel : (input?.value || '')).trim();
+  if (!label) {
+    if (input) input.focus();
+    return;
+  }
+
+  const listContainer = document.getElementById('workflow-lanes-list');
+  if (!listContainer) return;
+
+  const currentCount = listContainer.querySelectorAll('.workflow-stage-row').length;
+  const urlSafeId = label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || `stage-${currentCount + 1}`;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = createWorkflowStageRowHtml({
+    id: urlSafeId,
+    label: label,
+    order: currentCount + 1
+  }, currentCount, currentCount + 1);
+
+  const newRow = tempDiv.firstElementChild;
+  listContainer.appendChild(newRow);
+  reindexWorkflowStageRows();
+
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+}
+window.addWorkflowStageFromInput = addWorkflowStageFromInput;
+
+/**
+ * Prompt 1.2 & User Request: System Settings Workflow Configuration UI & Read Engine
+ * Dynamically renders the 'Workflow Configuration' panel inside #settings-view
+ * based on window.ionConfig.settings.jobLanes with drag-and-drop & sort-by-order controls.
+ */
+function renderSettingsView() {
+  const settingsView = document.getElementById('settings-view');
+  if (!settingsView) return;
+
+  let card = document.getElementById('workflow-configuration-card');
+  let grid = settingsView.querySelector('.settings-grid');
+
+  // If card is not yet in DOM, dynamically construct and prepend to settings grid
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'workflow-configuration-card';
+    card.className = 'settings-card glass-panel';
+    card.style.gridColumn = '1 / -1';
+    card.style.marginBottom = '8px';
+
+    if (grid) {
+      grid.insertBefore(card, grid.firstChild);
+    } else {
+      settingsView.appendChild(card);
+    }
+  }
+
+  let lanesList = document.getElementById('workflow-lanes-list');
+  let newStageSection = card.querySelector('.workflow-new-stage-section');
+
+  if (!lanesList || !newStageSection) {
+    card.innerHTML = `
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-copper, #d97706);">view_kanban</span>
+        <span>Workflow Configuration</span>
+      </div>
+      <div class="settings-section-subtitle">Define operational Job Board pipeline stages, sequence orders, and dispatch workflows. Drag handles or use order arrows to rearrange the sequence.</div>
+      
+      <div id="workflow-lanes-list" class="workflow-lanes-list" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;"></div>
+
+      <!-- Dedicated Field for New Workflow Stage -->
+      <div class="workflow-new-stage-section" style="margin-top:14px;padding:12px 14px;background:var(--bg-secondary, rgba(248,250,252,0.6));border:1px dashed var(--border-light, #cbd5e1);border-radius:8px;">
+        <label for="new-workflow-stage-name" style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-secondary);">Add New Workflow Stage</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="new-workflow-stage-name" class="workflow-new-stage-input" placeholder="Enter new stage title (e.g. Field Review, Invoicing Hold)" style="flex:1;height:38px;padding:0 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card, #ffffff);color:var(--text-primary);font-size:13px;" />
+          <button type="button" class="btn-secondary" id="btn-add-workflow-stage" data-action="add-workflow-stage" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;">
+            <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+            <span>Add Stage</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border-light, rgba(226,232,240,0.8));">
+        <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">low_priority</span>
+          <span>Drag handles or click ↑/↓ arrows to reorder. Click Save to persist.</span>
+        </div>
+        <button type="button" class="btn-primary settings-save-btn" id="btn-save-workflow-config" data-action="save-workflow-config" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span>Save Configuration</span>
+        </button>
+      </div>
+    `;
+    lanesList = document.getElementById('workflow-lanes-list');
+  }
+
+  // Bind Enter key on new stage input if present
+  const newStageInput = document.getElementById('new-workflow-stage-name');
+  if (newStageInput && !newStageInput.__enterBound) {
+    newStageInput.__enterBound = true;
+    newStageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addWorkflowStageFromInput();
+      }
+    });
+  }
+
+  // Prevent clobbering input field currently focused by the user
+  const activeEl = document.activeElement;
+  if (card.contains && activeEl && card.contains(activeEl) && activeEl.tagName === 'INPUT') {
+    return;
+  }
+
+  const rawLanes = (window.ionConfig?.settings?.jobLanes && Array.isArray(window.ionConfig.settings.jobLanes))
+    ? window.ionConfig.settings.jobLanes
+    : [
+        { id: 'scheduled', label: 'Scheduled', order: 1 },
+        { id: 'active', label: 'Active On-Site', order: 2 },
+        { id: 'pending-docket', label: 'Pending Docket', order: 3 },
+        { id: 'ready-invoicing', label: 'Ready for Invoicing', order: 4 }
+      ];
+
+  const sortedLanes = [...rawLanes].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+  if (lanesList) {
+    lanesList.innerHTML = sortedLanes.map((lane, idx) => {
+      return createWorkflowStageRowHtml(lane, idx, sortedLanes.length);
+    }).join('');
+
+    initWorkflowDragAndDrop();
+    reindexWorkflowStageRows();
+  }
+}
+window.renderSettingsView = renderSettingsView;
+
+/**
+ * System Settings Write Engine & Persistence
+ * Reads all workflow stage inputs from the DOM, regenerates window.ionConfig.settings.jobLanes,
+ * auto-generates URL-safe IDs, assigns sequential orders, migrates jobs if renamed,
+ * persists to localStorage ('ion_workflow_lanes'), shows a success toast, and calls renderAllViews().
+ */
+function saveWorkflowConfiguration() {
+  // If user typed into the 'Add New Workflow Stage' field without clicking 'Add Stage' first, add it now
+  const newStageInput = document.getElementById('new-workflow-stage-name');
+  const pendingNewStage = (newStageInput?.value || '').trim();
+  if (pendingNewStage) {
+    addWorkflowStageFromInput(pendingNewStage);
+  }
+
+  const stageRows = document.querySelectorAll('#workflow-lanes-list .workflow-stage-row, #settings-view .workflow-stage-row');
+  const newLanes = [];
+  const stageRenames = {};
+
+  stageRows.forEach((row, index) => {
+    const input = row.querySelector('.workflow-stage-input');
+    if (!input) return;
+
+    const label = (input.value || '').trim();
+    if (!label) return; // Skip empty rows
+
+    const originalId = input.getAttribute('data-original-id');
+    const originalLabel = input.getAttribute('data-original-label');
+
+    // Auto-generate URL-safe id for any new labels
+    const urlSafeId = label
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    let laneId = urlSafeId || `stage-${index + 1}`;
+
+    // If existing lane and label did NOT change, retain stable originalId
+    if (originalId && originalLabel && originalLabel.toLowerCase() === label.toLowerCase()) {
+      laneId = originalId;
+    } else if (originalId && originalId !== laneId) {
+      // Stage was renamed: record mapping so existing jobs migrate seamlessly
+      stageRenames[originalId] = laneId;
+    }
+
+    // Preserve existing metadata or assign sensible defaults
+    const existingLane = (window.ionConfig?.settings?.jobLanes || []).find(l => l.id === originalId || l.id === laneId);
+    const color = existingLane?.color || (laneId.includes('hold') ? '#f59e0b' : laneId.includes('review') ? '#8b5cf6' : '#0284c7');
+    const icon = existingLane?.materialIcon || (laneId.includes('hold') ? 'pause_circle' : laneId.includes('review') ? 'fact_check' : 'view_kanban');
+
+    newLanes.push({
+      id: laneId,
+      label: label,
+      title: label,
+      order: index + 1,
+      color: color,
+      materialIcon: icon
+    });
+  });
+
+  if (newLanes.length === 0) {
+    if (typeof showToast === 'function') {
+      showToast('Please specify at least one workflow stage before saving.', 'warning', 'Validation Warning');
+    }
+    return;
+  }
+
+  // Rebuild window.ionConfig.settings.jobLanes array from scratch based on these inputs
+  if (!window.ionConfig) window.ionConfig = {};
+  if (!window.ionConfig.settings) window.ionConfig.settings = {};
+  window.ionConfig.settings.jobLanes = newLanes;
+
+  // Persist to localStorage for long-term survival across reloads and tab navigation
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('ion_workflow_lanes', JSON.stringify(newLanes));
+    }
+  } catch (e) {
+    console.warn('Could not persist workflow lanes to localStorage:', e);
+  }
+
+  // Migrate any jobs belonging to renamed stages
+  if (Object.keys(stageRenames).length > 0) {
+    if (Array.isArray(window.ionConfig?.data?.jobs)) {
+      window.ionConfig.data.jobs.forEach(job => {
+        if (job && stageRenames[job.stage]) {
+          job.stage = stageRenames[job.stage];
+          const targetLane = newLanes.find(l => l.id === job.stage);
+          if (targetLane) job.status = targetLane.label;
+        }
+      });
+    }
+    if (typeof bookings !== 'undefined' && Array.isArray(bookings)) {
+      bookings.forEach(b => {
+        if (b && stageRenames[b.stage]) {
+          b.stage = stageRenames[b.stage];
+          const targetLane = newLanes.find(l => l.id === b.stage);
+          if (targetLane) b.status = targetLane.label;
+        }
+      });
+    }
+  }
+
+  // Clear new stage input field
+  if (newStageInput) {
+    newStageInput.value = '';
+  }
+
+  // Refresh settings inputs with newly synchronized attributes
+  renderSettingsView();
+
+  // Display a brief success message
+  if (typeof showToast === 'function') {
+    showToast('Workflow configuration saved and persisted successfully.', 'success', 'Settings Saved');
+  }
+
+  // Immediately call renderAllViews() to refresh Job Board and other views
+  renderAllViews();
+}
+window.saveWorkflowConfiguration = saveWorkflowConfiguration;
 
 function saveEdmsSettings() {
   if (!window.ionConfig) window.ionConfig = {};
@@ -7925,6 +8765,8 @@ function initApp() {
 
   // 6. System Settings
   if (typeof initSettingsSaveButtons === 'function') initSettingsSaveButtons();
+  if (typeof renderSettingsView === 'function') renderSettingsView();
+  if (typeof renderSystemSettingsView === 'function') renderSystemSettingsView();
 
   // 6. Contextual Control Drawer & Dynamic Grid Zoom Init
   if (typeof setSchedulerZoom === 'function') setSchedulerZoom(80);
@@ -9088,9 +9930,55 @@ function getSettingsDrawerHTML() {
 function bindSettingsDrawerEvents() {}
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   MASTER REACTIVE STATE SYNCHRONIZER: renderAllViews()
+   MASTER REACTIVE STATE SYNCHRONIZER: updateGlobalState() & renderAllViews()
+   Targeting window.ionConfig.data for mutations and reads
    ───────────────────────────────────────────────────────────────────────────── */
+function updateGlobalState(mutator) {
+  if (!window.ionConfig) {
+    window.ionConfig = { settings: {}, data: { jobs: [], fleet: [], workers: [], activeFilters: {} } };
+  }
+  if (!window.ionConfig.data) {
+    window.ionConfig.data = { jobs: [], fleet: [], workers: [], activeFilters: {} };
+  }
+  if (!window.ionConfig.settings) {
+    window.ionConfig.settings = { jobLanes: [], assetClasses: [] };
+  }
+
+  // Apply mutation targeting window.ionConfig.data
+  if (typeof mutator === 'function') {
+    mutator(window.ionConfig.data, window.ionConfig.settings);
+  } else if (mutator && typeof mutator === 'object') {
+    if (mutator.data) Object.assign(window.ionConfig.data, mutator.data);
+    if (mutator.settings) Object.assign(window.ionConfig.settings, mutator.settings);
+    if (mutator.jobs) window.ionConfig.data.jobs = mutator.jobs;
+    if (mutator.fleet) window.ionConfig.data.fleet = mutator.fleet;
+  }
+
+  // Ensure bi-directional consistency with global bookings if present
+  if (Array.isArray(window.ionConfig.data.jobs) && typeof bookings !== 'undefined' && Array.isArray(bookings)) {
+    window.ionConfig.data.jobs.forEach(j => {
+      const b = bookings.find(x => x && (x.id === j.id || x.id === j.bookingId || x.bookingId === j.id));
+      if (b) {
+        b.stage = j.stage;
+        b.status = j.status;
+        if (j.docketUploaded !== undefined) b.docketUploaded = j.docketUploaded;
+        if (j.docketStatus !== undefined) b.docketStatus = j.docketStatus;
+        if (j.contractSigned !== undefined) b.contractSigned = j.contractSigned;
+      }
+    });
+  }
+
+  renderAllViews();
+}
+window.updateGlobalState = updateGlobalState;
+
 function renderAllViews() {
+  // Ensure data exists in window.ionConfig.data
+  if (!window.ionConfig?.data) {
+    window.ionConfig = window.ionConfig || {};
+    window.ionConfig.data = window.ionConfig.data || { jobs: [], fleet: [], workers: [], activeFilters: {} };
+  }
+
   if (typeof renderCalendar === 'function') renderCalendar();
   if (typeof renderJobBoard === 'function') renderJobBoard();
   if (typeof renderComplianceDashboard === 'function') renderComplianceDashboard();
@@ -9103,6 +9991,7 @@ function renderAllViews() {
   if (typeof renderExecutiveDashboard === 'function') renderExecutiveDashboard();
   if (typeof renderAnalyticsView === 'function') renderAnalyticsView();
   if (typeof renderAnalytics === 'function') renderAnalytics();
+  if (typeof renderSettingsView === 'function') renderSettingsView();
   if (typeof syncDrawerControls === 'function') syncDrawerControls();
 }
 window.renderAllViews = renderAllViews;
@@ -9156,6 +10045,62 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'control-drawer-backdrop') {
     e.preventDefault();
     if (typeof closeControlDrawer === 'function') closeControlDrawer();
+    return;
+  }
+
+  // ── Prompt 1.2: Workflow Configuration Write Engine (Event Delegation) ──
+  const addStageBtn = e.target.closest('[data-action="add-workflow-stage"], #btn-add-workflow-stage');
+  if (addStageBtn) {
+    e.preventDefault();
+    const newStageInput = document.getElementById('new-workflow-stage-name');
+    const label = (newStageInput?.value || '').trim();
+    if (label) {
+      addWorkflowStageFromInput(label);
+    } else {
+      addWorkflowStageFromInput('New Stage');
+    }
+    return;
+  }
+
+  const moveUpBtn = e.target.closest('[data-action="move-stage-up"], .btn-move-stage-up');
+  if (moveUpBtn) {
+    e.preventDefault();
+    const row = moveUpBtn.closest('.workflow-stage-row');
+    if (row && row.previousElementSibling && row.previousElementSibling.classList.contains('workflow-stage-row')) {
+      row.parentNode.insertBefore(row, row.previousElementSibling);
+      reindexWorkflowStageRows();
+    }
+    return;
+  }
+
+  const moveDownBtn = e.target.closest('[data-action="move-stage-down"], .btn-move-stage-down');
+  if (moveDownBtn) {
+    e.preventDefault();
+    const row = moveDownBtn.closest('.workflow-stage-row');
+    if (row && row.nextElementSibling && row.nextElementSibling.classList.contains('workflow-stage-row')) {
+      row.parentNode.insertBefore(row.nextElementSibling, row);
+      reindexWorkflowStageRows();
+    }
+    return;
+  }
+
+  const removeStageBtn = e.target.closest('[data-action="remove-workflow-stage"], .btn-remove-stage');
+  if (removeStageBtn) {
+    e.preventDefault();
+    const row = removeStageBtn.closest('.workflow-stage-row');
+    if (row) {
+      row.remove();
+      reindexWorkflowStageRows();
+    }
+    return;
+  }
+
+  const saveConfigBtn = e.target.closest('[data-action="save-workflow-config"], #btn-save-workflow-config');
+  if (saveConfigBtn) {
+    e.preventDefault();
+    if (typeof saveWorkflowConfiguration === 'function') {
+      saveWorkflowConfiguration();
+    }
     return;
   }
 

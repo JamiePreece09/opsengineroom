@@ -1085,6 +1085,42 @@
     </div>
 
   <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:20px;padding:20px 24px;">
+    <!-- Card 0: Workflow Configuration (Low-Code Pipeline Lanes) -->
+    <div class="settings-card glass-panel" id="workflow-configuration-card" style="grid-column: 1 / -1;">
+      <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--accent-copper, #d97706);">view_kanban</span>
+        <span>Workflow Configuration</span>
+      </div>
+      <div class="settings-section-subtitle">Define operational Job Board pipeline stages, sequence orders, and dispatch workflows. Drag handles or use order arrows to rearrange the sequence.</div>
+      
+      <div id="workflow-lanes-list" class="workflow-lanes-list" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+        <!-- Populated dynamically by renderSettingsView() -->
+      </div>
+
+      <!-- Dedicated Field for New Workflow Stage -->
+      <div class="workflow-new-stage-section" style="margin-top:14px;padding:12px 14px;background:var(--bg-secondary, rgba(248,250,252,0.6));border:1px dashed var(--border-light, #cbd5e1);border-radius:8px;">
+        <label for="new-workflow-stage-name" style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-secondary);">Add New Workflow Stage</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="new-workflow-stage-name" class="workflow-new-stage-input" placeholder="Enter new stage title (e.g. Field Review, Invoicing Hold)" style="flex:1;height:38px;padding:0 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card, #ffffff);color:var(--text-primary);font-size:13px;" />
+          <button type="button" class="btn-secondary" id="btn-add-workflow-stage" data-action="add-workflow-stage" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;">
+            <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+            <span>Add Stage</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border-light, rgba(226,232,240,0.8));">
+        <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">low_priority</span>
+          <span>Drag handles or click ↑/↓ arrows to reorder. Click Save to persist.</span>
+        </div>
+        <button type="button" class="btn-primary settings-save-btn" id="btn-save-workflow-config" data-action="save-workflow-config" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+          <span>Save Configuration</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Card 1: Enterprise Document Management (EDMS) Sync -->
     <div class="settings-card glass-panel">
       <div class="settings-section-title" style="display:flex;align-items:center;gap:8px;">
