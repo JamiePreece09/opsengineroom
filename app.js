@@ -419,36 +419,56 @@ function setCalendarView(view){
  const selectBox = document.getElementById('calendar-view-select');
  if(selectBox && selectBox.value !== view) selectBox.value = view;
  
- document.querySelectorAll('.segmented-view-btn').forEach(b=>{
-   b.classList.toggle('active', b.id === `view-btn-${view.toLowerCase()}`);
- });
- document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===view));
- 
- const hoursCtrl=document.getElementById('display-hours-control');
- if(hoursCtrl)hoursCtrl.style.display=(view==='Month')?'none':'flex';
- // Show toggle for Day, Week, Work Week — hide for Month
- const transposeBtn=document.getElementById('day-transpose-btn');
- if(transposeBtn){
-  const show=(view==='Day'||view==='Week'||view==='Work Week');
-  transposeBtn.style.display=show?'inline-flex':'none';
-  if(show)updateTransposeLabel();
- }
- renderCalendar();
+  document.querySelectorAll('.segmented-view-btn').forEach(b=>{
+    b.classList.toggle('active', b.id === `view-btn-${view.toLowerCase()}`);
+  });
+  document.querySelectorAll('.drawer-seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.id === `drawer-view-${view.toLowerCase()}`);
+  });
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===view));
+  
+  const hoursCtrl=document.getElementById('display-hours-control');
+  if(hoursCtrl)hoursCtrl.style.display=(view==='Month')?'none':'flex';
+  // Show toggle for Day, Week, Work Week — hide for Month
+  const transposeBtn=document.getElementById('day-transpose-btn');
+  if(transposeBtn){
+   const show=(view==='Day'||view==='Week'||view==='Work Week');
+   transposeBtn.style.display=show?'inline-flex':'none';
+   if(show)updateTransposeLabel();
+  }
+  updateTransposeLabel();
+  renderCalendar();
 }
 
 function updateTransposeLabel(){
- const btn=document.getElementById('day-transpose-btn');
- const label=document.getElementById('transpose-label');
- if(!btn||!label)return;
- if(currentView==='Day'){
-  // Default=Time View(col); transposed=Asset View(rows)
-  btn.classList.toggle('active',dayTransposed);
-  label.textContent=dayTransposed?'Time View':'Asset View';
- } else {
-  // Week/Work Week: default=Asset View(Gantt); transposed=Time View(vertical)
-  btn.classList.toggle('active',weekTransposed);
-  label.textContent=weekTransposed?'Asset View':'Time View';
- }
+  const btn=document.getElementById('day-transpose-btn');
+  const label=document.getElementById('transpose-label');
+  const drawerBtn=document.getElementById('drawer-btn-transpose');
+  const drawerLabel=document.getElementById('drawer-transpose-label');
+  
+  const isTransposed = (currentView==='Day') ? dayTransposed : weekTransposed;
+  
+  if(btn){
+    btn.classList.toggle('active', isTransposed);
+  }
+  if(label){
+    if(currentView==='Day'){
+      label.textContent=dayTransposed?'Time View':'Asset View';
+    } else {
+      label.textContent=weekTransposed?'Asset View':'Time View';
+    }
+  }
+
+  if(drawerBtn){
+    drawerBtn.classList.toggle('active', isTransposed);
+  }
+  if(drawerLabel){
+    if(currentView==='Day'){
+      drawerLabel.textContent=dayTransposed?'Transpose View (Time View)':'Transpose View (Asset View)';
+    } else {
+      drawerLabel.textContent=weekTransposed?'Transpose View (Asset View)':'Transpose View (Time View)';
+    }
+  }
 }
 
 function toggleDayTranspose(){
@@ -1462,11 +1482,19 @@ function getFilteredSchedulerLanes() {
 
 function handleAssetFilterChange(val) {
   selectedAssetFilter = val || 'All Assets';
+  ['day-filter-asset', 'sched-asset-filter', 'drawer-filter-asset'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value !== selectedAssetFilter) el.value = selectedAssetFilter;
+  });
   renderDayViewScheduler();
 }
 
 function handleWorkerFilterChange(val) {
   selectedWorkerFilter = val || 'All Workers';
+  ['day-filter-worker', 'sched-worker-filter', 'drawer-filter-worker'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value !== selectedWorkerFilter) el.value = selectedWorkerFilter;
+  });
   renderDayViewScheduler();
 }
 
@@ -1474,15 +1502,15 @@ function resetSchedulerFilters() {
   selectedAssetFilter = 'All Assets';
   selectedWorkerFilter = 'All Workers';
   schedulerSearchQuery = '';
-  ['scheduler-search', 'sched-search'].forEach(id => {
+  ['scheduler-search', 'sched-search', 'drawer-search'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  ['day-filter-asset', 'sched-asset-filter'].forEach(id => {
+  ['day-filter-asset', 'sched-asset-filter', 'drawer-filter-asset'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = 'All Assets';
   });
-  ['day-filter-worker', 'sched-worker-filter'].forEach(id => {
+  ['day-filter-worker', 'sched-worker-filter', 'drawer-filter-worker'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = 'All Workers';
   });
@@ -2134,8 +2162,8 @@ function renderDayViewScheduler() {
           const endMinutes = timeStringToMinutes(job.endTime);
           const durationMinutes = Math.max(endMinutes - startMinutes, 30);
 
-          const leftPx = startMinutes * (HOUR_WIDTH / 60);
-          const widthPx = Math.max(durationMinutes * (HOUR_WIDTH / 60), 50);
+          const leftCalc = `calc((${startMinutes} / 60) * var(--grid-hour-height, 80px))`;
+          const widthCalc = `max(calc((${durationMinutes} / 60) * var(--grid-hour-height, 80px)), 50px)`;
 
           return `
             <div class="dispatch-job-card transposed-job-card ${job.isInspection ? 'inspection-job-card' : ''}"
@@ -2146,7 +2174,7 @@ function renderDayViewScheduler() {
                  ondragend="handleJobDragEnd(event)"
                  onclick="handleJobClick(event, '${job.id}')"
                  onmousedown="startJobDrag(event, '${job.id}')"
-                 style="left: ${leftPx}px; width: ${widthPx}px; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 style="left: ${leftCalc}; width: ${widthCalc}; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
                  title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
               <div class="dispatch-job-header">
                 <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
@@ -2305,8 +2333,8 @@ function renderDayViewScheduler() {
           const endMinutes = timeStringToMinutes(job.endTime);
           const durationMinutes = Math.max(endMinutes - startMinutes, 30);
 
-          const topPx = startMinutes * (ROW_HEIGHT / 60);
-          const heightPx = durationMinutes * (ROW_HEIGHT / 60);
+          const topCalc = `calc((${startMinutes} / 60) * var(--grid-hour-height, 80px))`;
+          const heightCalc = `calc((${durationMinutes} / 60) * var(--grid-hour-height, 80px))`;
           const isCompact = durationMinutes <= 60;
 
           return `
@@ -2318,7 +2346,7 @@ function renderDayViewScheduler() {
                  ondragend="handleJobDragEnd(event)"
                  onclick="handleJobClick(event, '${job.id}')"
                  onmousedown="startJobDrag(event, '${job.id}')"
-                 style="top: ${topPx}px; height: ${heightPx}px; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
+                 style="top: ${topCalc}; height: ${heightCalc}; --asset-color: ${job.statusColor || '#3CB4E5'}; ${!job.isInspection ? `background: ${job.statusColor};` : ''}"
                  title="${escapeHtml(job.client)} (${job.startTime} - ${job.endTime})&#10;${escapeHtml(job.siteAddress)}">
               <div class="dispatch-job-header">
                 <span class="dispatch-job-client">${escapeHtml(job.client)}</span>
@@ -7187,6 +7215,9 @@ function initApp() {
 
   // 5. System Settings
   if (typeof initSettingsSaveButtons === 'function') initSettingsSaveButtons();
+
+  // 6. Contextual Control Drawer & Dynamic Grid Zoom Init
+  if (typeof setSchedulerZoom === 'function') setSchedulerZoom(80);
 }
 
 if (document.readyState === 'loading') {
@@ -7194,4 +7225,143 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTEXTUAL CONTROL DRAWER & DYNAMIC SCHEDULER GRID ZOOM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let currentGridHourHeight = 80;
+
+function setSchedulerZoom(val) {
+  const num = parseInt(val, 10);
+  if (isNaN(num)) return;
+  const clamped = Math.max(40, Math.min(120, num));
+  currentGridHourHeight = clamped;
+  
+  // Set dynamic CSS variable on document root for instant hardware-accelerated scaling
+  document.documentElement.style.setProperty('--grid-hour-height', clamped + 'px');
+  
+  // Sync slider and labels
+  const slider = document.getElementById('drawer-zoom-slider');
+  if (slider && parseInt(slider.value, 10) !== clamped) {
+    slider.value = clamped;
+  }
+  
+  const label = document.getElementById('drawer-zoom-label');
+  if (label) {
+    const percent = Math.round((clamped / 80) * 100);
+    label.textContent = percent + '%';
+  }
+  
+  const pxLabel = document.getElementById('drawer-zoom-px');
+  if (pxLabel) {
+    pxLabel.textContent = clamped + 'px';
+  }
+}
+
+function adjustSchedulerZoom(delta) {
+  setSchedulerZoom(currentGridHourHeight + delta);
+}
+
+function handleZoomSliderInput(val) {
+  setSchedulerZoom(val);
+}
+
+function openControlDrawer() {
+  const drawer = document.getElementById('control-drawer');
+  const backdrop = document.getElementById('control-drawer-backdrop');
+  if (drawer) drawer.classList.add('is-open');
+  if (backdrop) backdrop.classList.add('is-open');
+  syncDrawerControls();
+}
+
+function closeControlDrawer() {
+  const drawer = document.getElementById('control-drawer');
+  const backdrop = document.getElementById('control-drawer-backdrop');
+  if (drawer) drawer.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+}
+
+function toggleControlDrawer() {
+  const drawer = document.getElementById('control-drawer');
+  if (drawer && drawer.classList.contains('is-open')) {
+    closeControlDrawer();
+  } else {
+    openControlDrawer();
+  }
+}
+
+function syncDrawerControls() {
+  // 1. Sync Scheduler View mode buttons
+  const viewKey = (typeof currentView === 'string' ? currentView.toLowerCase() : 'day');
+  document.querySelectorAll('.drawer-seg-btn').forEach(b => {
+    b.classList.toggle('active', b.id === `drawer-view-${viewKey}`);
+  });
+
+  // 2. Sync Transpose label & button state
+  if (typeof updateTransposeLabel === 'function') {
+    updateTransposeLabel();
+  }
+
+  // 3. Sync Asset filter dropdown
+  const assetFilter = document.getElementById('drawer-filter-asset');
+  if (assetFilter && typeof selectedAssetFilter !== 'undefined') {
+    assetFilter.value = selectedAssetFilter;
+  }
+
+  // 4. Sync Worker filter dropdown
+  const workerFilter = document.getElementById('drawer-filter-worker');
+  if (workerFilter && typeof selectedWorkerFilter !== 'undefined') {
+    workerFilter.value = selectedWorkerFilter;
+  }
+
+  // 5. Sync Search input
+  const searchInput = document.getElementById('drawer-search');
+  if (searchInput && typeof schedulerSearchQuery !== 'undefined') {
+    searchInput.value = schedulerSearchQuery;
+  }
+
+  // 6. Sync Zoom slider & labels
+  setSchedulerZoom(currentGridHourHeight);
+}
+
+function toggleHighlightWorkingHours(checked) {
+  document.body.classList.toggle('no-working-highlight', !checked);
+  const cb = document.getElementById('drawer-highlight-working');
+  if (cb && cb.checked !== checked) cb.checked = checked;
+}
+
+function resetAllDrawerFilters() {
+  if (typeof resetSchedulerFilters === 'function') {
+    resetSchedulerFilters();
+  }
+  setSchedulerZoom(80);
+  toggleHighlightWorkingHours(true);
+  syncDrawerControls();
+  if (typeof showToast === 'function') {
+    showToast('Controls and filters reset to defaults');
+  }
+}
+
+// Global escape key handler to close the Control Drawer
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const drawer = document.getElementById('control-drawer');
+    if (drawer && drawer.classList.contains('is-open')) {
+      closeControlDrawer();
+    }
+  }
+});
+
+// Expose Control Drawer and Zoom functions to window
+window.openControlDrawer = openControlDrawer;
+window.closeControlDrawer = closeControlDrawer;
+window.toggleControlDrawer = toggleControlDrawer;
+window.setSchedulerZoom = setSchedulerZoom;
+window.adjustSchedulerZoom = adjustSchedulerZoom;
+window.handleZoomSliderInput = handleZoomSliderInput;
+window.syncDrawerControls = syncDrawerControls;
+window.toggleHighlightWorkingHours = toggleHighlightWorkingHours;
+window.resetAllDrawerFilters = resetAllDrawerFilters;
+
 

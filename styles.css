@@ -658,7 +658,7 @@ body {
 .dispatch-grid-canvas {
   display: flex;
   position: relative;
-  height: 1440px; /* 24 hours * 60px/hour */
+  height: calc(24 * var(--grid-hour-height, 80px)); /* 24 hours * variable hour height */
   min-width: 100%;
 }
 
@@ -668,10 +668,11 @@ body {
   flex-shrink: 0;
   border-right: 1px solid var(--border-light);
   background: var(--bg-secondary);
+  height: calc(24 * var(--grid-hour-height, 80px));
 }
 
 .dispatch-hour-label {
-  height: 60px;
+  height: var(--grid-hour-height, 80px);
   display: flex;
   justify-content: flex-end;
   padding: 8px 10px 0 0;
@@ -688,12 +689,12 @@ body {
   min-width: 200px;
   position: relative;
   border-right: 1px solid var(--border-light);
-  height: 1440px;
+  height: calc(24 * var(--grid-hour-height, 80px));
 }
 
 /* Hourly Rows within Asset Column */
 .dispatch-hour-slot {
-  height: 60px;
+  height: var(--grid-hour-height, 80px);
   border-bottom: 1px solid var(--border-light);
   box-sizing: border-box;
   transition: background-color 0.1s ease;
@@ -6363,39 +6364,41 @@ body.dark-mode .compliance-pill-badge.pill-danger {
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 48px;
+  padding: 16px 24px !important;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 16px;
+  gap: 10px;
 }
 
 @media (max-width: 1200px) {
   .module-viewport-containment {
-    padding: 20px 24px;
+    padding: 12px 16px !important;
   }
 }
 
-/* 2. Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) */
+/* 2. Ultra-Minimalist Module Header (Single Flexbox Row: Title/Subtext Left, Actions Right) */
 .module-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  padding: 0 0 6px 0 !important;
+  padding: 8px 0 !important;
   background: transparent !important;
-  border-bottom: none !important;
-  margin: 0 !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  margin: 0 0 4px 0 !important;
   width: 100%;
   box-sizing: border-box;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .module-header-content {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .module-breadcrumb {
@@ -6404,12 +6407,12 @@ body.dark-mode .compliance-pill-badge.pill-danger {
   color: var(--accent-copper, #c2410c);
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .module-title {
   font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.4px;
   color: var(--text-primary);
@@ -6418,23 +6421,30 @@ body.dark-mode .compliance-pill-badge.pill-danger {
 }
 
 .module-subtitle {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text-muted);
   font-weight: 400;
-  margin-top: 2px;
-  line-height: 1.4;
+  margin-top: 1px;
+  line-height: 1.35;
 }
 
-/* 3. Tier 2: Navigation / Action Row (Flexbox: Sub-Nav Left, Primary Actions Right) */
+.module-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 3. Sub-Navigation / Action Row (Compact Tier 2) */
 .module-tier2-nav-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   width: 100%;
   box-sizing: border-box;
-  padding: 4px 0 12px 0;
+  padding: 4px 0 8px 0;
   border-bottom: 1px solid var(--border-light);
   margin-bottom: 4px;
 }
@@ -6965,7 +6975,483 @@ body.dark-mode .compliance-table-card {
   background: #181B1D !important;
 }
 
+/* ==========================================================================
+   ELIMINATE TIER 3 TOOLBELT ACROSS ALL MODULES
+   ========================================================================== */
+.module-tier3-toolbelt,
+#scheduler-toolbelt,
+#jobboard-toolbelt,
+.scheduler-filter-bar,
+.toolbelt-search-wrap,
+.toolbelt-filters-wrap {
+  display: none !important;
+}
 
+/* ==========================================================================
+   GLOBAL CONTEXTUAL CONTROL DRAWER ARCHITECTURE
+   ========================================================================== */
+.control-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2490;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+.control-drawer-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.control-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 90vw;
+  background: var(--bg-primary, #FFFFFF);
+  border-left: 1px solid var(--border-light, #e2e8f0);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.control-drawer.is-open {
+  transform: translateX(0);
+}
+
+/* Dark Mode: Charcoal #3D4543 Brand Background as Specified */
+[data-theme="dark"] .control-drawer,
+body.dark-mode .control-drawer {
+  background: #3D4543 !important;
+  border-left: 1px solid #4F5855 !important;
+  color: #FFFFFF !important;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.65) !important;
+}
+
+.control-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-secondary, #f8fafc);
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .control-drawer-header,
+body.dark-mode .control-drawer-header {
+  background: #2E3432 !important;
+  border-bottom: 1px solid #4F5855 !important;
+}
+
+.control-drawer-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-drawer-icon {
+  font-size: 22px;
+  color: var(--accent-copper, #c2410c);
+}
+
+.control-drawer-title {
+  font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary, #0f172a);
+}
+
+[data-theme="dark"] .control-drawer-title,
+body.dark-mode .control-drawer-title {
+  color: #FFFFFF !important;
+}
+
+.control-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.control-drawer-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .control-drawer-close:hover,
+body.dark-mode .control-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+.control-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.drawer-section {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-theme="dark"] .drawer-section,
+body.dark-mode .drawer-section {
+  background: #343B39 !important;
+  border-color: #4F5855 !important;
+}
+
+.drawer-section-header {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+[data-theme="dark"] .drawer-section-header,
+body.dark-mode .drawer-section-header {
+  color: #cbd5e1 !important;
+}
+
+.drawer-section-header .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--accent-copper, #c2410c);
+}
+
+/* 1. Grid Zoom Control Group (At Top of Drawer) */
+.drawer-zoom-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drawer-zoom-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light, #cbd5e1);
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.drawer-zoom-btn:hover {
+  background: var(--bg-card, #ffffff);
+  border-color: var(--accent-copper, #c2410c);
+  color: var(--accent-copper, #c2410c);
+}
+
+[data-theme="dark"] .drawer-zoom-btn,
+body.dark-mode .drawer-zoom-btn {
+  background: #2E3432 !important;
+  border-color: #4F5855 !important;
+  color: #FFFFFF !important;
+}
+
+.drawer-zoom-slider-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.drawer-zoom-slider-container input[type="range"] {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent-copper, #c2410c);
+  cursor: pointer;
+}
+
+.drawer-zoom-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(194, 65, 12, 0.1);
+  color: var(--accent-copper, #c2410c);
+  min-width: 44px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .drawer-zoom-badge,
+body.dark-mode .drawer-zoom-badge {
+  background: rgba(249, 115, 22, 0.2) !important;
+  color: #fb923c !important;
+}
+
+.drawer-zoom-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 2. Scheduler View Mode (Day/Week/Month) */
+.drawer-segmented-toggle {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.drawer-seg-btn {
+  flex: 1;
+  height: 34px;
+  border: 1px solid var(--border-light, #cbd5e1);
+  background: var(--bg-secondary, #f8fafc);
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.drawer-seg-btn:hover {
+  background: var(--bg-card, #ffffff);
+  color: var(--text-primary);
+}
+
+.drawer-seg-btn.active {
+  background: var(--accent-copper, #c2410c) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-copper, #c2410c) !important;
+}
+
+[data-theme="dark"] .drawer-seg-btn,
+body.dark-mode .drawer-seg-btn {
+  background: #2E3432 !important;
+  border-color: #4F5855 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .drawer-seg-btn.active,
+body.dark-mode .drawer-seg-btn.active {
+  background: var(--accent-copper, #c2410c) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-copper, #c2410c) !important;
+}
+
+/* 3. Transpose View Action */
+.drawer-action-btn {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--border-light, #cbd5e1);
+  background: var(--bg-secondary, #f8fafc);
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-primary);
+  transition: all 0.15s;
+}
+
+.drawer-action-btn:hover {
+  border-color: var(--accent-copper, #c2410c);
+  color: var(--accent-copper, #c2410c);
+}
+
+.drawer-action-btn.active {
+  background: rgba(194, 65, 12, 0.12) !important;
+  border-color: var(--accent-copper, #c2410c) !important;
+  color: var(--accent-copper, #c2410c) !important;
+}
+
+[data-theme="dark"] .drawer-action-btn,
+body.dark-mode .drawer-action-btn {
+  background: #2E3432 !important;
+  border-color: #4F5855 !important;
+  color: #FFFFFF !important;
+}
+
+/* 4. Dropdowns & Filter Inputs */
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.drawer-field label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .drawer-field label,
+body.dark-mode .drawer-field label {
+  color: #e2e8f0 !important;
+}
+
+.drawer-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border-light, #cbd5e1);
+  border-radius: 6px;
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+
+[data-theme="dark"] .drawer-select,
+body.dark-mode .drawer-select {
+  background: #242729 !important;
+  border-color: #4F5855 !important;
+  color: #FFFFFF !important;
+}
+
+.drawer-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.drawer-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+[data-theme="dark"] .drawer-checkbox-row,
+body.dark-mode .drawer-checkbox-row {
+  color: #cbd5e1 !important;
+}
+
+.drawer-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: 36px;
+  border: 1px solid var(--border-light, #cbd5e1);
+  border-radius: 6px;
+  background: var(--bg-primary, #ffffff);
+}
+
+[data-theme="dark"] .drawer-search-wrap,
+body.dark-mode .drawer-search-wrap {
+  background: #242729 !important;
+  border-color: #4F5855 !important;
+}
+
+.drawer-search-wrap .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.drawer-search-wrap input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+[data-theme="dark"] .drawer-search-wrap input,
+body.dark-mode .drawer-search-wrap input {
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   DYNAMIC CSS VARIABLE GRID ZOOM LOGIC
+   ========================================================================== */
+:root {
+  --grid-hour-height: 80px;
+}
+
+.dispatch-grid-canvas {
+  height: calc(24 * var(--grid-hour-height, 80px)) !important;
+}
+
+.dispatch-time-gutter {
+  height: calc(24 * var(--grid-hour-height, 80px)) !important;
+}
+
+.dispatch-hour-label {
+  height: var(--grid-hour-height, 80px) !important;
+}
+
+.dispatch-asset-col {
+  height: calc(24 * var(--grid-hour-height, 80px)) !important;
+}
+
+.dispatch-hour-slot {
+  height: var(--grid-hour-height, 80px) !important;
+}
+
+.transposed-hour-slot,
+.transposed-time-slot {
+  width: var(--grid-hour-height, 80px) !important;
+}
+
+.transposed-asset-slots,
+.transposed-time-header {
+  width: calc(24 * var(--grid-hour-height, 80px)) !important;
+}
+
+/* Working Hours Highlight Toggle */
+body.no-working-highlight .dispatch-hour-slot.shaded-hour,
+body.no-working-highlight .transposed-hour-slot.shaded-hour {
+  background: transparent !important;
+}
 
 

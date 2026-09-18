@@ -208,89 +208,54 @@
     <main class="gcal-main-content">
       <div class="view-container active" id="calendar-view">
         <div class="module-viewport-containment">
-          <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+          <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Quick Book Right -->
           <div class="module-header" id="scheduler-module-header">
             <div class="module-header-content">
               <div class="module-breadcrumb">OPERATIONS // DISPATCH</div>
               <h1 class="module-title">Scheduler</h1>
               <div class="module-subtitle">Manage fleet availability and dispatch operations</div>
             </div>
-          </div>
-
-          <!-- Tier 2: Navigation / Action Row (Left: Segmented View Toggle | Right: Actions) -->
-          <div class="module-tier2-nav-row" id="scheduler-tier2-nav">
-            <div class="module-nav-tabs">
-              <button class="module-subnav-btn active" id="view-btn-day" onclick="setCalendarView('Day')">
-                <span class="material-symbols-outlined">calendar_view_day</span>
-                <span>Day</span>
-              </button>
-              <button class="module-subnav-btn" id="view-btn-week" onclick="setCalendarView('Week')">
-                <span class="material-symbols-outlined">calendar_view_week</span>
-                <span>Week</span>
-              </button>
-              <button class="module-subnav-btn" id="view-btn-month" onclick="setCalendarView('Month')">
-                <span class="material-symbols-outlined">calendar_month</span>
-                <span>Month</span>
-              </button>
-            </div>
-            <div class="module-nav-actions">
-              <button class="btn-secondary" id="day-transpose-btn" onclick="toggleDayTranspose()" title="Transpose Grid Axes (Flip Time &amp; Assets)" style="display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span>
-                <span id="transpose-label">Transpose View</span>
+            <div class="module-header-actions">
+              <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+                <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+                <span>Controls &amp; Filters</span>
               </button>
               <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-                <span>New Booking</span>
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                <span>+ Quick Book</span>
               </button>
             </div>
           </div>
 
-          <!-- Tier 3: The Toolbelt (Full Width, Soft Solid Background, Borderless Search + Filters) -->
-          <div class="module-tier3-toolbelt" id="scheduler-toolbelt">
-            <div class="toolbelt-search-wrap">
-              <span class="material-symbols-outlined">search</span>
-              <input id="scheduler-search" oninput="handleSchedulerSearch(this.value)" placeholder="Search fleet assets, operators..." type="text"/>
-            </div>
-            <div class="toolbelt-filters-wrap">
-              <div class="scheduler-filter-wrapper" title="Filter by Asset">
-                <select id="day-filter-asset" class="scheduler-filter-select" onchange="handleAssetFilterChange(this.value)">
-                  <option value="All Assets">All Assets</option>
-                  <optgroup label="Categories">
-                    <option value="Frannas">Frannas</option>
-                    <option value="Crawlers">Crawlers</option>
-                    <option value="All Terrains">All Terrains</option>
-                  </optgroup>
-                </select>
-              </div>
-              <div class="scheduler-filter-wrapper" title="Filter by Worker">
-                <select id="day-filter-worker" class="scheduler-filter-select" onchange="handleWorkerFilterChange(this.value)">
-                  <option value="All Workers">All Workers</option>
-                  <option value="Available">Available</option>
-                  <option value="Overtime Warning">Overtime Warning</option>
-                </select>
-              </div>
-              <div class="day-legend-item" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);margin-left:6px;">
-                <span class="day-legend-dot working" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
-                <span>06:00 – 18:00</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rebuilt Scheduler Module Root (Clean Slate Container) -->
+          <!-- Rebuilt Scheduler Module Root (Maximized Viewport Directly Below Minimalist Header) -->
           <div id="calendar-body" class="day-scheduler-root scheduler-grid" style="min-height:650px;"></div>
         </div>
       </div><div class="view-container" id="job-board-view">
         <div class="module-viewport-containment">
-          <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+          <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Actions Right -->
           <div class="module-header" id="jobboard-module-header">
             <div class="module-header-content">
               <div class="module-breadcrumb">OPERATIONS // DISPATCH PIPELINE</div>
               <h1 class="module-title">Job Board</h1>
               <div class="module-subtitle">Track job lifecycles and move bookings through dispatch stages</div>
             </div>
+            <div class="module-header-actions">
+              <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+                <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+                <span>Controls &amp; Filters</span>
+              </button>
+              <button class="btn-secondary" onclick="exportCsv()" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+                <span>Export Board</span>
+              </button>
+              <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                <span>+ Quick Book</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Action Buttons) -->
+          <!-- Tier 2: Sub-Nav Stage Tabs -->
           <div class="module-tier2-nav-row" id="jobboard-tier2-nav">
             <div class="module-nav-tabs">
               <button class="module-subnav-btn active" id="jb-subtab-all" onclick="filterJobBoardTab('ALL')">
@@ -310,62 +275,32 @@
                 <span>Ready for Invoicing</span>
               </button>
             </div>
-            <div class="module-nav-actions">
-              <button class="btn-secondary" onclick="exportCsv()" style="display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:18px;">download</span>
-                <span>Export Board</span>
-              </button>
-              <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                <span>New Booking</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Tier 3: The Toolbelt (Full Width, Soft Solid Background, Borderless Search + Filters) -->
-          <div class="module-tier3-toolbelt" id="jobboard-toolbelt">
-            <div class="toolbelt-search-wrap">
-              <span class="material-symbols-outlined">search</span>
-              <input id="jb-search" oninput="renderJobBoard()" placeholder="Search by Job ID, client, asset, operator..." type="text"/>
-            </div>
-            <div class="toolbelt-filters-wrap">
-              <select class="module-filter-select" id="jb-stage-filter" onchange="renderJobBoard()">
-                <option value="ALL">All Lifecycle Stages (5 Lanes)</option>
-                <option value="EOI / Pending">EOI / Pending</option>
-                <option value="Scheduled / Dispatched">Scheduled / Dispatched</option>
-                <option value="Active On-Site">Active On-Site</option>
-                <option value="Pending Docket">Pending Docket</option>
-                <option value="Ready for Invoicing">Ready for Invoicing</option>
-              </select>
-              <div class="jb-sort-wrap" style="display:inline-flex;align-items:center;gap:4px;">
-                <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);">sort</span>
-                <select class="module-filter-select" id="jb-sort-by" onchange="window.sortJobBoardCards()">
-                  <option value="date-asc">Date Ascending</option>
-                  <option value="date-desc">Date Descending</option>
-                  <option value="priority-first">Priority First</option>
-                </select>
-              </div>
-              <button class="btn-secondary" onclick="document.getElementById('jb-search').value='';document.getElementById('jb-stage-filter').value='ALL';document.getElementById('jb-sort-by').value='date-asc';renderJobBoard();" style="display:inline-flex;align-items:center;gap:4px;height:36px;padding:0 12px;" title="Reset Filters">
-                <span class="material-symbols-outlined" style="font-size:16px;">filter_alt_off</span>
-                <span>Reset</span>
-              </button>
-            </div>
           </div>
 
           <div id="job-board-container" class="job-board-container" ondragover="window.handleJobBoardContainerDragOver(event)" style="flex:1;overflow-x:auto;"></div>
         </div>
       </div><div class="view-container" id="operator-view">
   <div class="module-viewport-containment">
-    <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+    <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Actions Right -->
     <div class="module-header" id="admin-module-header">
       <div class="module-header-content">
         <div class="module-breadcrumb">OPERATIONS MANAGEMENT // ADMINISTRATION</div>
         <h1 class="module-title">Administration</h1>
         <div class="module-subtitle">Manage fleet assets, workforce licensing, and operational scheduling rules</div>
       </div>
+      <div class="module-header-actions" id="admin-header-actions">
+        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+          <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+          <span>Controls &amp; Filters</span>
+        </button>
+        <button class="btn-primary" id="admin-header-primary-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+          <span id="admin-header-btn-label">+ Add Asset</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Context Action Button) -->
+    <!-- Tier 2: Sub-Nav Tabs -->
     <div class="module-tier2-nav-row" id="admin-tier2-nav">
       <div class="admin-subnav" id="admin-subnav">
         <button class="admin-subnav-btn active" id="admin-subtab-fleet" onclick="switchAdminSubTab('fleet')">
@@ -383,12 +318,6 @@
         <button class="admin-subnav-btn" id="admin-subtab-scheduling" onclick="switchAdminSubTab('scheduling')">
           <span class="material-symbols-outlined">schedule</span>
           <span>Scheduling Rules</span>
-        </button>
-      </div>
-      <div class="module-nav-actions" id="admin-tier2-actions">
-        <button class="btn-primary" id="admin-tier2-primary-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-          <span id="admin-tier2-btn-label">Add Asset</span>
         </button>
       </div>
     </div>
@@ -669,16 +598,30 @@
 </div>
 </div><div class="view-container" id="compliance-view">
   <div class="module-viewport-containment">
-    <!-- Tier 1: Clean Module Header (Strictly Title & Subtext - Zero Buttons) -->
+    <!-- Ultra-Minimalist Header: View Title/Subtext Left, Controls & Actions Right -->
     <div class="module-header" id="compliance-module-header">
       <div class="module-header-content">
         <div class="module-breadcrumb">SAFETY &amp; HSEQ // COMPLIANCE VAULT</div>
         <h1 class="module-title">Compliance &amp; Safety</h1>
         <div class="module-subtitle">Manage asset certifications, personnel licences, and HSEQ documentation</div>
       </div>
+      <div class="module-header-actions" id="compliance-header-actions">
+        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+          <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+          <span>Controls &amp; Filters</span>
+        </button>
+        <button class="btn-secondary" onclick="exportComplianceAuditReport()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+          <span>Audit Report</span>
+        </button>
+        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
+          <span>+ Upload Document</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Tier 2: Navigation / Action Row (Left: Sub-Nav Tabs | Right: Action Buttons) -->
+    <!-- Tier 2: Sub-Nav Tabs -->
     <div class="module-tier2-nav-row" id="compliance-tier2-nav">
       <div class="compliance-subnav" id="compliance-subnav">
         <button class="compliance-subnav-btn active" id="compliance-subtab-dashboard" onclick="switchComplianceSubTab('dashboard')">
@@ -696,16 +639,6 @@
         <button class="compliance-subnav-btn" id="compliance-subtab-vault" onclick="switchComplianceSubTab('vault')">
           <span class="material-symbols-outlined">folder_special</span>
           <span>Document Vault</span>
-        </button>
-      </div>
-      <div class="module-nav-actions" id="compliance-tier2-actions">
-        <button class="btn-secondary" onclick="exportComplianceAuditReport()" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:18px;">download</span>
-          <span>Audit Report</span>
-        </button>
-        <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
-          <span>Upload Document</span>
         </button>
       </div>
     </div>
@@ -1029,17 +962,24 @@
   </div>
   </div>
 </div><div class="view-container" id="analytics-view">
-<div class="page-header">
-<div>
-<div class="header-breadcrumb">HIREENGINE CONTROL TOWER // EXECUTIVE TELEMETRY</div>
-<h1>Executive Dashboard</h1>
-<div class="subtitle">Real-Time Fleet Operations, DocuWare Automation Telemetry &amp; Financial Yield</div>
-</div>
-<div class="header-actions">
-<button class="btn-secondary" onclick="exportReport()">
-<svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
-            Export Executive Brief PDF
-          </button>
+<div class="module-viewport-containment">
+  <div class="module-header" id="analytics-module-header">
+    <div class="module-header-content">
+      <div class="module-breadcrumb">HIREENGINE CONTROL TOWER // EXECUTIVE TELEMETRY</div>
+      <h1 class="module-title">Executive Dashboard</h1>
+      <div class="module-subtitle">Real-Time Fleet Operations, DocuWare Automation Telemetry &amp; Financial Yield</div>
+    </div>
+    <div class="module-header-actions" id="analytics-header-actions">
+      <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+        <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+        <span>Controls &amp; Filters</span>
+      </button>
+      <button class="btn-secondary" onclick="exportReport()" style="display:inline-flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+        <span>Export Executive Brief PDF</span>
+      </button>
+    </div>
+  </div>
 </div>
 </div>
 <div class="analytics-toolbar">
@@ -1110,14 +1050,22 @@
 <div class="operator-list" id="operator-list"></div>
 </div>
 </div>
+</div>
 </div><div class="view-container" id="settings-view">
-  <div class="module-header" id="settings-module-header">
-    <div class="module-header-content">
-      <div class="module-breadcrumb">SYSTEM CONFIGURATION // IT &amp; INTEGRATIONS</div>
-      <h1 class="module-title">System Settings</h1>
-      <div class="module-subtitle">Configure enterprise integrations, document management, and API connections</div>
+  <div class="module-viewport-containment">
+    <div class="module-header" id="settings-module-header">
+      <div class="module-header-content">
+        <div class="module-breadcrumb">SYSTEM CONFIGURATION // IT &amp; INTEGRATIONS</div>
+        <h1 class="module-title">System Settings</h1>
+        <div class="module-subtitle">Configure enterprise integrations, document management, and API connections</div>
+      </div>
+      <div class="module-header-actions" id="settings-header-actions">
+        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+          <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
+          <span>Controls &amp; Filters</span>
+        </button>
+      </div>
     </div>
-  </div>
 
   <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:20px;padding:20px 24px;">
     <!-- Card 1: Enterprise Document Management (EDMS) Sync -->
@@ -1233,6 +1181,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
     </main>
   </div>
@@ -2136,6 +2085,140 @@
     <button class="btn-secondary" onclick="closeUserProfileDrawer()" style="width:100%;height:36px;">
       <span>Close Drawer</span>
     </button>
+  </div>
+</aside>
+
+<!-- Contextual Control Drawer Backdrop & Slide-Over Panel -->
+<div id="control-drawer-backdrop" class="control-drawer-backdrop" onclick="closeControlDrawer()"></div>
+<aside id="control-drawer" class="control-drawer" aria-label="Contextual Controls and Filters Drawer">
+  <!-- Drawer Header -->
+  <div class="control-drawer-header">
+    <div class="control-drawer-title-wrap">
+      <span class="material-symbols-outlined control-drawer-icon">tune</span>
+      <h3 class="control-drawer-title">Controls &amp; Filters</h3>
+    </div>
+    <button class="control-drawer-close" onclick="closeControlDrawer()" title="Close Controls Drawer (Esc)" aria-label="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <!-- Drawer Body: Vertically Stacked Controls with Clear Labels -->
+  <div class="control-drawer-body">
+
+    <!-- 1. Grid Zoom Control Group (At Top of Drawer) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">zoom_in</span>
+        <span>Grid Zoom</span>
+      </div>
+      <div class="drawer-zoom-wrap">
+        <div class="drawer-zoom-controls">
+          <button class="drawer-zoom-btn" onclick="adjustSchedulerZoom(-10)" title="Zoom Out (-10px)" type="button">
+            <span class="material-symbols-outlined">remove</span>
+          </button>
+          <div class="drawer-zoom-slider-container">
+            <input type="range" id="drawer-zoom-slider" min="40" max="120" step="10" value="80" oninput="handleZoomSliderInput(this.value)" aria-label="Scheduler Grid Row Height Zoom" />
+          </div>
+          <button class="drawer-zoom-btn" onclick="adjustSchedulerZoom(10)" title="Zoom In (+10px)" type="button">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <span class="drawer-zoom-badge" id="drawer-zoom-label">100%</span>
+        </div>
+        <div class="drawer-zoom-info">
+          <span>Row height: <strong id="drawer-zoom-px">80px</strong></span>
+          <span>Range: 40px – 120px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Scheduler View Mode (Day / Week / Month) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">calendar_view_week</span>
+        <span>Scheduler View Mode</span>
+      </div>
+      <div class="drawer-segmented-toggle">
+        <button class="drawer-seg-btn active" id="drawer-view-day" onclick="setCalendarView('Day')" type="button">
+          <span class="material-symbols-outlined">calendar_view_day</span>
+          <span>Day</span>
+        </button>
+        <button class="drawer-seg-btn" id="drawer-view-week" onclick="setCalendarView('Week')" type="button">
+          <span class="material-symbols-outlined">calendar_view_week</span>
+          <span>Week</span>
+        </button>
+        <button class="drawer-seg-btn" id="drawer-view-month" onclick="setCalendarView('Month')" type="button">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span>Month</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Grid Orientation (Transpose View) -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span>Grid Orientation</span>
+      </div>
+      <button class="drawer-action-btn" id="drawer-btn-transpose" onclick="toggleDayTranspose()" type="button" title="Flip Time &amp; Asset Axes">
+        <span class="material-symbols-outlined">swap_horiz</span>
+        <span id="drawer-transpose-label">Transpose View</span>
+      </button>
+    </div>
+
+    <!-- 4. Asset & Worker Filters -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">filter_list</span>
+        <span>Resource Filters</span>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-filter-asset">Filter by Asset / Fleet</label>
+        <select id="drawer-filter-asset" class="drawer-select" onchange="handleAssetFilterChange(this.value)">
+          <option value="All Assets">All Assets</option>
+          <optgroup label="Categories">
+            <option value="Frannas">Frannas (Mobile Pick &amp; Carry)</option>
+            <option value="Crawlers">Crawlers</option>
+            <option value="All Terrains">All Terrains</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-filter-worker">Filter by Personnel</label>
+        <select id="drawer-filter-worker" class="drawer-select" onchange="handleWorkerFilterChange(this.value)">
+          <option value="All Workers">All Workers</option>
+          <option value="Available">Available (On-Call / Idle)</option>
+          <option value="Overtime Warning">Overtime Warning (&gt;10h)</option>
+        </select>
+      </div>
+      <div class="drawer-field">
+        <label for="drawer-search">Quick Search</label>
+        <div class="drawer-search-wrap">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" id="drawer-search" placeholder="Search fleet assets, operators..." oninput="handleSchedulerSearch(this.value); if(typeof renderJobBoard==='function')renderJobBoard();" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Operational Working Hours -->
+    <div class="drawer-section">
+      <div class="drawer-section-header">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>Operational Window</span>
+      </div>
+      <label class="drawer-checkbox-row">
+        <input type="checkbox" id="drawer-highlight-working" checked onchange="toggleHighlightWorkingHours(this.checked)" />
+        <span>Highlight Standard Working Hours (06:00 – 18:00)</span>
+      </label>
+    </div>
+
+    <!-- 6. Reset Filters Action -->
+    <div style="padding-top:4px;">
+      <button class="btn-secondary" style="width:100%;height:38px;justify-content:center;display:inline-flex;align-items:center;gap:6px;" onclick="resetAllDrawerFilters()" type="button">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        <span>Reset Controls to Default</span>
+      </button>
+    </div>
+
   </div>
 </aside>
 
