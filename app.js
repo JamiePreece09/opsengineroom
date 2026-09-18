@@ -7323,6 +7323,7 @@ function initApp() {
 
   // 6. Contextual Control Drawer & Dynamic Grid Zoom Init
   if (typeof setSchedulerZoom === 'function') setSchedulerZoom(80);
+  if (typeof initControlDrawerWiring === 'function') initControlDrawerWiring();
 
   // 7. Initial State Enforcement & View Routing
   if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
@@ -7331,10 +7332,12 @@ function initApp() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initApp();
+    if (typeof initControlDrawerWiring === 'function') initControlDrawerWiring();
     if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
   });
 } else {
   initApp();
+  if (typeof initControlDrawerWiring === 'function') initControlDrawerWiring();
   if (typeof initGlobalViewRouting === 'function') initGlobalViewRouting();
 }
 
@@ -7382,26 +7385,102 @@ function handleZoomSliderInput(val) {
 function openControlDrawer() {
   const drawer = document.getElementById('control-drawer');
   const backdrop = document.getElementById('control-drawer-backdrop');
-  if (drawer) drawer.classList.add('is-open');
-  if (backdrop) backdrop.classList.add('is-open');
+  if (drawer) {
+    drawer.style.transform = 'translateX(0)';
+    drawer.classList.add('is-open', 'open');
+  }
+  if (backdrop) {
+    backdrop.classList.add('is-open', 'open');
+  }
   syncDrawerControls();
 }
 
 function closeControlDrawer() {
   const drawer = document.getElementById('control-drawer');
   const backdrop = document.getElementById('control-drawer-backdrop');
-  if (drawer) drawer.classList.remove('is-open');
-  if (backdrop) backdrop.classList.remove('is-open');
+  if (drawer) {
+    drawer.style.transform = 'translateX(100%)';
+    drawer.classList.remove('is-open', 'open');
+  }
+  if (backdrop) {
+    backdrop.classList.remove('is-open', 'open');
+  }
 }
 
 function toggleControlDrawer() {
   const drawer = document.getElementById('control-drawer');
-  if (drawer && drawer.classList.contains('is-open')) {
+  if (drawer && (drawer.classList.contains('is-open') || drawer.classList.contains('open') || drawer.style.transform === 'translateX(0px)' || drawer.style.transform === 'translateX(0)')) {
     closeControlDrawer();
   } else {
     openControlDrawer();
   }
 }
+
+function initControlDrawerWiring() {
+  // 1. Attach click event listener to all 'Controls & Filters' buttons in module headers
+  const controlButtons = document.querySelectorAll(
+    '.controls-drawer-btn, [data-action="open-controls-drawer"], button[onclick*="openControlDrawer"], #scheduler-controls-btn, #jobboard-controls-btn, #admin-controls-btn, #compliance-controls-btn, #reports-controls-btn, #settings-controls-btn'
+  );
+  controlButtons.forEach(btn => {
+    btn.onclick = (e) => {
+      if (e) e.preventDefault();
+      openControlDrawer();
+    };
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openControlDrawer();
+    });
+  });
+
+  // 2. Attach click event listener to 'Close' (X) button inside the drawer
+  const closeBtn = document.getElementById('control-drawer-close') || document.querySelector('.control-drawer-close');
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      if (e) e.preventDefault();
+      closeControlDrawer();
+    };
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeControlDrawer();
+    });
+  }
+
+  // 3. Attach click event listener to drawer backdrop
+  const backdrop = document.getElementById('control-drawer-backdrop');
+  if (backdrop) {
+    backdrop.onclick = (e) => {
+      if (e) e.preventDefault();
+      closeControlDrawer();
+    };
+    backdrop.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeControlDrawer();
+    });
+  }
+}
+
+// Global Delegated click listener to catch all open/close drawer events dynamically
+document.addEventListener('click', (e) => {
+  const openTrigger = e.target.closest(
+    '.controls-drawer-btn, [data-action="open-controls-drawer"], #scheduler-controls-btn, #jobboard-controls-btn, #admin-controls-btn, #compliance-controls-btn, #reports-controls-btn, #settings-controls-btn'
+  );
+  if (openTrigger) {
+    e.preventDefault();
+    openControlDrawer();
+    return;
+  }
+  const closeTrigger = e.target.closest('#control-drawer-close, .control-drawer-close, [data-action="close-controls-drawer"]');
+  if (closeTrigger) {
+    e.preventDefault();
+    closeControlDrawer();
+    return;
+  }
+  if (e.target.id === 'control-drawer-backdrop') {
+    e.preventDefault();
+    closeControlDrawer();
+    return;
+  }
+});
 
 function syncDrawerControls() {
   // 1. Sync Scheduler View mode buttons
@@ -7469,6 +7548,7 @@ document.addEventListener('keydown', (e) => {
 window.openControlDrawer = openControlDrawer;
 window.closeControlDrawer = closeControlDrawer;
 window.toggleControlDrawer = toggleControlDrawer;
+window.initControlDrawerWiring = initControlDrawerWiring;
 window.setSchedulerZoom = setSchedulerZoom;
 window.adjustSchedulerZoom = adjustSchedulerZoom;
 window.handleZoomSliderInput = handleZoomSliderInput;

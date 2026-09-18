@@ -6354,6 +6354,8 @@ body.dark-mode .compliance-pill-badge.pill-danger {
 #admin-view, #operator-view,
 #settings-view {
   display: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   box-sizing: border-box !important;
@@ -6368,21 +6370,51 @@ body.dark-mode .compliance-pill-badge.pill-danger {
 #admin-view.active, #operator-view.active,
 #settings-view.active {
   display: flex !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   flex: 1;
   min-height: 0;
 }
 
 .module-viewport-containment {
-  max-width: 1600px;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   margin: 0 auto;
   padding: 16px 24px !important;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   gap: 10px;
+}
+
+.module-tier3-toolbelt,
+#scheduler-toolbelt,
+#jobboard-toolbelt,
+.scheduler-filter-bar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.scheduler-grid,
+#calendar-body,
+.day-scheduler-root,
+.dispatch-viewport {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+#job-board-container,
+.job-board-container {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 1200px) {
@@ -7002,42 +7034,50 @@ body.dark-mode .compliance-table-card {
 /* ==========================================================================
    GLOBAL CONTEXTUAL CONTROL DRAWER ARCHITECTURE
    ========================================================================== */
-.control-drawer-backdrop {
+.control-drawer-backdrop,
+#control-drawer-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 2490;
+  z-index: 999;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease;
 }
 
-.control-drawer-backdrop.is-open {
+.control-drawer-backdrop.is-open,
+.control-drawer-backdrop.open,
+#control-drawer-backdrop.is-open,
+#control-drawer-backdrop.open {
   opacity: 1;
   pointer-events: auto;
 }
 
+#control-drawer,
 .control-drawer {
   position: fixed;
-  top: 0;
   right: 0;
-  bottom: 0;
+  top: 0;
+  height: 100vh;
   width: 380px;
   max-width: 90vw;
   background: var(--bg-primary, #FFFFFF);
   border-left: 1px solid var(--border-light, #e2e8f0);
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
-  z-index: 2500;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-.control-drawer.is-open {
-  transform: translateX(0);
+#control-drawer.is-open,
+#control-drawer.open,
+.control-drawer.is-open,
+.control-drawer.open {
+  transform: translateX(0) !important;
 }
 
 /* Dark Mode: Charcoal #3D4543 Brand Background as Specified */

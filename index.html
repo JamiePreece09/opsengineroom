@@ -157,11 +157,6 @@
     </div>
     
     <div class="gcal-nav-right">
-      <button class="cab-primary-create-btn" onclick="openModal()" title="New Booking / Enquiry">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>Quick Book</span>
-      </button>
-
       <!-- Theme Quick Toggle -->
       <button class="gcal-icon-btn" id="header-theme-toggle" onclick="toggleDarkMode()" title="Toggle High-Contrast Dark Mode" aria-label="Toggle Dark Mode">
         <span class="material-symbols-outlined" id="header-theme-icon" style="font-size:20px;">dark_mode</span>
@@ -259,13 +254,13 @@
               <div class="module-subtitle">Manage fleet availability and dispatch operations</div>
             </div>
             <div class="module-header-actions">
-              <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+              <button class="btn-secondary controls-drawer-btn" id="scheduler-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
                 <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
                 <span>Controls &amp; Filters</span>
               </button>
               <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
                 <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                <span>+ Quick Book</span>
+                <span>New Booking</span>
               </button>
             </div>
           </div>
@@ -283,7 +278,7 @@
               <div class="module-subtitle">Track job lifecycles and move bookings through dispatch stages</div>
             </div>
             <div class="module-header-actions">
-              <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+              <button class="btn-secondary controls-drawer-btn" id="jobboard-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
                 <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
                 <span>Controls &amp; Filters</span>
               </button>
@@ -293,7 +288,7 @@
               </button>
               <button class="btn-primary" onclick="openNewBookingModal()" style="display:inline-flex;align-items:center;gap:6px;">
                 <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                <span>+ Quick Book</span>
+                <span>New Booking</span>
               </button>
             </div>
           </div>
@@ -332,13 +327,13 @@
         <div class="module-subtitle">Manage fleet assets, workforce licensing, and operational scheduling rules</div>
       </div>
       <div class="module-header-actions" id="admin-header-actions">
-        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+        <button class="btn-secondary controls-drawer-btn" id="admin-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
           <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
           <span>Controls &amp; Filters</span>
         </button>
         <button class="btn-primary" id="admin-header-primary-btn" onclick="openAddAssetAdminModal()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-          <span id="admin-header-btn-label">+ Add Asset</span>
+          <span id="admin-header-btn-label">Add Asset</span>
         </button>
       </div>
     </div>
@@ -649,7 +644,7 @@
         <div class="module-subtitle">Manage asset certifications, personnel licences, and HSEQ documentation</div>
       </div>
       <div class="module-header-actions" id="compliance-header-actions">
-        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+        <button class="btn-secondary controls-drawer-btn" id="compliance-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
           <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
           <span>Controls &amp; Filters</span>
         </button>
@@ -659,7 +654,7 @@
         </button>
         <button class="btn-primary" onclick="triggerDocuWareUpload()" style="display:inline-flex;align-items:center;gap:6px;">
           <span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>
-          <span>+ Upload Document</span>
+          <span>Upload Document</span>
         </button>
       </div>
     </div>
@@ -1013,7 +1008,7 @@
       <div class="module-subtitle">Real-Time Fleet Operations, DocuWare Automation Telemetry &amp; Financial Yield</div>
     </div>
     <div class="module-header-actions" id="analytics-header-actions">
-      <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+      <button class="btn-secondary controls-drawer-btn" id="reports-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
         <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
         <span>Controls &amp; Filters</span>
       </button>
@@ -1101,7 +1096,7 @@
         <div class="module-subtitle">Configure enterprise integrations, document management, and API connections</div>
       </div>
       <div class="module-header-actions" id="settings-header-actions">
-        <button class="btn-secondary" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
+        <button class="btn-secondary controls-drawer-btn" id="settings-controls-btn" data-action="open-controls-drawer" onclick="openControlDrawer()" style="display:inline-flex;align-items:center;gap:6px;" title="Open Controls &amp; Filters Drawer (Esc)">
           <span class="material-symbols-outlined" style="font-size:18px;">tune</span>
           <span>Controls &amp; Filters</span>
         </button>
@@ -2138,7 +2133,7 @@
       <span class="material-symbols-outlined control-drawer-icon">tune</span>
       <h3 class="control-drawer-title">Controls &amp; Filters</h3>
     </div>
-    <button class="control-drawer-close" onclick="closeControlDrawer()" title="Close Controls Drawer (Esc)" aria-label="Close">
+    <button class="control-drawer-close" id="control-drawer-close" data-action="close-controls-drawer" onclick="closeControlDrawer()" title="Close Controls Drawer (Esc)" aria-label="Close">
       <span class="material-symbols-outlined">close</span>
     </button>
   </div>
@@ -2300,6 +2295,8 @@
       </div>
     </form>
   </div>
+</div>
+
 <!-- Compliance Record View Modal -->
 <div class="modal-overlay" id="compliance-record-modal" style="display:none;" onclick="if(event.target===this)closeComplianceRecordModal()">
   <div class="modal-box" style="max-width:540px;width:100%;" onclick="event.stopPropagation()">
